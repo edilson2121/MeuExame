@@ -8,6 +8,7 @@ import { ContentsModule } from './contents/contents.module';
 import { ExercisesModule } from './exercises/exercises.module';
 import { ExamsModule } from './exams/exams.module';
 import { ResultsModule } from './results/results.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ResultsModule } from './results/results.module';
     ExercisesModule,
     ExamsModule,
     ResultsModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],

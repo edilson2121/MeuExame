@@ -17,6 +17,7 @@ const contents_module_1 = require("./contents/contents.module");
 const exercises_module_1 = require("./exercises/exercises.module");
 const exams_module_1 = require("./exams/exams.module");
 const results_module_1 = require("./results/results.module");
+const auth_module_1 = require("./auth/auth.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -34,6 +35,7 @@ exports.AppModule = AppModule = __decorate([
             exercises_module_1.ExercisesModule,
             exams_module_1.ExamsModule,
             results_module_1.ResultsModule,
+            auth_module_1.AuthModule,
         ],
         controllers: [],
         providers: [],
