@@ -2,7 +2,8 @@
 
 WORKDIR /app
 
-RUN apk add --no-cache python3 make g++
+# Instalar dependências do sistema (incluindo OpenSSL para o Prisma)
+RUN apk add --no-cache python3 make g++ openssl libcrypto3 libssl3
 ENV PYTHON=/usr/bin/python3
 
 COPY package*.json ./

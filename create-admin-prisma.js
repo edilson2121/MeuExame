@@ -4,7 +4,6 @@ const prisma = new PrismaClient();
 
 async function main() {
   try {
-    // Deletar usuário existente
     await prisma.user.deleteMany({ where: { email: 'admin@admin.com' } });
     console.log('✅ Usuário antigo removido');
     
@@ -20,7 +19,7 @@ async function main() {
         role: 'ADMIN'
       }
     });
-    console.log('✅ Admin criado via Prisma!');
+    console.log('✅ Admin criado com sucesso!');
     console.log('📧 Email:', user.email);
     console.log('🔑 Senha: admin123');
     console.log('🔐 Hash no banco:', user.password);
