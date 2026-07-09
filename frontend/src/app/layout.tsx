@@ -1,22 +1,22 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import './globals.css'
-
-const inter = Inter({ subsets: ['latin'] })
+import type { Metadata } from "next";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: 'MeuExame - Plataforma de Estudos',
-  description: 'Plataforma de estudos para preparação de exames e concursos',
-}
+  title: "MeuExame",
+  description: "A sua plataforma completa de preparação para exames nacionais.",
+  icons: {
+    icon: "/icon.png",
+  },
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR">
-      <body className={inter.className}>{children}</body>
+    <html lang="pt">
+      <body>{children}</body>
     </html>
-  )
+  );
 }

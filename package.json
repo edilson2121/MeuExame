@@ -22,7 +22,15 @@
   "devDependencies": {
     "concurrently": "^8.2.2"
   },
-  "keywords": ["meuexame", "nestjs", "nextjs"],
+  "keywords": [
+    "meuexame",
+    "nestjs",
+    "nextjs"
+  ],
   "author": "MeuExame",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.3.2",
+    "tailwindcss": "^4.3.2"
+  }
 }
