@@ -3,17 +3,22 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Card } from '@/components/ui/Card';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
 
     try {
       const response = await fetch('http://localhost:3001/api/auth/register', {
@@ -28,65 +33,88 @@ export default function RegisterPage() {
         alert('Conta criada com sucesso! Faça login.');
         router.push('/login');
       } else {
-        alert(data.message || 'Erro ao criar conta');
+        setError(data.message || 'Erro ao criar conta');
       }
     } catch (error) {
-      alert('Erro ao criar conta');
+      setError('Erro ao conectar com o servidor');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
-        <h2 className="text-3xl font-bold text-center text-blue-600">Criar Conta</h2>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Nome</label>
-            <input
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="w-full max-w-md">
+        <Card className="p-8">
+          {/* Logo */}
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-gradient-custom rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+              <span className="text-3xl font-bold text-white">ME</span>
+            </div>
+            <h1 className="text-3xl font-bold mt-4 text-gradient">MeuExame</h1>
+            <p className="text-muted-foreground mt-2">Crie sua conta</p>
+          </div>
+
+          {/* Erro */}
+          {error && (
+            <div className="alert alert-danger mb-4">
+              {error}
+            </div>
+          )}
+
+          {/* Formulário */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <Input
+              id="name"
+              label="Nome"
               type="text"
+              placeholder="Seu nome completo"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               required
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input
+
+            <Input
+              id="email"
+              label="Email"
               type="email"
+              placeholder="seu@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               required
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Senha</label>
-            <input
+
+            <Input
+              id="password"
+              label="Senha"
               type="password"
+              placeholder="•••••••• (mínimo 6 caracteres)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               required
               minLength={6}
             />
+
+            <Button
+              type="submit"
+              variant="success"
+              loading={loading}
+              fullWidth
+            >
+              {loading ? 'Criando...' : 'Criar Conta'}
+            </Button>
+          </form>
+
+          {/* Links */}
+          <div className="mt-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              Já tem uma conta?{' '}
+              <Link href="/login" className="text-primary-600 hover:text-primary-700 font-medium">
+                Entrar
+              </Link>
+            </p>
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-          >
-            {loading ? 'Criando...' : 'Criar Conta'}
-          </button>
-        </form>
-        <div className="text-center text-sm">
-          <span className="text-gray-600">Já tem uma conta? </span>
-          <Link href="/login" className="text-blue-600 hover:text-blue-800 font-medium">
-            Entrar
-          </Link>
-        </div>
+        </Card>
       </div>
     </div>
   );

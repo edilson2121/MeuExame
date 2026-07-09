@@ -9,36 +9,32 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
+const prisma_module_1 = require("./prisma/prisma.module");
 const users_module_1 = require("./users/users.module");
 const institutions_module_1 = require("./institutions/institutions.module");
 const courses_module_1 = require("./courses/courses.module");
 const subjects_module_1 = require("./subjects/subjects.module");
-const contents_module_1 = require("./contents/contents.module");
-const exercises_module_1 = require("./exercises/exercises.module");
-const exams_module_1 = require("./exams/exams.module");
-const results_module_1 = require("./results/results.module");
 const auth_module_1 = require("./auth/auth.module");
+const pages_module_1 = require("./modules/pages/pages.module");
+const admin_module_1 = require("./admin/admin.module");
+const public_pages_module_1 = require("./public-pages/public-pages.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            config_1.ConfigModule.forRoot({
-                isGlobal: true,
-            }),
+            config_1.ConfigModule.forRoot(),
+            prisma_module_1.PrismaModule,
             users_module_1.UsersModule,
             institutions_module_1.InstitutionsModule,
             courses_module_1.CoursesModule,
             subjects_module_1.SubjectsModule,
-            contents_module_1.ContentsModule,
-            exercises_module_1.ExercisesModule,
-            exams_module_1.ExamsModule,
-            results_module_1.ResultsModule,
             auth_module_1.AuthModule,
+            pages_module_1.PagesModule,
+            admin_module_1.AdminModule,
+            public_pages_module_1.PublicPagesModule,
         ],
-        controllers: [],
-        providers: [],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

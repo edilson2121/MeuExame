@@ -9,20 +9,24 @@ import {
   BookOpen, 
   GraduationCap,
   Plus,
+  Activity,
   TrendingUp,
-  Activity
+  BarChart3
 } from 'lucide-react';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
 
-// Componente Card
-function Card({ title, value, icon }: { title: string; value: string | number; icon: React.ReactNode }) {
+// Componente de Estatística
+function StatCard({ title, value, icon, color }: any) {
   return (
-    <div className="bg-white rounded-2xl shadow p-6 hover:scale-105 transition-transform">
-      <div className="flex justify-between items-start">
+    <div className="card card-hover">
+      <div className="flex items-center justify-between">
         <div>
-          <p className="text-gray-500 text-sm">{title}</p>
-          <h2 className="text-3xl font-bold mt-2">{value}</h2>
+          <p className="text-sm text-muted-foreground">{title}</p>
+          <h3 className="text-2xl font-bold mt-1">{value}</h3>
         </div>
-        <div className="bg-blue-100 text-blue-600 p-3 rounded-xl">
+        <div className={`p-3 rounded-xl ${color}`}>
           {icon}
         </div>
       </div>
@@ -93,73 +97,183 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando...</p>
-        </div>
+      <div className="loading-container">
+        <div className="loader loader-lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted">
       {/* Navbar */}
-      <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-blue-600">MeuExame</h1>
+      <nav className="bg-card shadow-sm border-b border-border sticky top-0 z-10">
+        <div className="container-custom py-4 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-gradient-custom rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">ME</span>
+            </div>
+            <h1 className="text-2xl font-bold text-gradient">MeuExame</h1>
+            {user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN' ? (
+              <Badge variant="primary">Admin</Badge>
+            ) : (
+              <Badge variant="default">Usuário</Badge>
+            )}
+          </div>
           <div className="flex items-center space-x-4">
-            <span className="text-gray-700">Olá, {user?.name || 'Usuário'}</span>
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-            >
+            {/* Link para Admin (apenas para admins) */}
+            {user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN' ? (
+              <Link 
+                href="/admin" 
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+              >
+                <Users className="w-4 h-4" /> Admin
+              </Link>
+            ) : null}
+            
+            <span className="text-muted-foreground">Olá, {user?.name || 'Usuário'}</span>
+            <Button variant="danger" size="sm" onClick={handleLogout}>
               Sair
-            </button>
+            </Button>
           </div>
         </div>
       </nav>
 
       {/* Main */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-6 mb-8 text-white">
-          <h2 className="text-2xl font-bold">Bem-vindo ao MeuExame!</h2>
-          <p className="mt-2 text-blue-100">Gerencie suas instituições, cursos e disciplinas em um só lugar.</p>
+      <main className="container-custom py-8">
+        {/* Banner */}
+        <div className="bg-gradient-custom rounded-xl p-6 mb-8 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold">Bem-vindo ao MeuExame!</h2>
+              <p className="mt-2 text-white/80">
+                {user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN' 
+                  ? 'Gerencie suas instituições, cursos e disciplinas em um só lugar.'
+                  : 'Acesse seus cursos e disciplinas para estudar.'
+                }
+              </p>
+            </div>
+            <BarChart3 className="w-12 h-12 opacity-50" />
+          </div>
         </div>
 
         {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Link href="/users">
-            <Card title="Usuários" value={stats.users} icon={<Users size={24} />} />
+            <StatCard 
+              title="Usuários" 
+              value={stats.users} 
+              icon={<Users className="w-6 h-6 text-primary-600" />}
+              color="bg-primary-50 dark:bg-primary-900/20"
+            />
           </Link>
           <Link href="/institutions">
-            <Card title="Instituições" value={stats.institutions} icon={<Building2 size={24} />} />
+            <StatCard 
+              title="Instituições" 
+              value={stats.institutions} 
+              icon={<Building2 className="w-6 h-6 text-success" />}
+              color="bg-green-50 dark:bg-green-900/20"
+            />
           </Link>
           <Link href="/courses">
-            <Card title="Cursos" value={stats.courses} icon={<BookOpen size={24} />} />
+            <StatCard 
+              title="Cursos" 
+              value={stats.courses} 
+              icon={<BookOpen className="w-6 h-6 text-secondary-600" />}
+              color="bg-purple-50 dark:bg-purple-900/20"
+            />
           </Link>
           <Link href="/subjects">
-            <Card title="Disciplinas" value={stats.subjects} icon={<GraduationCap size={24} />} />
+            <StatCard 
+              title="Disciplinas" 
+              value={stats.subjects} 
+              icon={<GraduationCap className="w-6 h-6 text-warning" />}
+              color="bg-orange-50 dark:bg-orange-900/20"
+            />
           </Link>
         </div>
 
-        {/* Ações Rápidas */}
-        <div className="bg-white rounded-xl shadow p-6">
-          <h3 className="text-lg font-semibold mb-4 flex items-center">
-            <Activity size={20} className="mr-2 text-blue-600" />
-            Ações Rápidas
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Link href="/institutions/new" className="flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-              <Plus size={18} className="mr-2" /> Nova Instituição
-            </Link>
-            <Link href="/courses/new" className="flex items-center justify-center px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
-              <Plus size={18} className="mr-2" /> Novo Curso
-            </Link>
-            <Link href="/subjects/new" className="flex items-center justify-center px-4 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition">
-              <Plus size={18} className="mr-2" /> Nova Disciplina
-            </Link>
-          </div>
+        {/* Ações Rápidas (apenas para admins) */}
+        {user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN' ? (
+          <Card title="Ações Rápidas" icon={<Activity className="w-5 h-5" />}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Link href="/institutions/new">
+                <Button variant="success" fullWidth>
+                  <Plus className="w-4 h-4 mr-2" /> Nova Instituição
+                </Button>
+              </Link>
+              <Link href="/courses/new">
+                <Button variant="primary" fullWidth>
+                  <Plus className="w-4 h-4 mr-2" /> Novo Curso
+                </Button>
+              </Link>
+              <Link href="/subjects/new">
+                <Button variant="warning" fullWidth>
+                  <Plus className="w-4 h-4 mr-2" /> Nova Disciplina
+                </Button>
+              </Link>
+            </div>
+          </Card>
+        ) : (
+          <Card title="Seus Estudos" icon={<BookOpen className="w-5 h-5" />}>
+            <div className="text-center py-4">
+              <p className="text-muted-foreground">
+                Acesse as disciplinas e comece a estudar!
+              </p>
+              <Link href="/subjects">
+                <Button variant="primary" className="mt-4">
+                  Ver Disciplinas
+                </Button>
+              </Link>
+            </div>
+          </Card>
+        )}
+
+        {/* Atividades Recentes */}
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card title="Atividades Recentes">
+            <div className="space-y-4">
+              {[
+                { action: 'Usuário criou nova instituição', time: '2 min atrás', user: 'Admin' },
+                { action: 'Curso atualizado: Matemática', time: '15 min atrás', user: 'Admin' },
+                { action: 'Nova disciplina adicionada', time: '1 hora atrás', user: 'Admin' },
+              ].map((activity, i) => (
+                <div key={i} className="flex items-center justify-between border-b border-border pb-3 last:border-0">
+                  <div>
+                    <p className="text-sm text-foreground">{activity.action}</p>
+                    <p className="text-xs text-muted-foreground">{activity.user}</p>
+                  </div>
+                  <Badge variant="info">{activity.time}</Badge>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          <Card title="Resumo do Sistema">
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Versão</span>
+                <Badge variant="primary">2.0.0</Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Ambiente</span>
+                <Badge variant="success">Produção</Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Status</span>
+                <Badge variant="success">Online</Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Banco de Dados</span>
+                <Badge variant="success">Conectado</Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Seu Perfil</span>
+                <Badge variant={user?.role === 'SUPER_ADMIN' ? 'primary' : user?.role === 'ADMIN' ? 'success' : 'default'}>
+                  {user?.role || 'Usuário'}
+                </Badge>
+              </div>
+            </div>
+          </Card>
         </div>
       </main>
     </div>

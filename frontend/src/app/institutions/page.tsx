@@ -2,10 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Plus, Edit, Trash2, Building2, Search } from 'lucide-react';
 import { institutionService, Institution } from '@/services/institution.service';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
+import { Input } from '@/components/ui/Input';
 
 export default function InstitutionsPage() {
   const [institutions, setInstitutions] = useState<Institution[]>([]);
+  const [filtered, setFiltered] = useState<Institution[]>([]);
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -15,18 +22,18 @@ export default function InstitutionsPage() {
       router.push('/login');
       return;
     }
-
     loadInstitutions();
   }, [router]);
 
   const loadInstitutions = async () => {
     try {
       const data = await institutionService.findAll();
-      // Garantir que data é um array
       setInstitutions(Array.isArray(data) ? data : []);
+      setFiltered(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Erro ao carregar instituições:', error);
       setInstitutions([]);
+      setFiltered([]);
     } finally {
       setLoading(false);
     }
@@ -43,74 +50,94 @@ export default function InstitutionsPage() {
     }
   };
 
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toLowerCase();
+    setSearch(value);
+    setFiltered(
+      institutions.filter((inst) =>
+        inst.name.toLowerCase().includes(value) ||
+        (inst.description?.toLowerCase().includes(value) || '')
+      )
+    );
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando...</p>
-        </div>
+      <div className="loading-container">
+        <div className="loader loader-lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Instituições</h1>
-          <button
-            onClick={() => router.push('/institutions/new')}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg"
-          >
-            + Nova Instituição
-          </button>
+    <div className="min-h-screen bg-muted p-8">
+      <div className="container-custom">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Instituições</h1>
+            <p className="text-muted-foreground mt-1">Gerencie todas as instituições cadastradas</p>
+          </div>
+          <Button onClick={() => router.push('/institutions/new')}>
+            <Plus className="w-4 h-4 mr-2" /> Nova Instituição
+          </Button>
         </div>
 
-        {institutions.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-12 text-center">
-            <p className="text-gray-500 text-lg">Nenhuma instituição cadastrada.</p>
-            <p className="text-gray-400 text-sm mt-2">Clique em "Nova Instituição" para começar.</p>
+        {/* Search */}
+        <div className="mb-6 max-w-md">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar instituições..."
+              value={search}
+              onChange={handleSearch}
+              className="pl-10"
+            />
           </div>
+        </div>
+
+        {/* Grid */}
+        {filtered.length === 0 ? (
+          <Card className="text-center py-12">
+            <Building2 className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
+            <p className="text-lg text-muted-foreground">Nenhuma instituição cadastrada</p>
+            <p className="text-sm text-muted-foreground mt-2">Clique em "Nova Instituição" para começar</p>
+          </Card>
         ) : (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {institutions.map((institution) => (
-                    <tr key={institution.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {institution.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {institution.description || '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <button
-                          onClick={() => router.push(`/institutions/${institution.id}`)}
-                          className="text-blue-600 hover:text-blue-800 hover:underline mr-4 transition-colors"
-                        >
-                          Editar
-                        </button>
-                        <button
-                          onClick={() => handleDelete(institution.id)}
-                          className="text-red-600 hover:text-red-800 hover:underline transition-colors"
-                        >
-                          Excluir
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filtered.map((institution) => (
+              <Card key={institution.id} className="hover:shadow-lg transition-shadow">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-foreground">{institution.name}</h3>
+                    {institution.description && (
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{institution.description}</p>
+                    )}
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {institution.email && <Badge variant="info">{institution.email}</Badge>}
+                      {institution.phone && <Badge variant="primary">{institution.phone}</Badge>}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-2 mt-4 pt-4 border-t border-border">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => router.push(`/institutions/${institution.id}`)}
+                    className="flex-1"
+                  >
+                    <Edit className="w-4 h-4 mr-1" /> Editar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    onClick={() => handleDelete(institution.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </Card>
+            ))}
           </div>
         )}
       </div>

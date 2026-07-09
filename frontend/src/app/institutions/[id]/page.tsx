@@ -1,160 +1,145 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { Plus, Edit, Trash2, Building2, Search } from 'lucide-react';
 import { institutionService, Institution } from '@/services/institution.service';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
+import { Input } from '@/components/ui/Input';
 
-export default function EditInstitutionPage() {
-  const router = useRouter();
-  const params = useParams();
-  const id = params.id as string;
-  
+export default function InstitutionsPage() {
+  const [institutions, setInstitutions] = useState<Institution[]>([]);
+  const [filtered, setFiltered] = useState<Institution[]>([]);
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [formData, setFormData] = useState<Partial<Institution>>({
-    name: '',
-    description: '',
-    address: '',
-    phone: '',
-    email: '',
-    website: '',
-  });
+  const router = useRouter();
 
   useEffect(() => {
-    loadInstitution();
-  }, [id]);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+    loadInstitutions();
+  }, [router]);
 
-  const loadInstitution = async () => {
+  const loadInstitutions = async () => {
     try {
-      const data = await institutionService.findOne(id);
-      setFormData(data);
+      const data = await institutionService.findAll();
+      setInstitutions(Array.isArray(data) ? data : []);
+      setFiltered(Array.isArray(data) ? data : []);
     } catch (error) {
-      alert('Erro ao carregar instituição');
-      router.push('/institutions');
+      console.error('Erro ao carregar instituições:', error);
+      setInstitutions([]);
+      setFiltered([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+  const handleDelete = async (id: string) => {
+    if (confirm('Tem certeza que deseja excluir esta instituição?')) {
+      try {
+        await institutionService.remove(id);
+        await loadInstitutions();
+      } catch (error) {
+        alert('Erro ao excluir instituição');
+      }
+    }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-
-    try {
-      await institutionService.update(id, formData);
-      router.push('/institutions');
-    } catch (error) {
-      alert('Erro ao atualizar instituição');
-    } finally {
-      setSaving(false);
-    }
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toLowerCase();
+    setSearch(value);
+    setFiltered(
+      institutions.filter((inst) =>
+        inst.name.toLowerCase().includes(value) ||
+        (inst.description?.toLowerCase().includes(value) || '')
+      )
+    );
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="loading-container">
+        <div className="loader loader-lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Editar Instituição</h1>
-        
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">
+    <div className="min-h-screen bg-muted p-8">
+      <div className="container-custom">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Nome *</label>
-            <input
-              type="text"
-              name="name"
-              required
-              value={formData.name || ''}
-              onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            <h1 className="text-3xl font-bold text-foreground">Instituições</h1>
+            <p className="text-muted-foreground mt-1">Gerencie todas as instituições cadastradas</p>
+          </div>
+          <Button onClick={() => router.push('/institutions/new')}>
+            <Plus className="w-4 h-4 mr-2" /> Nova Instituição
+          </Button>
+        </div>
+
+        {/* Search */}
+        <div className="mb-6 max-w-md">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar instituições..."
+              value={search}
+              onChange={handleSearch}
+              className="pl-10"
             />
           </div>
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Descrição</label>
-            <textarea
-              name="description"
-              rows={3}
-              value={formData.description || ''}
-              onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
+        {/* Grid */}
+        {filtered.length === 0 ? (
+          <Card className="text-center py-12">
+            <Building2 className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
+            <p className="text-lg text-muted-foreground">Nenhuma instituição cadastrada</p>
+            <p className="text-sm text-muted-foreground mt-2">Clique em "Nova Instituição" para começar</p>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filtered.map((institution) => (
+              <Card key={institution.id} className="hover:shadow-lg transition-shadow">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-foreground">{institution.name}</h3>
+                    {institution.description && (
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{institution.description}</p>
+                    )}
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {institution.email && <Badge variant="info">{institution.email}</Badge>}
+                      {institution.phone && <Badge variant="primary">{institution.phone}</Badge>}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-2 mt-4 pt-4 border-t border-border">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => router.push(`/institutions/${institution.id}`)}
+                    className="flex-1"
+                  >
+                    <Edit className="w-4 h-4 mr-1" /> Editar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    onClick={() => handleDelete(institution.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </Card>
+            ))}
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Endereço</label>
-            <input
-              type="text"
-              name="address"
-              value={formData.address || ''}
-              onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Telefone</label>
-            <input
-              type="text"
-              name="phone"
-              value={formData.phone || ''}
-              onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email || ''}
-              onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Website</label>
-            <input
-              type="url"
-              name="website"
-              value={formData.website || ''}
-              onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div className="flex gap-4">
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex-1 py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-            >
-              {saving ? 'Salvando...' : 'Atualizar'}
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push('/institutions')}
-              className="flex-1 py-2 px-4 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-            >
-              Cancelar
-            </button>
-          </div>
-        </form>
+        )}
       </div>
     </div>
   );

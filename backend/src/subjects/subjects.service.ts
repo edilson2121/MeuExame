@@ -1,91 +1,33 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../database/prisma.service';
+﻿import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class SubjectsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(data: { name: string; description?: string; courseId: string }) {
-    return this.prisma.subject.create({
-      data,
-      include: {
-        course: {
-          include: {
-            institution: true,
-          },
-        },
+  async create(data: any) {
+    return this.prisma.content.create({
+      data: {
+        title: data.name,
+        body: data.description || '',
+        userId: 'admin',
       },
     });
   }
 
   async findAll() {
-    const subjects = await this.prisma.subject.findMany({
-      include: {
-        course: {
-          include: {
-            institution: true,
-          },
-        },
-      },
-    });
-
-    // Adicionar contagem manualmente
-    return subjects.map(subject => ({
-      ...subject,
-      _count: {
-        contents: 0, // Será implementado depois
-        exercises: 0,
-        exams: 0,
-      },
-    }));
+    return this.prisma.content.findMany();
   }
 
   async findOne(id: string) {
-    const subject = await this.prisma.subject.findUnique({
-      where: { id },
-      include: {
-        course: {
-          include: {
-            institution: true,
-          },
-        },
-      },
-    });
-
-    if (!subject) {
-      throw new NotFoundException('Disciplina não encontrada');
-    }
-
-    return subject;
+    return this.prisma.content.findUnique({ where: { id } });
   }
 
-  async update(id: string, data: { name?: string; description?: string; courseId?: string }) {
-    const subject = await this.prisma.subject.findUnique({ where: { id } });
-
-    if (!subject) {
-      throw new NotFoundException('Disciplina não encontrada');
-    }
-
-    return this.prisma.subject.update({
-      where: { id },
-      data,
-      include: {
-        course: {
-          include: {
-            institution: true,
-          },
-        },
-      },
-    });
+  async update(id: string, data: any) {
+    return this.prisma.content.update({ where: { id }, data });
   }
 
   async remove(id: string) {
-    const subject = await this.prisma.subject.findUnique({ where: { id } });
-
-    if (!subject) {
-      throw new NotFoundException('Disciplina não encontrada');
-    }
-
-    return this.prisma.subject.delete({ where: { id } });
+    return this.prisma.content.delete({ where: { id } });
   }
 }

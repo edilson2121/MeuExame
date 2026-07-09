@@ -22,7 +22,11 @@
   "devDependencies": {
     "concurrently": "^8.2.2"
   },
-  "keywords": ["meuexame", "nestjs", "nextjs"],
+  "keywords": [
+    "meuexame",
+    "nestjs",
+    "nextjs"
+  ],
   "author": "MeuExame",
   "license": "ISC"
 }

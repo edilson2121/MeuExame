@@ -8,6 +8,7 @@ export declare class AuthController {
             id: string;
             email: string;
             name: string;
+            phone: string | null;
             role: import(".prisma/client").$Enums.Role;
             institutionId: string | null;
             createdAt: Date;

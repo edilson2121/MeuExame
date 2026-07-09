@@ -1,0 +1,158 @@
+﻿generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String      @id @default(cuid())
+  email         String      @unique
+  password      String
+  name          String
+  role          Role        @default(USER)
+  institutionId String?
+  institution   Institution? @relation(fields: [institutionId], references: [id])
+  contents      Content[]
+  exercises     Exercise[]
+  exams         Exam[]
+  results       Result[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@map("users")
+}
+
+model Institution {
+  id        String   @id @default(cuid())
+  name      String
+  users     User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("institutions")
+}
+
+model Content {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  content     String
+  type        ContentType @default(TEXT)
+  subjectId   String
+  authorId    String
+  views       Int      @default(0)
+  likes       Int      @default(0)
+  author      User     @relation(fields: [authorId], references: [id])
+  subject     Subject  @relation(fields: [subjectId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("contents")
+}
+
+model Exercise {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  subjectId   String
+  authorId    String
+  difficulty  Difficulty @default(MEDIUM)
+  author      User       @relation(fields: [authorId], references: [id])
+  subject     Subject    @relation(fields: [subjectId], references: [id])
+  questions   Question[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("exercises")
+}
+
+model Exam {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  subjectId   String
+  authorId    String
+  duration    Int?
+  questions   Json?
+  author      User     @relation(fields: [authorId], references: [id])
+  subject     Subject  @relation(fields: [subjectId], references: [id])
+  results     Result[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("exams")
+}
+
+model Course {
+  id        String   @id @default(cuid())
+  name      String
+  subjects  Subject[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("courses")
+}
+
+model Subject {
+  id        String   @id @default(cuid())
+  name      String
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id])
+  contents  Content[]
+  exercises Exercise[]
+  exams     Exam[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("subjects")
+}
+
+model Question {
+  id          String   @id @default(cuid())
+  text        String
+  options     Json?
+  answer      String?
+  explanation String?
+  exerciseId  String
+  exercise    Exercise @relation(fields: [exerciseId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("questions")
+}
+
+model Result {
+  id        String   @id @default(cuid())
+  score     Float
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  examId    String
+  exam      Exam     @relation(fields: [examId], references: [id])
+  answers   Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("results")
+}
+
+enum Role {
+  USER
+  ADMIN
+  TEACHER
+}
+
+enum ContentType {
+  TEXT
+  VIDEO
+  PDF
+  QUIZ
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}

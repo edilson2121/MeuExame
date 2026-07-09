@@ -2,16 +2,22 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Card } from '@/components/ui/Card';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
 
     try {
       const response = await fetch('http://localhost:3001/api/auth/login', {
@@ -26,51 +32,80 @@ export default function LoginPage() {
         localStorage.setItem('token', data.token);
         router.push('/dashboard');
       } else {
-        alert(data.message || 'Erro no login');
+        setError(data.message || 'Credenciais inválidas');
       }
     } catch (error) {
-      alert('Erro ao fazer login');
+      setError('Erro ao conectar com o servidor');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
-        <h2 className="text-3xl font-bold text-center text-blue-600">MeuExame</h2>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="w-full max-w-md">
+        <Card className="p-8">
+          {/* Logo */}
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-gradient-custom rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+              <span className="text-3xl font-bold text-white">ME</span>
+            </div>
+            <h1 className="text-3xl font-bold mt-4 text-gradient">MeuExame</h1>
+            <p className="text-muted-foreground mt-2">Entre na sua conta</p>
+          </div>
+
+          {/* Erro */}
+          {error && (
+            <div className="alert alert-danger mb-4">
+              {error}
+            </div>
+          )}
+
+          {/* Formulário */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <Input
+              id="email"
+              label="Email"
               type="email"
+              placeholder="seu@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               required
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Senha</label>
-            <input
+
+            <Input
+              id="password"
+              label="Senha"
               type="password"
+              placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               required
             />
+
+            <Button
+              type="submit"
+              variant="primary"
+              loading={loading}
+              fullWidth
+            >
+              Entrar
+            </Button>
+          </form>
+
+          {/* Links */}
+          <div className="mt-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              Não tem uma conta?{' '}
+              <Link href="/register" className="text-primary-600 hover:text-primary-700 font-medium">
+                Criar Conta
+              </Link>
+            </p>
+            <p className="text-xs text-muted-foreground mt-4 border-t border-border pt-4">
+              Credenciais: <span className="font-mono bg-muted px-2 py-0.5 rounded">admin@meuexame.com</span> / <span className="font-mono bg-muted px-2 py-0.5 rounded">admin123</span>
+            </p>
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-          >
-            {loading ? 'Entrando...' : 'Entrar'}
-          </button>
-        </form>
-        <div className="text-center text-sm">
-          <span className="text-gray-600">Credenciais: admin@meuexame.com / admin123</span>
-        </div>
+        </Card>
       </div>
     </div>
   );

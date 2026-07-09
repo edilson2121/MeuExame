@@ -36,6 +36,7 @@ export declare class UsersService {
         email: string;
         password: string;
         name: string;
+        phone: string | null;
         role: import(".prisma/client").$Enums.Role;
         institutionId: string | null;
         createdAt: Date;
