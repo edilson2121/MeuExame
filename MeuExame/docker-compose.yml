@@ -1,0 +1,86 @@
+﻿services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: meuexame-postgres
+    environment:
+      POSTGRES_USER: 
+      POSTGRES_PASSWORD: 
+      POSTGRES_DB: 
+    ports:
+      - ":5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U "]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - meuexame-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: meuexame-redis
+    ports:
+      - ":6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - meuexame-network
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: meuexame-backend
+    environment:
+      NODE_ENV: 
+      DATABASE_URL: postgresql://:@postgres:5432/
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: 
+    ports:
+      - ":3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/prisma:/app/prisma
+    networks:
+      - meuexame-network
+    restart: unless-stopped
+    command: npm run start:dev
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: meuexame-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://backend:3001
+      NODE_ENV: 
+    ports:
+      - ":3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+    networks:
+      - meuexame-network
+    restart: unless-stopped
+    command: npm run dev
+
+volumes:
+  postgres_data:
+
+networks:
+  meuexame-network:
+    driver: bridge
