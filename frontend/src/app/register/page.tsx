@@ -23,13 +23,14 @@ export default function RegisterPage() {
     const fallbackName = email.split('@')[0];
 
     try {
-      const response = await fetch('http://localhost:3001/api/auth/register', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           name: fallbackName, 
           email, 
-          password 
+          password,
+          role: 'USER' // Garante que novos cadastros entram estritamente como USER
         }),
       });
 
@@ -93,15 +94,12 @@ export default function RegisterPage() {
 
         {/* Campo Palavra-passe */}
         <div className="flex flex-col gap-1">
-          <div className="flex justify-between items-center">
-            <label className="text-xs font-medium text-gray-700">
-              Palavra-passe
-            </label>
-            
-          </div>
+          <label className="text-xs font-medium text-gray-700">
+            Palavra-passe
+          </label>
           <input
             type="password"
-            placeholder="Digite seu Senha"
+            placeholder="Digite sua senha"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#10A63D] text-black placeholder-gray-400 text-sm"
@@ -117,7 +115,7 @@ export default function RegisterPage() {
           </label>
           <input
             type="password"
-            placeholder="Confirmar Senha"
+            placeholder="Confirme sua senha"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#10A63D] text-black placeholder-gray-400 text-sm"
@@ -125,13 +123,13 @@ export default function RegisterPage() {
           />
         </div>
 
-        {/* Botão Cadastrar / Entrar */}
+        {/* Botão Cadastrar */}
         <button
           type="submit"
           disabled={loading}
           className="w-full bg-[#10A63D] text-white py-3.5 px-5 rounded-xl font-medium text-base hover:bg-[#0e9135] transition-colors disabled:opacity-50 mt-2 shadow-sm"
         >
-          {loading ? 'Criando...' : 'Entrar'}
+          {loading ? 'Criando...' : 'Criar conta'}
         </button>
       </form>
 
