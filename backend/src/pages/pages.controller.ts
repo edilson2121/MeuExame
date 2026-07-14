@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
+﻿import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
 import { PagesService } from './pages.service';
 import { AuthGuard } from '@nestjs/passport';
 import { CreatePageDto } from './dto/create-page.dto';

@@ -1,0 +1,7 @@
+﻿services:
+  backend:
+    volumes:
+      - ./backend/dist:/app/dist
+      - ./backend/.env:/app/.env
+    environment:
+      - NODE_ENV=production

@@ -1,0 +1,15 @@
+﻿  // CORRIGIDO: Usando SQL puro com a sintaxe correta do Prisma
+  async findPublishedMenu() {
+    try {
+      const pages = await this.prisma.
+        SELECT id, title, slug, "menuOrder" 
+        FROM pages 
+        WHERE "showInMenu" = true AND status = 'PUBLISHED'
+        ORDER BY "menuOrder" ASC
+      ;
+      return pages || [];
+    } catch (error) {
+      console.error('Erro ao buscar páginas do menu:', error);
+      return [];
+    }
+  }

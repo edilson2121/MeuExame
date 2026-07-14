@@ -16,26 +16,73 @@ let SubjectsService = class SubjectsService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async create(data) {
-        return this.prisma.content.create({
+    async create(createSubjectDto) {
+        const course = await this.prisma.course.findUnique({
+            where: { id: createSubjectDto.courseId },
+        });
+        if (!course) {
+            throw new common_1.NotFoundException('Curso não encontrado');
+        }
+        return this.prisma.subject.create({
             data: {
-                title: data.name,
-                body: data.description || '',
-                userId: 'admin',
+                name: createSubjectDto.name,
+                courseId: createSubjectDto.courseId,
             },
         });
     }
     async findAll() {
-        return this.prisma.content.findMany();
+        return this.prisma.subject.findMany({
+            include: {
+                course: true,
+            },
+            orderBy: {
+                name: 'asc',
+            },
+        });
     }
     async findOne(id) {
-        return this.prisma.content.findUnique({ where: { id } });
+        const subject = await this.prisma.subject.findUnique({
+            where: { id },
+            include: {
+                course: true,
+            },
+        });
+        if (!subject) {
+            throw new common_1.NotFoundException('Disciplina não encontrada');
+        }
+        return subject;
     }
-    async update(id, data) {
-        return this.prisma.content.update({ where: { id }, data });
+    async findByCourse(courseId) {
+        return this.prisma.subject.findMany({
+            where: { courseId },
+            include: {
+                course: true,
+            },
+            orderBy: {
+                name: 'asc',
+            },
+        });
+    }
+    async update(id, updateSubjectDto) {
+        await this.findOne(id);
+        if (updateSubjectDto.courseId) {
+            const course = await this.prisma.course.findUnique({
+                where: { id: updateSubjectDto.courseId },
+            });
+            if (!course) {
+                throw new common_1.NotFoundException('Curso não encontrado');
+            }
+        }
+        return this.prisma.subject.update({
+            where: { id },
+            data: updateSubjectDto,
+        });
     }
     async remove(id) {
-        return this.prisma.content.delete({ where: { id } });
+        await this.findOne(id);
+        return this.prisma.subject.delete({
+            where: { id },
+        });
     }
 };
 exports.SubjectsService = SubjectsService;

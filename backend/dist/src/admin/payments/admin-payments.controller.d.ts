@@ -20,9 +20,9 @@ export declare class AdminPaymentsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        status: import(".prisma/client").$Enums.SubscriptionStatus;
         isActive: boolean;
         userId: string;
-        status: import(".prisma/client").$Enums.SubscriptionStatus;
         plan: import(".prisma/client").$Enums.SubscriptionPlan;
         amount: number;
         currency: string;
@@ -45,9 +45,9 @@ export declare class AdminPaymentsController {
             id: string;
             createdAt: Date;
             updatedAt: Date;
+            status: import(".prisma/client").$Enums.SubscriptionStatus;
             isActive: boolean;
             userId: string;
-            status: import(".prisma/client").$Enums.SubscriptionStatus;
             plan: import(".prisma/client").$Enums.SubscriptionPlan;
             amount: number;
             currency: string;
@@ -58,8 +58,8 @@ export declare class AdminPaymentsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
         status: import(".prisma/client").$Enums.PaymentStatus;
+        userId: string;
         amount: number;
         currency: string;
         subscriptionId: string;
@@ -72,8 +72,8 @@ export declare class AdminPaymentsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
         status: import(".prisma/client").$Enums.PaymentStatus;
+        userId: string;
         amount: number;
         currency: string;
         subscriptionId: string;
@@ -98,8 +98,8 @@ export declare class AdminPaymentsController {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            userId: string;
             status: import(".prisma/client").$Enums.PaymentStatus;
+            userId: string;
             amount: number;
             currency: string;
             subscriptionId: string;
@@ -112,9 +112,9 @@ export declare class AdminPaymentsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        status: import(".prisma/client").$Enums.SubscriptionStatus;
         isActive: boolean;
         userId: string;
-        status: import(".prisma/client").$Enums.SubscriptionStatus;
         plan: import(".prisma/client").$Enums.SubscriptionPlan;
         amount: number;
         currency: string;
@@ -137,9 +137,9 @@ export declare class AdminPaymentsController {
             id: string;
             createdAt: Date;
             updatedAt: Date;
+            status: import(".prisma/client").$Enums.SubscriptionStatus;
             isActive: boolean;
             userId: string;
-            status: import(".prisma/client").$Enums.SubscriptionStatus;
             plan: import(".prisma/client").$Enums.SubscriptionPlan;
             amount: number;
             currency: string;
@@ -150,8 +150,8 @@ export declare class AdminPaymentsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
         status: import(".prisma/client").$Enums.PaymentStatus;
+        userId: string;
         amount: number;
         currency: string;
         subscriptionId: string;
@@ -176,9 +176,9 @@ export declare class AdminPaymentsController {
             id: string;
             createdAt: Date;
             updatedAt: Date;
+            status: import(".prisma/client").$Enums.SubscriptionStatus;
             isActive: boolean;
             userId: string;
-            status: import(".prisma/client").$Enums.SubscriptionStatus;
             plan: import(".prisma/client").$Enums.SubscriptionPlan;
             amount: number;
             currency: string;
@@ -189,8 +189,8 @@ export declare class AdminPaymentsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
         status: import(".prisma/client").$Enums.PaymentStatus;
+        userId: string;
         amount: number;
         currency: string;
         subscriptionId: string;
@@ -215,9 +215,9 @@ export declare class AdminPaymentsController {
             id: string;
             createdAt: Date;
             updatedAt: Date;
+            status: import(".prisma/client").$Enums.SubscriptionStatus;
             isActive: boolean;
             userId: string;
-            status: import(".prisma/client").$Enums.SubscriptionStatus;
             plan: import(".prisma/client").$Enums.SubscriptionPlan;
             amount: number;
             currency: string;
@@ -228,8 +228,8 @@ export declare class AdminPaymentsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        userId: string;
         status: import(".prisma/client").$Enums.PaymentStatus;
+        userId: string;
         amount: number;
         currency: string;
         subscriptionId: string;
@@ -246,8 +246,8 @@ export declare class AdminPaymentsController {
                         id: string;
                         createdAt: Date;
                         updatedAt: Date;
-                        userId: string;
                         status: import(".prisma/client").$Enums.PaymentStatus;
+                        userId: string;
                         amount: number;
                         currency: string;
                         subscriptionId: string;
@@ -260,9 +260,9 @@ export declare class AdminPaymentsController {
                     id: string;
                     createdAt: Date;
                     updatedAt: Date;
+                    status: import(".prisma/client").$Enums.SubscriptionStatus;
                     isActive: boolean;
                     userId: string;
-                    status: import(".prisma/client").$Enums.SubscriptionStatus;
                     plan: import(".prisma/client").$Enums.SubscriptionPlan;
                     amount: number;
                     currency: string;
@@ -305,8 +305,8 @@ export declare class AdminPaymentsController {
                     id: string;
                     createdAt: Date;
                     updatedAt: Date;
-                    userId: string;
                     status: import(".prisma/client").$Enums.PaymentStatus;
+                    userId: string;
                     amount: number;
                     currency: string;
                     subscriptionId: string;
@@ -319,9 +319,9 @@ export declare class AdminPaymentsController {
                 id: string;
                 createdAt: Date;
                 updatedAt: Date;
+                status: import(".prisma/client").$Enums.SubscriptionStatus;
                 isActive: boolean;
                 userId: string;
-                status: import(".prisma/client").$Enums.SubscriptionStatus;
                 plan: import(".prisma/client").$Enums.SubscriptionPlan;
                 amount: number;
                 currency: string;

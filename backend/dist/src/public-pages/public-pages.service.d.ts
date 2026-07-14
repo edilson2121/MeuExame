@@ -38,18 +38,18 @@ export declare class PublicPagesService {
         institutionId: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
-        isActive: boolean;
         title: string;
         slug: string;
+        description: string | null;
         showInMenu: boolean;
         menuOrder: number;
         status: import(".prisma/client").$Enums.PublishStatus;
         publishedAt: Date | null;
-        settings: import("@prisma/client/runtime/library").JsonValue | null;
         layoutId: string;
+        settings: import("@prisma/client/runtime/library").JsonValue | null;
         seoTitle: string | null;
         seoKeywords: string | null;
+        isActive: boolean;
     })[]>;
     getPublishedPageBySlug(slug: string, institutionId: string): Promise<{
         institution: {
@@ -87,18 +87,18 @@ export declare class PublicPagesService {
         institutionId: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
-        isActive: boolean;
         title: string;
         slug: string;
+        description: string | null;
         showInMenu: boolean;
         menuOrder: number;
         status: import(".prisma/client").$Enums.PublishStatus;
         publishedAt: Date | null;
-        settings: import("@prisma/client/runtime/library").JsonValue | null;
         layoutId: string;
+        settings: import("@prisma/client/runtime/library").JsonValue | null;
         seoTitle: string | null;
         seoKeywords: string | null;
+        isActive: boolean;
     }>;
     getPublicMenu(institutionId: string): Promise<{
         id: string;

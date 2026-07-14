@@ -1,0 +1,5 @@
+﻿  async findPublishedMenu() {
+    // Temporariamente retornando array vazio até resolver o problema do Prisma
+    console.warn('findPublishedMenu: Retornando array vazio temporariamente');
+    return [];
+  }

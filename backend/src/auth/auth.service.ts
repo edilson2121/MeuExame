@@ -1,7 +1,11 @@
-﻿import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '../database/prisma.service';
 import * as bcrypt from 'bcryptjs';
+import { PrismaService } from '../database/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
@@ -13,10 +17,21 @@ export class AuthService {
   ) {}
 
   async login(loginDto: LoginDto) {
+    return this.loginWithRole(loginDto, false);
+  }
+
+  async adminLogin(loginDto: LoginDto) {
+    return this.loginWithRole(loginDto, true);
+  }
+
+  private async loginWithRole(loginDto: LoginDto, adminOnly: boolean) {
     const { email, password } = loginDto;
 
     const user = await this.prisma.user.findUnique({
       where: { email },
+      include: {
+        subscription: true,
+      },
     });
 
     if (!user) {
@@ -27,6 +42,14 @@ export class AuthService {
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Credenciais inválidas');
+    }
+
+    if (adminOnly && user.role !== 'ADMIN') {
+      throw new UnauthorizedException('Esta rota é exclusiva para administradores');
+    }
+
+    if (!adminOnly && user.role === 'ADMIN') {
+      throw new UnauthorizedException('Administradores devem entrar pela rota de admin');
     }
 
     const token = this.jwtService.sign({
@@ -46,7 +69,6 @@ export class AuthService {
   async register(registerDto: RegisterDto) {
     const { name, email, password, phone, institutionId } = registerDto;
 
-    // Verificar se o email já existe
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -55,7 +77,6 @@ export class AuthService {
       throw new BadRequestException('Este email já está registado.');
     }
 
-    // Verificar se a instituição existe (se foi fornecida)
     if (institutionId) {
       const institution = await this.prisma.institution.findUnique({
         where: { id: institutionId },
@@ -66,10 +87,9 @@ export class AuthService {
       }
     }
 
-    // Hash da senha
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const rounds = Number(process.env.BCRYPT_ROUNDS || 12);
+    const hashedPassword = await bcrypt.hash(password, rounds);
 
-    // Criar usuário
     const user = await this.prisma.user.create({
       data: {
         name,
@@ -77,11 +97,9 @@ export class AuthService {
         password: hashedPassword,
         phone: phone || null,
         institutionId: institutionId || null,
-        // role já tem padrão USER no schema
       },
     });
 
-    // Gerar token
     const token = this.jwtService.sign({
       sub: user.id,
       email: user.email,

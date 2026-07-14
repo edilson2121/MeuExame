@@ -8,33 +8,21 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
-const config_1 = require("@nestjs/config");
+const app_controller_1 = require("./app.controller");
+const app_service_1 = require("./app.service");
 const prisma_module_1 = require("./prisma/prisma.module");
-const users_module_1 = require("./users/users.module");
-const institutions_module_1 = require("./institutions/institutions.module");
-const courses_module_1 = require("./courses/courses.module");
-const subjects_module_1 = require("./subjects/subjects.module");
-const auth_module_1 = require("./auth/auth.module");
-const pages_module_1 = require("./modules/pages/pages.module");
-const admin_module_1 = require("./admin/admin.module");
-const public_pages_module_1 = require("./public-pages/public-pages.module");
+const pages_module_1 = require("./pages/pages.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            config_1.ConfigModule.forRoot(),
             prisma_module_1.PrismaModule,
-            users_module_1.UsersModule,
-            institutions_module_1.InstitutionsModule,
-            courses_module_1.CoursesModule,
-            subjects_module_1.SubjectsModule,
-            auth_module_1.AuthModule,
             pages_module_1.PagesModule,
-            admin_module_1.AdminModule,
-            public_pages_module_1.PublicPagesModule,
         ],
+        controllers: [app_controller_1.AppController],
+        providers: [app_service_1.AppService],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

@@ -1,9 +1,30 @@
-import { Controller, Get, Post, Put, Param, Body, HttpCode, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  Put,
+  Query,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { AdminPaymentsService } from './admin-payments.service';
-import { CreateSubscriptionDto, ApprovePaymentDto, RecordPaymentDto } from './dto/payment.dto';
+import {
+  ApprovePaymentDto,
+  CreateSubscriptionDto,
+  MarkUserPaidDto,
+  RecordPaymentDto,
+} from './dto/payment.dto';
 import { PaymentStatus } from '@prisma/client';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { RolesGuard } from '../../common/guards/roles.guard';
 
 @Controller('admin/payments')
+@UseGuards(AuthGuard('jwt'), RolesGuard)
+@Roles('ADMIN')
 export class AdminPaymentsController {
   constructor(private readonly paymentsService: AdminPaymentsService) {}
 
@@ -15,17 +36,25 @@ export class AdminPaymentsController {
 
   @Post('record')
   @HttpCode(201)
-  async recordPayment(@Body() dto: RecordPaymentDto) {
-    // In a real app, you would extract adminId from JWT token
-    const adminId = 'admin-default';
+  async recordPayment(@Body() dto: RecordPaymentDto, @Request() req) {
+    const adminId = req.user.id;
     return this.paymentsService.recordPayment(dto, adminId);
   }
 
   @Put('approve/:paymentId')
-  async approvePayment(@Param('paymentId') paymentId: string, @Body() dto: ApprovePaymentDto) {
-    // In a real app, you would extract adminId from JWT token
-    const adminId = 'admin-default';
+  async approvePayment(
+    @Param('paymentId') paymentId: string,
+    @Body() dto: ApprovePaymentDto,
+    @Request() req,
+  ) {
+    const adminId = req.user.id;
     return this.paymentsService.approvePayment(paymentId, dto, adminId);
+  }
+
+  @Post('mark-paid')
+  @HttpCode(201)
+  async markUserPaid(@Body() dto: MarkUserPaidDto, @Request() req) {
+    return this.paymentsService.markUserPaid(dto, req.user.id);
   }
 
   @Get('subscription/:userId')

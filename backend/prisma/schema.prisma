@@ -23,9 +23,9 @@ enum PublishStatus {
 }
 
 enum SubscriptionPlan {
-  BASIC
-  PREMIUM
-  ENTERPRISE
+  DAILY
+  WEEKLY
+  MONTHLY
 }
 
 enum SubscriptionStatus {
@@ -91,6 +91,9 @@ model Institution {
   
   // Relations
   users       User[]
+  courses     Course[]
+  subjects    Subject[]
+  exams       Exam[]
   pages       InstitutionPage[]
   
   // Payment tracking
@@ -108,7 +111,9 @@ model Content {
   id        String   @id @default(cuid())
   title     String
   body      String
+  subjectId String?
   userId    String
+  subject   Subject? @relation(fields: [subjectId], references: [id], onDelete: SetNull)
   user      User     @relation(fields: [userId], references: [id])
   exercises Exercise[]
   createdAt DateTime @default(now())
@@ -121,10 +126,12 @@ model Exercise {
   id        String   @id @default(cuid())
   title     String
   body      String
+  subjectId String?
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   contentId String
   content   Content  @relation(fields: [contentId], references: [id])
+  subject   Subject? @relation(fields: [subjectId], references: [id], onDelete: SetNull)
   questions Question[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -133,59 +140,119 @@ model Exercise {
 }
 
 model Exam {
-  id        String   @id @default(cuid())
-  title     String
-  body      String
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  results   Result[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String        @id @default(cuid())
+  title           String
+  body            String?       @db.Text
+  description     String?       @db.Text
+  instructions    String?       @db.Text
+  durationMinutes Int?
+  imageUrl        String?
+  status          PublishStatus @default(DRAFT)
+  publishedAt     DateTime?
+  isPaidRequired  Boolean       @default(true)
+  institutionId   String?
+  institution     Institution?  @relation(fields: [institutionId], references: [id], onDelete: SetNull)
+  subjectId       String?
+  subject         Subject?      @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  questions       ExamQuestion[]
+  results         Result[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   @@map("exams")
 }
 
 model Course {
-  id        String   @id @default(cuid())
-  name      String
-  subjects  Subject[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  institutionId String?
+  institution   Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
+  subjects      Subject[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@map("courses")
 }
 
 model Subject {
-  id        String   @id @default(cuid())
-  name      String
-  courseId  String
-  course    Course   @relation(fields: [courseId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  courseId      String?
+  course        Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  institutionId String?
+  institution   Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
+  contents      Content[]
+  exercises     Exercise[]
+  exams         Exam[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@map("subjects")
 }
 
 model Question {
-  id        String   @id @default(cuid())
-  text      String
-  exerciseId String
-  exercise  Exercise @relation(fields: [exerciseId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(cuid())
+  text          String
+  options       Json?
+  correctAnswer String?
+  explanation   String?  @db.Text
+  exerciseId    String
+  exercise      Exercise @relation(fields: [exerciseId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@map("questions")
 }
 
-model Result {
-  id        String   @id @default(cuid())
-  score     Float
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+model ExamQuestion {
+  id        String       @id @default(cuid())
+  text      String       @db.Text
+  imageUrl  String?
+  points    Float        @default(1)
+  sortOrder Int          @default(0)
   examId    String
-  exam      Exam     @relation(fields: [examId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  exam      Exam         @relation(fields: [examId], references: [id], onDelete: Cascade)
+  options   ExamOption[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@map("exam_questions")
+}
+
+model ExamOption {
+  id          String       @id @default(cuid())
+  label       String
+  text        String       @db.Text
+  imageUrl    String?
+  isCorrect   Boolean      @default(false)
+  explanation String?      @db.Text
+  sortOrder   Int          @default(0)
+  questionId  String
+  question    ExamQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("exam_options")
+}
+
+model Result {
+  id             String   @id @default(cuid())
+  score          Float
+  totalQuestions Int      @default(0)
+  correctAnswers Int      @default(0)
+  percentage     Float    @default(0)
+  answers        Json?
+  completedAt    DateTime @default(now())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  examId         String
+  exam           Exam     @relation(fields: [examId], references: [id])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@map("results")
 }

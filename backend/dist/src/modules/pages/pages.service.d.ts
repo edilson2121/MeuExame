@@ -8,9 +8,9 @@ export declare class PagesService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
         title: string;
         slug: string;
+        description: string | null;
         keywords: string | null;
         template: string | null;
         showInMenu: boolean;
@@ -36,9 +36,9 @@ export declare class PagesService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
         title: string;
         slug: string;
+        description: string | null;
         keywords: string | null;
         template: string | null;
         showInMenu: boolean;
@@ -53,13 +53,13 @@ export declare class PagesService {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            isActive: boolean;
             title: string | null;
+            settings: import("@prisma/client/runtime/library").JsonValue | null;
+            isActive: boolean;
             sortOrder: number;
             type: string;
             imageUrl: string | null;
             imageAlt: string | null;
-            settings: import("@prisma/client/runtime/library").JsonValue | null;
             pageId: string;
         }[];
     } & {
@@ -67,9 +67,9 @@ export declare class PagesService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
         title: string;
         slug: string;
+        description: string | null;
         keywords: string | null;
         template: string | null;
         showInMenu: boolean;
@@ -84,13 +84,13 @@ export declare class PagesService {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            isActive: boolean;
             title: string | null;
+            settings: import("@prisma/client/runtime/library").JsonValue | null;
+            isActive: boolean;
             sortOrder: number;
             type: string;
             imageUrl: string | null;
             imageAlt: string | null;
-            settings: import("@prisma/client/runtime/library").JsonValue | null;
             pageId: string;
         }[];
     } & {
@@ -98,9 +98,9 @@ export declare class PagesService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
         title: string;
         slug: string;
+        description: string | null;
         keywords: string | null;
         template: string | null;
         showInMenu: boolean;
@@ -114,9 +114,9 @@ export declare class PagesService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
         title: string;
         slug: string;
+        description: string | null;
         keywords: string | null;
         template: string | null;
         showInMenu: boolean;
@@ -130,9 +130,9 @@ export declare class PagesService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
         title: string;
         slug: string;
+        description: string | null;
         keywords: string | null;
         template: string | null;
         showInMenu: boolean;
@@ -146,9 +146,9 @@ export declare class PagesService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
         title: string;
         slug: string;
+        description: string | null;
         keywords: string | null;
         template: string | null;
         showInMenu: boolean;

@@ -6,10 +6,11 @@ import { AdminPaymentsController } from './payments/admin-payments.controller';
 import { AdminLayoutsService } from './layouts/admin-layouts.service';
 import { AdminLayoutsController } from './layouts/admin-layouts.controller';
 import { PrismaService } from '../database/prisma.service';
+import { RolesGuard } from '../common/guards/roles.guard';
 
 @Module({
   controllers: [AdminPagesController, AdminPaymentsController, AdminLayoutsController],
-  providers: [AdminPagesService, AdminPaymentsService, AdminLayoutsService, PrismaService],
+  providers: [AdminPagesService, AdminPaymentsService, AdminLayoutsService, PrismaService, RolesGuard],
   exports: [AdminPagesService, AdminPaymentsService, AdminLayoutsService],
 })
 export class AdminModule {}

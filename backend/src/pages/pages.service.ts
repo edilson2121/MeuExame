@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreatePageDto, CreatePageSectionDto } from './dto/create-page.dto';
+import { CreatePageDto } from './dto/create-page.dto';
 import { UpdatePageDto } from './dto/update-page.dto';
 
 @Injectable()
@@ -13,7 +13,7 @@ export class PagesService {
     });
 
     if (!user || user.role !== 'ADMIN') {
-      throw new ForbiddenException('Apenas administradores podem criar p√°ginas');
+      throw new ForbiddenException('Apenas administradores podem criar p·ginas');
     }
 
     const existingPage = await this.prisma.page.findUnique({
@@ -21,7 +21,7 @@ export class PagesService {
     });
 
     if (existingPage) {
-      throw new NotFoundException('Slug j√° est√° em uso');
+      throw new NotFoundException('Slug j· est· em uso');
     }
 
     const pageData: any = {
@@ -42,26 +42,10 @@ export class PagesService {
     }
 
     const page = await this.prisma.page.create({
-      data: {
-        ...pageData,
-        sections: createPageDto.sections ? {
-          create: createPageDto.sections.map((section, index) => ({
-            type: section.type,
-            title: section.title,
-            content: section.content,
-            imageUrl: section.imageUrl,
-            imageAlt: section.imageAlt,
-            settings: section.settings,
-            sortOrder: section.sortOrder !== undefined ? section.sortOrder : index,
-          })),
-        } : undefined,
-      },
+      data: pageData,
       include: {
         user: {
           select: { id: true, name: true, email: true },
-        },
-        sections: {
-          orderBy: { sortOrder: 'asc' },
         },
       },
     });
@@ -75,16 +59,13 @@ export class PagesService {
     });
 
     if (!user || user.role !== 'ADMIN') {
-      throw new ForbiddenException('Apenas administradores podem listar todas as p√°ginas');
+      throw new ForbiddenException('Apenas administradores podem listar todas as p·ginas');
     }
 
     return this.prisma.page.findMany({
       include: {
         user: {
           select: { id: true, name: true, email: true },
-        },
-        sections: {
-          orderBy: { sortOrder: 'asc' },
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -97,7 +78,7 @@ export class PagesService {
     });
 
     if (!user || user.role !== 'ADMIN') {
-      throw new ForbiddenException('Apenas administradores podem visualizar esta p√°gina');
+      throw new ForbiddenException('Apenas administradores podem visualizar esta p·gina');
     }
 
     const page = await this.prisma.page.findUnique({
@@ -106,14 +87,11 @@ export class PagesService {
         user: {
           select: { id: true, name: true, email: true },
         },
-        sections: {
-          orderBy: { sortOrder: 'asc' },
-        },
       },
     });
 
     if (!page) {
-      throw new NotFoundException('P√°gina n√£o encontrada');
+      throw new NotFoundException('P·gina n„o encontrada');
     }
 
     return page;
@@ -125,16 +103,15 @@ export class PagesService {
     });
 
     if (!user || user.role !== 'ADMIN') {
-      throw new ForbiddenException('Apenas administradores podem atualizar p√°ginas');
+      throw new ForbiddenException('Apenas administradores podem atualizar p·ginas');
     }
 
     const page = await this.prisma.page.findUnique({
       where: { id },
-      include: { sections: true },
     });
 
     if (!page) {
-      throw new NotFoundException('P√°gina n√£o encontrada');
+      throw new NotFoundException('P·gina n„o encontrada');
     }
 
     if (updatePageDto.slug && updatePageDto.slug !== page.slug) {
@@ -143,7 +120,7 @@ export class PagesService {
       });
 
       if (existingPage) {
-        throw new NotFoundException('Slug j√° est√° em uso');
+        throw new NotFoundException('Slug j· est· em uso');
       }
     }
 
@@ -163,59 +140,12 @@ export class PagesService {
       updateData.publishedAt = new Date();
     }
 
-    if (updatePageDto.sections) {
-      const sectionIds = updatePageDto.sections
-        .filter(s => s.id)
-        .map(s => s.id);
-
-      await this.prisma.pageSection.deleteMany({
-        where: {
-          pageId: id,
-          id: { notIn: sectionIds },
-        },
-      });
-
-      for (const sectionDto of updatePageDto.sections) {
-        if (sectionDto.id) {
-          await this.prisma.pageSection.update({
-            where: { id: sectionDto.id },
-            data: {
-              type: sectionDto.type,
-              title: sectionDto.title,
-              content: sectionDto.content,
-              imageUrl: sectionDto.imageUrl,
-              imageAlt: sectionDto.imageAlt,
-              settings: sectionDto.settings,
-              sortOrder: sectionDto.sortOrder,
-              isActive: sectionDto.isActive,
-            },
-          });
-        } else {
-          await this.prisma.pageSection.create({
-            data: {
-              type: sectionDto.type,
-              title: sectionDto.title,
-              content: sectionDto.content,
-              imageUrl: sectionDto.imageUrl,
-              imageAlt: sectionDto.imageAlt,
-              settings: sectionDto.settings,
-              sortOrder: sectionDto.sortOrder || 0,
-              pageId: id,
-            },
-          });
-        }
-      }
-    }
-
     return this.prisma.page.update({
       where: { id },
       data: updateData,
       include: {
         user: {
           select: { id: true, name: true, email: true },
-        },
-        sections: {
-          orderBy: { sortOrder: 'asc' },
         },
       },
     });
@@ -227,7 +157,7 @@ export class PagesService {
     });
 
     if (!user || user.role !== 'ADMIN') {
-      throw new ForbiddenException('Apenas administradores podem publicar p√°ginas');
+      throw new ForbiddenException('Apenas administradores podem publicar p·ginas');
     }
 
     const page = await this.prisma.page.findUnique({
@@ -235,7 +165,7 @@ export class PagesService {
     });
 
     if (!page) {
-      throw new NotFoundException('P√°gina n√£o encontrada');
+      throw new NotFoundException('P·gina n„o encontrada');
     }
 
     return this.prisma.page.update({
@@ -243,11 +173,6 @@ export class PagesService {
       data: {
         status: 'PUBLISHED',
         publishedAt: new Date(),
-      },
-      include: {
-        sections: {
-          orderBy: { sortOrder: 'asc' },
-        },
       },
     });
   }
@@ -258,7 +183,7 @@ export class PagesService {
     });
 
     if (!user || user.role !== 'ADMIN') {
-      throw new ForbiddenException('Apenas administradores podem arquivar p√°ginas');
+      throw new ForbiddenException('Apenas administradores podem arquivar p·ginas');
     }
 
     const page = await this.prisma.page.findUnique({
@@ -266,7 +191,7 @@ export class PagesService {
     });
 
     if (!page) {
-      throw new NotFoundException('P√°gina n√£o encontrada');
+      throw new NotFoundException('P·gina n„o encontrada');
     }
 
     return this.prisma.page.update({
@@ -283,7 +208,7 @@ export class PagesService {
     });
 
     if (!user || user.role !== 'ADMIN') {
-      throw new ForbiddenException('Apenas administradores podem remover p√°ginas');
+      throw new ForbiddenException('Apenas administradores podem remover p·ginas');
     }
 
     const page = await this.prisma.page.findUnique({
@@ -291,12 +216,8 @@ export class PagesService {
     });
 
     if (!page) {
-      throw new NotFoundException('P√°gina n√£o encontrada');
+      throw new NotFoundException('P·gina n„o encontrada');
     }
-
-    await this.prisma.pageSection.deleteMany({
-      where: { pageId: id },
-    });
 
     return this.prisma.page.delete({
       where: { id },
@@ -313,34 +234,20 @@ export class PagesService {
         user: {
           select: { id: true, name: true },
         },
-        sections: {
-          where: { isActive: true },
-          orderBy: { sortOrder: 'asc' },
-        },
       },
     });
 
     if (!page) {
-      throw new NotFoundException('P√°gina n√£o encontrada ou n√£o publicada');
+      throw new NotFoundException('P·gina n„o encontrada ou n„o publicada');
     }
 
     return page;
   }
 
+  // TEMPOR¡RIO: Retornando array vazio
   async findPublishedMenu() {
-    return this.prisma.page.findMany({
-      where: {
-        status: 'PUBLISHED',
-        showInMenu: true,
-      },
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        menuOrder: true,
-      },
-      orderBy: { menuOrder: 'asc' },
-    });
+    console.warn('findPublishedMenu: Retornando array vazio temporariamente');
+    return [];
   }
 
   async findPublished() {

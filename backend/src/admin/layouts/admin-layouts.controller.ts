@@ -1,8 +1,24 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, Query, HttpCode } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { AdminLayoutsService } from './admin-layouts.service';
 import { CreateLayoutTemplateDto, UpdateLayoutTemplateDto } from './dto/layout-template.dto';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { RolesGuard } from '../../common/guards/roles.guard';
 
 @Controller('admin/layouts')
+@UseGuards(AuthGuard('jwt'), RolesGuard)
+@Roles('ADMIN')
 export class AdminLayoutsController {
   constructor(private readonly layoutsService: AdminLayoutsService) {}
 

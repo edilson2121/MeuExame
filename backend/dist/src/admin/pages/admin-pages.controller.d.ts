@@ -39,18 +39,18 @@ export declare class AdminPagesController {
         institutionId: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
-        isActive: boolean;
         title: string;
         slug: string;
+        description: string | null;
         showInMenu: boolean;
         menuOrder: number;
         status: import(".prisma/client").$Enums.PublishStatus;
         publishedAt: Date | null;
-        settings: import("@prisma/client/runtime/library").JsonValue | null;
         layoutId: string;
+        settings: import("@prisma/client/runtime/library").JsonValue | null;
         seoTitle: string | null;
         seoKeywords: string | null;
+        isActive: boolean;
     }>;
     update(id: string, dto: UpdateInstitutionPageDto): Promise<{
         institution: {
@@ -88,18 +88,18 @@ export declare class AdminPagesController {
         institutionId: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
-        isActive: boolean;
         title: string;
         slug: string;
+        description: string | null;
         showInMenu: boolean;
         menuOrder: number;
         status: import(".prisma/client").$Enums.PublishStatus;
         publishedAt: Date | null;
-        settings: import("@prisma/client/runtime/library").JsonValue | null;
         layoutId: string;
+        settings: import("@prisma/client/runtime/library").JsonValue | null;
         seoTitle: string | null;
         seoKeywords: string | null;
+        isActive: boolean;
     }>;
     publish(id: string, dto: PublishInstitutionPageDto): Promise<{
         institution: {
@@ -137,18 +137,18 @@ export declare class AdminPagesController {
         institutionId: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
-        isActive: boolean;
         title: string;
         slug: string;
+        description: string | null;
         showInMenu: boolean;
         menuOrder: number;
         status: import(".prisma/client").$Enums.PublishStatus;
         publishedAt: Date | null;
-        settings: import("@prisma/client/runtime/library").JsonValue | null;
         layoutId: string;
+        settings: import("@prisma/client/runtime/library").JsonValue | null;
         seoTitle: string | null;
         seoKeywords: string | null;
+        isActive: boolean;
     }>;
     getByInstitution(institutionId: string): Promise<({
         institution: {
@@ -186,18 +186,18 @@ export declare class AdminPagesController {
         institutionId: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
-        isActive: boolean;
         title: string;
         slug: string;
+        description: string | null;
         showInMenu: boolean;
         menuOrder: number;
         status: import(".prisma/client").$Enums.PublishStatus;
         publishedAt: Date | null;
-        settings: import("@prisma/client/runtime/library").JsonValue | null;
         layoutId: string;
+        settings: import("@prisma/client/runtime/library").JsonValue | null;
         seoTitle: string | null;
         seoKeywords: string | null;
+        isActive: boolean;
     })[]>;
     getPublishedByInstitution(institutionId: string): Promise<({
         institution: {
@@ -235,18 +235,18 @@ export declare class AdminPagesController {
         institutionId: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
-        isActive: boolean;
         title: string;
         slug: string;
+        description: string | null;
         showInMenu: boolean;
         menuOrder: number;
         status: import(".prisma/client").$Enums.PublishStatus;
         publishedAt: Date | null;
-        settings: import("@prisma/client/runtime/library").JsonValue | null;
         layoutId: string;
+        settings: import("@prisma/client/runtime/library").JsonValue | null;
         seoTitle: string | null;
         seoKeywords: string | null;
+        isActive: boolean;
     })[]>;
     getById(id: string): Promise<{
         institution: {
@@ -284,18 +284,18 @@ export declare class AdminPagesController {
         institutionId: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
-        isActive: boolean;
         title: string;
         slug: string;
+        description: string | null;
         showInMenu: boolean;
         menuOrder: number;
         status: import(".prisma/client").$Enums.PublishStatus;
         publishedAt: Date | null;
-        settings: import("@prisma/client/runtime/library").JsonValue | null;
         layoutId: string;
+        settings: import("@prisma/client/runtime/library").JsonValue | null;
         seoTitle: string | null;
         seoKeywords: string | null;
+        isActive: boolean;
     }>;
     delete(id: string): Promise<void>;
 }

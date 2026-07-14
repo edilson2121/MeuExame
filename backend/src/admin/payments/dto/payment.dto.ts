@@ -46,3 +46,25 @@ export class RecordPaymentDto {
   @IsString()
   currency?: string;
 }
+
+export class MarkUserPaidDto {
+  @IsString()
+  userId: string;
+
+  @IsEnum(SubscriptionPlan)
+  plan: SubscriptionPlan;
+
+  @IsNumber()
+  amount: number;
+
+  @IsEnum(PaymentMethod)
+  method: PaymentMethod;
+
+  @IsOptional()
+  @IsString()
+  reference?: string;
+
+  @IsOptional()
+  @IsString()
+  currency?: string;
+}

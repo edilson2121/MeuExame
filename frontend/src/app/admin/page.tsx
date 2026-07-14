@@ -1,344 +1,136 @@
-'use client';
+﻿'use client';
 
-import { useEffect, useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import Link from 'next/link';
-import { 
-  Users, 
-  Building2, 
-  BookOpen, 
-  GraduationCap, 
-  Settings, 
-  Shield, 
-  UserCog,
-  BarChart3,
-  Activity,
-  Plus,
-  Trash2,
-  Edit,
-  Eye
-} from 'lucide-react';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  createdAt: string;
-}
 
 export default function AdminPage() {
-  const [user, setUser] = useState<any>(null);
-  const [users, setUsers] = useState<User[]>([]);
-  const [stats, setStats] = useState({
-    users: 0,
-    institutions: 0,
-    courses: 0,
-    subjects: 0,
-  });
-  const [loading, setLoading] = useState(true);
+  const { user, isAdmin, isAuthenticated } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    if (!isAuthenticated) {
       router.push('/login');
-      return;
+    } else if (!isAdmin) {
+      router.push('/dashboard');
     }
+  }, [isAuthenticated, isAdmin, router]);
 
-    const fetchData = async () => {
-      try {
-        // Buscar perfil do usuário
-        const profileRes = await fetch('http://localhost:3001/api/auth/profile', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const userData = await profileRes.json();
-        setUser(userData);
-
-        // Verificar se é admin
-        if (userData.role !== 'SUPER_ADMIN' && userData.role !== 'ADMIN') {
-          router.push('/dashboard');
-          return;
-        }
-
-        // Buscar dados
-        const [usersRes, institutionsRes, coursesRes, subjectsRes] = await Promise.all([
-          fetch('http://localhost:3001/api/users', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('http://localhost:3001/api/institutions', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('http://localhost:3001/api/courses', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('http://localhost:3001/api/subjects', { headers: { 'Authorization': `Bearer ${token}` } })
-        ]);
-
-        const usersData = await usersRes.json();
-        const institutions = await institutionsRes.json();
-        const courses = await coursesRes.json();
-        const subjects = await subjectsRes.json();
-
-        setUsers(Array.isArray(usersData) ? usersData : []);
-        setStats({
-          users: Array.isArray(usersData) ? usersData.length : 0,
-          institutions: Array.isArray(institutions) ? institutions.length : 0,
-          courses: Array.isArray(courses) ? courses.length : 0,
-          subjects: Array.isArray(subjects) ? subjects.length : 0,
-        });
-      } catch (error) {
-        console.error('Erro ao carregar dados:', error);
-        localStorage.removeItem('token');
-        router.push('/login');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [router]);
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    router.push('/login');
-  };
-
-  if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="loader loader-lg" />
-      </div>
-    );
-  }
-
-  if (!user || (user.role !== 'SUPER_ADMIN' && user.role !== 'ADMIN')) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="text-center p-12 max-w-md">
-          <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-foreground">Acesso Negado</h2>
-          <p className="text-muted-foreground mt-2">Você não tem permissão para acessar esta página.</p>
-          <Button className="mt-6" onClick={() => router.push('/dashboard')}>
-            Voltar ao Dashboard
-          </Button>
-        </Card>
-      </div>
-    );
+  if (!isAdmin) {
+    return <div>Carregando...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-muted">
-      {/* Navbar */}
-      <nav className="bg-card shadow-sm border-b border-border sticky top-0 z-10">
-        <div className="container-custom py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-custom rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">ME</span>
-            </div>
-            <h1 className="text-2xl font-bold text-gradient">MeuExame</h1>
-            <Badge variant="primary">Admin</Badge>
-          </div>
-          <div className="flex items-center space-x-4">
-            <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
-              Dashboard
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-8 text-yellow-600">
+        🛠️ Painel Administrativo
+      </h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Gerenciar Usuários */}
+        <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+          <h2 className="text-xl font-bold mb-2">👥 Usuários</h2>
+          <p className="text-gray-600 mb-4">Gerenciar todos os usuários do sistema</p>
+          <Link
+            href="/admin/users"
+            className="text-blue-600 hover:text-blue-800 font-semibold"
+          >
+            Gerenciar →
+          </Link>
+        </div>
+
+        {/* Gerenciar Cursos */}
+        <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+          <h2 className="text-xl font-bold mb-2">📚 Cursos</h2>
+          <p className="text-gray-600 mb-4">Criar e gerenciar cursos</p>
+          <div className="space-y-2">
+            <Link
+              href="/courses"
+              className="block text-blue-600 hover:text-blue-800 font-semibold"
+            >
+              Ver Cursos →
             </Link>
-            <span className="text-muted-foreground">Olá, {user?.name || 'Usuário'}</span>
-            <Button variant="danger" size="sm" onClick={handleLogout}>
-              Sair
-            </Button>
+            <Link
+              href="/courses/new"
+              className="block text-green-600 hover:text-green-800 font-semibold"
+            >
+              + Novo Curso
+            </Link>
           </div>
         </div>
-      </nav>
 
-      {/* Main */}
-      <main className="container-custom py-8">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
-          <Shield className="w-8 h-8 text-primary-600" />
+        {/* Gerenciar Instituições */}
+        <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+          <h2 className="text-xl font-bold mb-2">🏛️ Instituições</h2>
+          <p className="text-gray-600 mb-4">Gerenciar instituições parceiras</p>
+          <Link
+            href="/institutions"
+            className="text-blue-600 hover:text-blue-800 font-semibold"
+          >
+            Gerenciar →
+          </Link>
+        </div>
+
+        {/* Gerenciar Disciplinas */}
+        <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+          <h2 className="text-xl font-bold mb-2">📖 Disciplinas</h2>
+          <p className="text-gray-600 mb-4">Gerenciar disciplinas dos cursos</p>
+          <Link
+            href="/subjects"
+            className="text-blue-600 hover:text-blue-800 font-semibold"
+          >
+            Gerenciar →
+          </Link>
+        </div>
+
+        {/* Gerenciar Páginas */}
+        <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+          <h2 className="text-xl font-bold mb-2">📄 Páginas</h2>
+          <p className="text-gray-600 mb-4">Gerenciar páginas do site</p>
+          <Link
+            href="/admin/pages"
+            className="text-blue-600 hover:text-blue-800 font-semibold"
+          >
+            Gerenciar →
+          </Link>
+        </div>
+
+        {/* Configurações */}
+        <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+          <h2 className="text-xl font-bold mb-2">⚙️ Configurações</h2>
+          <p className="text-gray-600 mb-4">Configurações gerais do sistema</p>
+          <Link
+            href="/admin/settings"
+            className="text-blue-600 hover:text-blue-800 font-semibold"
+          >
+            Configurar →
+          </Link>
+        </div>
+      </div>
+
+      {/* Informações do Sistema */}
+      <div className="mt-8 bg-white p-6 rounded-lg shadow">
+        <h2 className="text-xl font-bold mb-4">📊 Resumo do Sistema</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Painel Administrativo</h1>
-            <p className="text-muted-foreground">Gerencie todos os aspectos do sistema</p>
+            <p className="text-gray-500 text-sm">Versão</p>
+            <p className="font-semibold">2.0.0</p>
           </div>
-          <Badge variant="primary" className="ml-auto">
-            {user?.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}
-          </Badge>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Link href="/users">
-            <Card className="hover:shadow-lg transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Usuários</p>
-                  <p className="text-2xl font-bold">{stats.users}</p>
-                </div>
-                <div className="p-3 bg-blue-100 rounded-xl">
-                  <Users className="w-6 h-6 text-blue-600" />
-                </div>
-              </div>
-              <Button variant="outline" className="w-full mt-4" size="sm">
-                <Eye className="w-4 h-4 mr-2" /> Ver Usuários
-              </Button>
-            </Card>
-          </Link>
-
-          <Link href="/institutions">
-            <Card className="hover:shadow-lg transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Instituições</p>
-                  <p className="text-2xl font-bold">{stats.institutions}</p>
-                </div>
-                <div className="p-3 bg-green-100 rounded-xl">
-                  <Building2 className="w-6 h-6 text-green-600" />
-                </div>
-              </div>
-              <Button variant="outline" className="w-full mt-4" size="sm">
-                <Eye className="w-4 h-4 mr-2" /> Ver Instituições
-              </Button>
-            </Card>
-          </Link>
-
-          <Link href="/courses">
-            <Card className="hover:shadow-lg transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Cursos</p>
-                  <p className="text-2xl font-bold">{stats.courses}</p>
-                </div>
-                <div className="p-3 bg-purple-100 rounded-xl">
-                  <BookOpen className="w-6 h-6 text-purple-600" />
-                </div>
-              </div>
-              <Button variant="outline" className="w-full mt-4" size="sm">
-                <Eye className="w-4 h-4 mr-2" /> Ver Cursos
-              </Button>
-            </Card>
-          </Link>
-
-          <Link href="/subjects">
-            <Card className="hover:shadow-lg transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Disciplinas</p>
-                  <p className="text-2xl font-bold">{stats.subjects}</p>
-                </div>
-                <div className="p-3 bg-orange-100 rounded-xl">
-                  <GraduationCap className="w-6 h-6 text-orange-600" />
-                </div>
-              </div>
-              <Button variant="outline" className="w-full mt-4" size="sm">
-                <Eye className="w-4 h-4 mr-2" /> Ver Disciplinas
-              </Button>
-            </Card>
-          </Link>
-        </div>
-
-        {/* Ações Rápidas Admin */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <Card title="Ações Rápidas" icon={<Activity className="w-5 h-5" />}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Link href="/institutions/new">
-                <Button variant="success" fullWidth size="sm">
-                  <Plus className="w-4 h-4 mr-2" /> Nova Instituição
-                </Button>
-              </Link>
-              <Link href="/courses/new">
-                <Button variant="primary" fullWidth size="sm">
-                  <Plus className="w-4 h-4 mr-2" /> Novo Curso
-                </Button>
-              </Link>
-              <Link href="/subjects/new">
-                <Button variant="warning" fullWidth size="sm">
-                  <Plus className="w-4 h-4 mr-2" /> Nova Disciplina
-                </Button>
-              </Link>
-              <Link href="/users">
-                <Button variant="outline" fullWidth size="sm">
-                  <Users className="w-4 h-4 mr-2" /> Gerenciar Usuários
-                </Button>
-              </Link>
-            </div>
-          </Card>
-
-          <Card title="Configurações do Sistema" icon={<Settings className="w-5 h-5" />}>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center border-b border-border pb-2">
-                <span className="text-sm text-foreground">Versão</span>
-                <Badge variant="primary">2.0.0</Badge>
-              </div>
-              <div className="flex justify-between items-center border-b border-border pb-2">
-                <span className="text-sm text-foreground">Ambiente</span>
-                <Badge variant="success">Produção</Badge>
-              </div>
-              <div className="flex justify-between items-center border-b border-border pb-2">
-                <span className="text-sm text-foreground">Usuários Ativos</span>
-                <Badge variant="info">{stats.users}</Badge>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-foreground">Seu Perfil</span>
-                <Badge variant={user?.role === 'SUPER_ADMIN' ? 'primary' : 'success'}>
-                  {user?.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}
-                </Badge>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Lista de Usuários (Admin) */}
-        <Card title="Últimos Usuários" icon={<Users className="w-5 h-5" />}>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left text-sm font-medium text-muted-foreground py-2 px-3">Nome</th>
-                  <th className="text-left text-sm font-medium text-muted-foreground py-2 px-3">Email</th>
-                  <th className="text-left text-sm font-medium text-muted-foreground py-2 px-3">Role</th>
-                  <th className="text-left text-sm font-medium text-muted-foreground py-2 px-3">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.slice(0, 5).map((u) => (
-                  <tr key={u.id} className="border-b border-border hover:bg-muted/30 transition-colors">
-                    <td className="py-2 px-3 text-sm text-foreground">{u.name}</td>
-                    <td className="py-2 px-3 text-sm text-muted-foreground">{u.email}</td>
-                    <td className="py-2 px-3">
-                      <Badge variant={u.role === 'SUPER_ADMIN' ? 'primary' : u.role === 'ADMIN' ? 'success' : 'default'}>
-                        {u.role}
-                      </Badge>
-                    </td>
-                    <td className="py-2 px-3">
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline">
-                          <Edit className="w-3 h-3" />
-                        </Button>
-                        <Button size="sm" variant="danger">
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {users.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="text-center py-4 text-muted-foreground">
-                      Nenhum usuário encontrado
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+          <div>
+            <p className="text-gray-500 text-sm">Ambiente</p>
+            <p className="font-semibold text-green-600">Produção</p>
           </div>
-          {users.length > 5 && (
-            <div className="mt-4 text-center">
-              <Link href="/users">
-                <Button variant="outline" size="sm">
-                  Ver todos os {stats.users} usuários
-                </Button>
-              </Link>
-            </div>
-          )}
-        </Card>
-      </main>
+          <div>
+            <p className="text-gray-500 text-sm">Status</p>
+            <p className="font-semibold text-green-600">Online</p>
+          </div>
+          <div>
+            <p className="text-gray-500 text-sm">Banco de Dados</p>
+            <p className="font-semibold text-green-600">Conectado</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
