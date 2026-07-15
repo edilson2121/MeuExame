@@ -1,14 +1,12 @@
-﻿import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
-import { AuthProvider } from '@/contexts/AuthContext';
-import Navbar from '@/components/navbar/Navbar';
-
-const inter = Inter({ subsets: ['latin'] });
+import type { Metadata } from "next";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: 'MeuExame',
-  description: 'Plataforma de estudos',
+  title: "MeuExame",
+  description: "A sua plataforma completa de preparação para exames nacionais.",
+  icons: {
+    icon: "/icon.png",
+  },
 };
 
 export default function RootLayout({
@@ -17,15 +15,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR">
-      <body className={inter.className}>
-        <AuthProvider>
-          <Navbar />
-          <main className="min-h-screen bg-gray-50">
-            {children}
-          </main>
-        </AuthProvider>
-      </body>
+    <html lang="pt">
+      <body>{children}</body>
     </html>
   );
 }
