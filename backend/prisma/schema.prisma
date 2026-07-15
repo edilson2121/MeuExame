@@ -23,11 +23,11 @@ enum PublishStatus {
 }
 
 enum SubscriptionPlan {
+  BASIC     // ← ADICIONAR ESTE
   DAILY
   WEEKLY
   MONTHLY
 }
-
 enum SubscriptionStatus {
   INACTIVE
   ACTIVE

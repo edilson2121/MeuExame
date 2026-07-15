@@ -284,6 +284,7 @@ export class AdminPaymentsService {
   private calculateEndDate(plan: SubscriptionPlan, from = new Date()): Date {
     const endDate = new Date(from);
     const daysByPlan: Record<SubscriptionPlan, number> = {
+       BASIC: 30, 
       DAILY: 1,
       WEEKLY: 7,
       MONTHLY: 30,

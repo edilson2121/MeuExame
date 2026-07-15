@@ -32,10 +32,10 @@ export default function NovoPagamentoPage() {
   return (
     <div className="min-h-screen bg-[#F4F7F6] flex flex-col md:flex-row text-sm">
       <Sidebar 
-        user={{ name: 'Admin', email: 'admin@meuexame.com', role: 'admin' }} 
-        isSidebarOpen={true} 
-        setIsSidebarOpen={() => {}} 
-        handleLogout={() => {}} 
+        user={{ name: 'Admin', email: 'admin@meuexame.com' }}  // role removido
+        isSidebarOpen={true}
+        setIsSidebarOpen={() => { }}
+        handleLogout={() => { }}
       />
 
       <div className="flex-1 w-full">
