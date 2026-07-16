@@ -5,48 +5,54 @@ export declare class ExercisesController {
     private readonly exercisesService;
     constructor(exercisesService: ExercisesService);
     create(createExerciseDto: CreateExerciseDto): Promise<{
+        title: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         userId: string;
         body: string;
+        subjectId: string | null;
         contentId: string;
     }>;
     findAll(): Promise<({
         user: {
+            institutionId: string | null;
             id: string;
-            email: string;
-            password: string;
             name: string;
             phone: string | null;
-            role: import(".prisma/client").$Enums.Role;
-            institutionId: string | null;
+            email: string;
             createdAt: Date;
             updatedAt: Date;
+            password: string;
+            role: import(".prisma/client").$Enums.Role;
         };
         content: {
+            title: string;
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            title: string;
             userId: string;
             body: string;
+            subjectId: string | null;
         };
         questions: {
             id: string;
             createdAt: Date;
             updatedAt: Date;
             text: string;
+            options: import("@prisma/client/runtime/library").JsonValue | null;
+            correctAnswer: string | null;
+            explanation: string | null;
             exerciseId: string;
         }[];
     } & {
+        title: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         userId: string;
         body: string;
+        subjectId: string | null;
         contentId: string;
     })[]>;
     findByContent(contentId: string): Promise<({
@@ -55,69 +61,80 @@ export declare class ExercisesController {
             createdAt: Date;
             updatedAt: Date;
             text: string;
+            options: import("@prisma/client/runtime/library").JsonValue | null;
+            correctAnswer: string | null;
+            explanation: string | null;
             exerciseId: string;
         }[];
     } & {
+        title: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         userId: string;
         body: string;
+        subjectId: string | null;
         contentId: string;
     })[]>;
     findOne(id: string): Promise<{
         user: {
+            institutionId: string | null;
             id: string;
-            email: string;
-            password: string;
             name: string;
             phone: string | null;
-            role: import(".prisma/client").$Enums.Role;
-            institutionId: string | null;
+            email: string;
             createdAt: Date;
             updatedAt: Date;
+            password: string;
+            role: import(".prisma/client").$Enums.Role;
         };
         content: {
+            title: string;
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            title: string;
             userId: string;
             body: string;
+            subjectId: string | null;
         };
         questions: {
             id: string;
             createdAt: Date;
             updatedAt: Date;
             text: string;
+            options: import("@prisma/client/runtime/library").JsonValue | null;
+            correctAnswer: string | null;
+            explanation: string | null;
             exerciseId: string;
         }[];
     } & {
+        title: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         userId: string;
         body: string;
+        subjectId: string | null;
         contentId: string;
     }>;
     update(id: string, updateExerciseDto: UpdateExerciseDto): Promise<{
+        title: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         userId: string;
         body: string;
+        subjectId: string | null;
         contentId: string;
     }>;
     remove(id: string): Promise<{
+        title: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         userId: string;
         body: string;
+        subjectId: string | null;
         contentId: string;
     }>;
 }

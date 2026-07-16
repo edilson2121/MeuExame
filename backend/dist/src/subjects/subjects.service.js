@@ -5,89 +5,41 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SubjectsService = void 0;
 const common_1 = require("@nestjs/common");
-const prisma_service_1 = require("../prisma/prisma.service");
 let SubjectsService = class SubjectsService {
-    constructor(prisma) {
-        this.prisma = prisma;
+    findAll() {
+        return [];
     }
-    async create(createSubjectDto) {
-        const course = await this.prisma.course.findUnique({
-            where: { id: createSubjectDto.courseId },
-        });
-        if (!course) {
-            throw new common_1.NotFoundException('Curso não encontrado');
-        }
-        return this.prisma.subject.create({
-            data: {
-                name: createSubjectDto.name,
-                courseId: createSubjectDto.courseId,
-            },
-        });
+    findByInstitution(institutionId) {
+        return [];
     }
-    async findAll() {
-        return this.prisma.subject.findMany({
-            include: {
-                course: true,
-            },
-            orderBy: {
-                name: 'asc',
-            },
-        });
+    findByCourse(courseId) {
+        return [];
     }
-    async findOne(id) {
-        const subject = await this.prisma.subject.findUnique({
-            where: { id },
-            include: {
-                course: true,
-            },
-        });
-        if (!subject) {
-            throw new common_1.NotFoundException('Disciplina não encontrada');
-        }
-        return subject;
+    findOne(id) {
+        return {
+            id,
+        };
     }
-    async findByCourse(courseId) {
-        return this.prisma.subject.findMany({
-            where: { courseId },
-            include: {
-                course: true,
-            },
-            orderBy: {
-                name: 'asc',
-            },
-        });
+    create(createSubjectDto) {
+        return createSubjectDto;
     }
-    async update(id, updateSubjectDto) {
-        await this.findOne(id);
-        if (updateSubjectDto.courseId) {
-            const course = await this.prisma.course.findUnique({
-                where: { id: updateSubjectDto.courseId },
-            });
-            if (!course) {
-                throw new common_1.NotFoundException('Curso não encontrado');
-            }
-        }
-        return this.prisma.subject.update({
-            where: { id },
-            data: updateSubjectDto,
-        });
+    update(id, updateSubjectDto) {
+        return {
+            id,
+            ...updateSubjectDto,
+        };
     }
-    async remove(id) {
-        await this.findOne(id);
-        return this.prisma.subject.delete({
-            where: { id },
-        });
+    remove(id) {
+        return {
+            deleted: id,
+        };
     }
 };
 exports.SubjectsService = SubjectsService;
 exports.SubjectsService = SubjectsService = __decorate([
-    (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    (0, common_1.Injectable)()
 ], SubjectsService);
 //# sourceMappingURL=subjects.service.js.map

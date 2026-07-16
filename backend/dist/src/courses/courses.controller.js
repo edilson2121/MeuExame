@@ -14,17 +14,21 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CoursesController = void 0;
 const common_1 = require("@nestjs/common");
-const courses_service_1 = require("./courses.service");
-const auth_guard_1 = require("../common/guards/auth.guard");
-const roles_guard_1 = require("../common/guards/roles.guard");
+const passport_1 = require("@nestjs/passport");
 const roles_decorator_1 = require("../common/decorators/roles.decorator");
+const roles_guard_1 = require("../common/guards/roles.guard");
+const courses_service_1 = require("./courses.service");
 const create_course_dto_1 = require("./dto/create-course.dto");
+const adminGuards = [(0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard];
 let CoursesController = class CoursesController {
     constructor(coursesService) {
         this.coursesService = coursesService;
     }
     async findAll() {
         return this.coursesService.findAll();
+    }
+    async findByInstitution(institutionId) {
+        return this.coursesService.findByInstitution(institutionId);
     }
     async findOne(id) {
         return this.coursesService.findOne(id);
@@ -47,6 +51,13 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CoursesController.prototype, "findAll", null);
 __decorate([
+    (0, common_1.Get)('institution/:institutionId'),
+    __param(0, (0, common_1.Param)('institutionId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], CoursesController.prototype, "findByInstitution", null);
+__decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
@@ -55,6 +66,7 @@ __decorate([
 ], CoursesController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Post)(),
+    (0, common_1.UseGuards)(...adminGuards),
     (0, roles_decorator_1.Roles)('ADMIN'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -63,6 +75,8 @@ __decorate([
 ], CoursesController.prototype, "create", null);
 __decorate([
     (0, common_1.Put)(':id'),
+    (0, common_1.Patch)(':id'),
+    (0, common_1.UseGuards)(...adminGuards),
     (0, roles_decorator_1.Roles)('ADMIN'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
@@ -72,6 +86,7 @@ __decorate([
 ], CoursesController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, common_1.UseGuards)(...adminGuards),
     (0, roles_decorator_1.Roles)('ADMIN'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
@@ -80,7 +95,6 @@ __decorate([
 ], CoursesController.prototype, "remove", null);
 exports.CoursesController = CoursesController = __decorate([
     (0, common_1.Controller)('courses'),
-    (0, common_1.UseGuards)(auth_guard_1.AuthGuard, roles_guard_1.RolesGuard),
     __metadata("design:paramtypes", [courses_service_1.CoursesService])
 ], CoursesController);
 //# sourceMappingURL=courses.controller.js.map

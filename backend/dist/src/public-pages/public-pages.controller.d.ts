@@ -4,29 +4,29 @@ export declare class PublicPagesController {
     constructor(pagesService: PublicPagesService);
     getPublishedByInstitution(institutionId: string): Promise<({
         institution: {
-            id: string;
-            email: string | null;
-            name: string;
-            phone: string | null;
-            createdAt: Date;
-            updatedAt: Date;
             description: string | null;
+            id: string;
+            name: string;
             logo: string | null;
             website: string | null;
+            phone: string | null;
+            email: string | null;
             address: string | null;
             city: string | null;
             country: string | null;
             isPaid: boolean;
             paidAt: Date | null;
             isActive: boolean;
-        };
-        layout: {
-            id: string;
-            name: string;
             createdAt: Date;
             updatedAt: Date;
+        };
+        layout: {
             description: string | null;
+            id: string;
+            name: string;
             isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
             html: string;
             css: string | null;
             thumbnail: string | null;
@@ -34,48 +34,48 @@ export declare class PublicPagesController {
         };
     } & {
         content: string | null;
-        id: string;
         institutionId: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         slug: string;
         description: string | null;
-        showInMenu: boolean;
-        menuOrder: number;
-        status: import(".prisma/client").$Enums.PublishStatus;
-        publishedAt: Date | null;
         layoutId: string;
         settings: import("@prisma/client/runtime/library").JsonValue | null;
+        showInMenu: boolean;
+        menuOrder: number;
         seoTitle: string | null;
         seoKeywords: string | null;
+        status: import(".prisma/client").$Enums.PublishStatus;
+        id: string;
         isActive: boolean;
+        createdAt: Date;
+        updatedAt: Date;
+        publishedAt: Date | null;
     })[]>;
     getBySlug(slug: string, institutionId: string): Promise<{
         institution: {
-            id: string;
-            email: string | null;
-            name: string;
-            phone: string | null;
-            createdAt: Date;
-            updatedAt: Date;
             description: string | null;
+            id: string;
+            name: string;
             logo: string | null;
             website: string | null;
+            phone: string | null;
+            email: string | null;
             address: string | null;
             city: string | null;
             country: string | null;
             isPaid: boolean;
             paidAt: Date | null;
             isActive: boolean;
-        };
-        layout: {
-            id: string;
-            name: string;
             createdAt: Date;
             updatedAt: Date;
+        };
+        layout: {
             description: string | null;
+            id: string;
+            name: string;
             isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
             html: string;
             css: string | null;
             thumbnail: string | null;
@@ -83,27 +83,27 @@ export declare class PublicPagesController {
         };
     } & {
         content: string | null;
-        id: string;
         institutionId: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         slug: string;
         description: string | null;
-        showInMenu: boolean;
-        menuOrder: number;
-        status: import(".prisma/client").$Enums.PublishStatus;
-        publishedAt: Date | null;
         layoutId: string;
         settings: import("@prisma/client/runtime/library").JsonValue | null;
+        showInMenu: boolean;
+        menuOrder: number;
         seoTitle: string | null;
         seoKeywords: string | null;
+        status: import(".prisma/client").$Enums.PublishStatus;
+        id: string;
         isActive: boolean;
+        createdAt: Date;
+        updatedAt: Date;
+        publishedAt: Date | null;
     }>;
     getMenu(institutionId: string): Promise<{
-        id: string;
         title: string;
         slug: string;
         menuOrder: number;
+        id: string;
     }[]>;
 }

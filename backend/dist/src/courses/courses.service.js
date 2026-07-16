@@ -18,13 +18,29 @@ let CoursesService = class CoursesService {
     }
     async findAll() {
         return this.prisma.course.findMany({
-            include: { subjects: true },
+            include: {
+                institution: true,
+                subjects: true,
+            },
+            orderBy: { name: 'asc' },
+        });
+    }
+    async findByInstitution(institutionId) {
+        return this.prisma.course.findMany({
+            where: { institutionId },
+            include: {
+                subjects: true,
+            },
+            orderBy: { name: 'asc' },
         });
     }
     async findOne(id) {
         const course = await this.prisma.course.findUnique({
             where: { id },
-            include: { subjects: true },
+            include: {
+                institution: true,
+                subjects: true,
+            },
         });
         if (!course) {
             throw new common_1.NotFoundException('Curso não encontrado');
@@ -32,15 +48,19 @@ let CoursesService = class CoursesService {
         return course;
     }
     async create(createCourseDto) {
+        await this.ensureInstitutionExists(createCourseDto.institutionId);
         return this.prisma.course.create({
             data: createCourseDto,
+            include: { institution: true },
         });
     }
     async update(id, updateCourseDto) {
         await this.findOne(id);
+        await this.ensureInstitutionExists(updateCourseDto.institutionId);
         return this.prisma.course.update({
             where: { id },
             data: updateCourseDto,
+            include: { institution: true },
         });
     }
     async remove(id) {
@@ -48,6 +68,17 @@ let CoursesService = class CoursesService {
         return this.prisma.course.delete({
             where: { id },
         });
+    }
+    async ensureInstitutionExists(institutionId) {
+        if (!institutionId) {
+            return;
+        }
+        const institution = await this.prisma.institution.findUnique({
+            where: { id: institutionId },
+        });
+        if (!institution) {
+            throw new common_1.BadRequestException('Instituição não encontrada');
+        }
     }
 };
 exports.CoursesService = CoursesService;

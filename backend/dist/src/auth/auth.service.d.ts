@@ -8,27 +8,67 @@ export declare class AuthService {
     constructor(prisma: PrismaService, jwtService: JwtService);
     login(loginDto: LoginDto): Promise<{
         user: {
+            subscription: {
+                status: import(".prisma/client").$Enums.SubscriptionStatus;
+                id: string;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: string;
+                plan: import(".prisma/client").$Enums.SubscriptionPlan;
+                amount: number;
+                currency: string;
+                startDate: Date | null;
+                endDate: Date | null;
+            };
+            institutionId: string | null;
             id: string;
-            email: string;
             name: string;
             phone: string | null;
-            role: import(".prisma/client").$Enums.Role;
-            institutionId: string | null;
+            email: string;
             createdAt: Date;
             updatedAt: Date;
+            role: import(".prisma/client").$Enums.Role;
         };
         token: string;
     }>;
-    register(registerDto: RegisterDto): Promise<{
+    adminLogin(loginDto: LoginDto): Promise<{
         user: {
+            subscription: {
+                status: import(".prisma/client").$Enums.SubscriptionStatus;
+                id: string;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: string;
+                plan: import(".prisma/client").$Enums.SubscriptionPlan;
+                amount: number;
+                currency: string;
+                startDate: Date | null;
+                endDate: Date | null;
+            };
+            institutionId: string | null;
             id: string;
-            email: string;
             name: string;
             phone: string | null;
-            role: import(".prisma/client").$Enums.Role;
-            institutionId: string | null;
+            email: string;
             createdAt: Date;
             updatedAt: Date;
+            role: import(".prisma/client").$Enums.Role;
+        };
+        token: string;
+    }>;
+    private loginWithRole;
+    register(registerDto: RegisterDto): Promise<{
+        user: {
+            institutionId: string | null;
+            id: string;
+            name: string;
+            phone: string | null;
+            email: string;
+            createdAt: Date;
+            updatedAt: Date;
+            role: import(".prisma/client").$Enums.Role;
         };
         token: string;
     }>;

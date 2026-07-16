@@ -17,3 +17,11 @@ export declare class RecordPaymentDto {
     reference?: string;
     currency?: string;
 }
+export declare class MarkUserPaidDto {
+    userId: string;
+    plan: SubscriptionPlan;
+    amount: number;
+    method: PaymentMethod;
+    reference?: string;
+    currency?: string;
+}

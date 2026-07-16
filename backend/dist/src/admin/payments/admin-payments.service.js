@@ -13,6 +13,16 @@ exports.AdminPaymentsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../database/prisma.service");
 const client_1 = require("@prisma/client");
+const safeUserSelect = {
+    id: true,
+    name: true,
+    email: true,
+    phone: true,
+    role: true,
+    institutionId: true,
+    createdAt: true,
+    updatedAt: true,
+};
 let AdminPaymentsService = class AdminPaymentsService {
     constructor(prisma) {
         this.prisma = prisma;
@@ -40,7 +50,7 @@ let AdminPaymentsService = class AdminPaymentsService {
                 isActive: false,
             },
             include: {
-                user: true,
+                user: { select: safeUserSelect },
             },
         });
     }
@@ -65,11 +75,71 @@ let AdminPaymentsService = class AdminPaymentsService {
                 status: client_1.PaymentStatus.PENDING,
             },
             include: {
-                user: true,
+                user: { select: safeUserSelect },
                 subscription: true,
             },
         });
         return payment;
+    }
+    async markUserPaid(dto, adminId) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: dto.userId },
+            select: safeUserSelect,
+        });
+        if (!user) {
+            throw new common_1.NotFoundException('Usuário não encontrado');
+        }
+        const now = new Date();
+        const endDate = this.calculateEndDate(dto.plan, now);
+        const subscription = await this.prisma.subscription.upsert({
+            where: { userId: dto.userId },
+            create: {
+                userId: dto.userId,
+                plan: dto.plan,
+                amount: dto.amount,
+                currency: dto.currency ?? 'MZN',
+                status: client_1.SubscriptionStatus.ACTIVE,
+                isActive: true,
+                startDate: now,
+                endDate,
+            },
+            update: {
+                plan: dto.plan,
+                amount: dto.amount,
+                currency: dto.currency ?? 'MZN',
+                status: client_1.SubscriptionStatus.ACTIVE,
+                isActive: true,
+                startDate: now,
+                endDate,
+            },
+        });
+        const payment = await this.prisma.paymentTransaction.create({
+            data: {
+                userId: dto.userId,
+                subscriptionId: subscription.id,
+                amount: dto.amount,
+                currency: dto.currency ?? 'MZN',
+                method: dto.method,
+                reference: dto.reference,
+                status: client_1.PaymentStatus.APPROVED,
+                approvedBy: adminId,
+                approvedAt: now,
+            },
+            include: {
+                user: { select: safeUserSelect },
+                subscription: true,
+            },
+        });
+        if (user.institutionId) {
+            await this.prisma.institution.update({
+                where: { id: user.institutionId },
+                data: {
+                    isPaid: true,
+                    paidAt: now,
+                },
+            });
+        }
+        return { subscription, payment };
     }
     async approvePayment(paymentId, dto, adminId) {
         const payment = await this.prisma.paymentTransaction.findUnique({
@@ -97,7 +167,7 @@ let AdminPaymentsService = class AdminPaymentsService {
                     status: client_1.SubscriptionStatus.ACTIVE,
                     isActive: true,
                     startDate: new Date(),
-                    endDate: this.calculateEndDate(),
+                    endDate: this.calculateEndDate(payment.subscription.plan),
                 },
             });
             const user = await this.prisma.user.findUnique({
@@ -119,7 +189,7 @@ let AdminPaymentsService = class AdminPaymentsService {
         return this.prisma.subscription.findUnique({
             where: { userId },
             include: {
-                user: true,
+                user: { select: safeUserSelect },
                 payments: {
                     orderBy: { createdAt: 'desc' },
                 },
@@ -130,7 +200,7 @@ let AdminPaymentsService = class AdminPaymentsService {
         return this.prisma.paymentTransaction.findMany({
             where: { userId },
             include: {
-                user: true,
+                user: { select: safeUserSelect },
                 subscription: true,
             },
             orderBy: { createdAt: 'desc' },
@@ -140,7 +210,7 @@ let AdminPaymentsService = class AdminPaymentsService {
         return this.prisma.paymentTransaction.findMany({
             where: { status: client_1.PaymentStatus.PENDING },
             include: {
-                user: true,
+                user: { select: safeUserSelect },
                 subscription: true,
             },
             orderBy: { createdAt: 'asc' },
@@ -150,7 +220,7 @@ let AdminPaymentsService = class AdminPaymentsService {
         return this.prisma.paymentTransaction.findMany({
             where: status ? { status } : {},
             include: {
-                user: true,
+                user: { select: safeUserSelect },
                 subscription: true,
             },
             orderBy: { createdAt: 'desc' },
@@ -181,9 +251,15 @@ let AdminPaymentsService = class AdminPaymentsService {
             users: institution.users,
         };
     }
-    calculateEndDate() {
-        const endDate = new Date();
-        endDate.setFullYear(endDate.getFullYear() + 1);
+    calculateEndDate(plan, from = new Date()) {
+        const endDate = new Date(from);
+        const daysByPlan = {
+            BASIC: 30,
+            DAILY: 1,
+            WEEKLY: 7,
+            MONTHLY: 30,
+        };
+        endDate.setDate(endDate.getDate() + daysByPlan[plan]);
         return endDate;
     }
 };

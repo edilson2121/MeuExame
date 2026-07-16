@@ -14,8 +14,11 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminLayoutsController = void 0;
 const common_1 = require("@nestjs/common");
+const passport_1 = require("@nestjs/passport");
 const admin_layouts_service_1 = require("./admin-layouts.service");
 const layout_template_dto_1 = require("./dto/layout-template.dto");
+const roles_decorator_1 = require("../../common/decorators/roles.decorator");
+const roles_guard_1 = require("../../common/guards/roles.guard");
 let AdminLayoutsController = class AdminLayoutsController {
     constructor(layoutsService) {
         this.layoutsService = layoutsService;
@@ -78,6 +81,8 @@ __decorate([
 ], AdminLayoutsController.prototype, "delete", null);
 exports.AdminLayoutsController = AdminLayoutsController = __decorate([
     (0, common_1.Controller)('admin/layouts'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('ADMIN'),
     __metadata("design:paramtypes", [admin_layouts_service_1.AdminLayoutsService])
 ], AdminLayoutsController);
 //# sourceMappingURL=admin-layouts.controller.js.map

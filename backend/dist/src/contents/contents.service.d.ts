@@ -5,53 +5,56 @@ export declare class ContentsService {
     private prisma;
     constructor(prisma: PrismaService);
     create(createContentDto: CreateContentDto): Promise<{
+        title: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         userId: string;
         body: string;
+        subjectId: string | null;
     }>;
     findAll(): Promise<({
         user: {
+            institutionId: string | null;
             id: string;
-            email: string;
-            password: string;
             name: string;
             phone: string | null;
-            role: import(".prisma/client").$Enums.Role;
-            institutionId: string | null;
+            email: string;
             createdAt: Date;
             updatedAt: Date;
+            password: string;
+            role: import(".prisma/client").$Enums.Role;
         };
         exercises: {
+            title: string;
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            title: string;
             userId: string;
             body: string;
+            subjectId: string | null;
             contentId: string;
         }[];
     } & {
+        title: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         userId: string;
         body: string;
+        subjectId: string | null;
     })[]>;
     findOne(id: string): Promise<{
         user: {
+            institutionId: string | null;
             id: string;
-            email: string;
-            password: string;
             name: string;
             phone: string | null;
-            role: import(".prisma/client").$Enums.Role;
-            institutionId: string | null;
+            email: string;
             createdAt: Date;
             updatedAt: Date;
+            password: string;
+            role: import(".prisma/client").$Enums.Role;
         };
         exercises: ({
             questions: {
@@ -59,57 +62,66 @@ export declare class ContentsService {
                 createdAt: Date;
                 updatedAt: Date;
                 text: string;
+                options: import("@prisma/client/runtime/library").JsonValue | null;
+                correctAnswer: string | null;
+                explanation: string | null;
                 exerciseId: string;
             }[];
         } & {
+            title: string;
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            title: string;
             userId: string;
             body: string;
+            subjectId: string | null;
             contentId: string;
         })[];
     } & {
+        title: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         userId: string;
         body: string;
+        subjectId: string | null;
     }>;
     findByUser(userId: string): Promise<({
         exercises: {
+            title: string;
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            title: string;
             userId: string;
             body: string;
+            subjectId: string | null;
             contentId: string;
         }[];
     } & {
+        title: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         userId: string;
         body: string;
+        subjectId: string | null;
     })[]>;
     update(id: string, updateContentDto: UpdateContentDto): Promise<{
+        title: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         userId: string;
         body: string;
+        subjectId: string | null;
     }>;
     remove(id: string): Promise<{
+        title: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
         userId: string;
         body: string;
+        subjectId: string | null;
     }>;
 }

@@ -35,17 +35,26 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
-const prisma_service_1 = require("../database/prisma.service");
 const bcrypt = __importStar(require("bcryptjs"));
+const prisma_service_1 = require("../database/prisma.service");
 let AuthService = class AuthService {
     constructor(prisma, jwtService) {
         this.prisma = prisma;
         this.jwtService = jwtService;
     }
     async login(loginDto) {
+        return this.loginWithRole(loginDto, false);
+    }
+    async adminLogin(loginDto) {
+        return this.loginWithRole(loginDto, true);
+    }
+    async loginWithRole(loginDto, adminOnly) {
         const { email, password } = loginDto;
         const user = await this.prisma.user.findUnique({
             where: { email },
+            include: {
+                subscription: true,
+            },
         });
         if (!user) {
             throw new common_1.UnauthorizedException('Credenciais inválidas');
@@ -53,6 +62,12 @@ let AuthService = class AuthService {
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
             throw new common_1.UnauthorizedException('Credenciais inválidas');
+        }
+        if (adminOnly && user.role !== 'ADMIN') {
+            throw new common_1.UnauthorizedException('Esta rota é exclusiva para administradores');
+        }
+        if (!adminOnly && user.role === 'ADMIN') {
+            throw new common_1.UnauthorizedException('Administradores devem entrar pela rota de admin');
         }
         const token = this.jwtService.sign({
             sub: user.id,
@@ -81,7 +96,8 @@ let AuthService = class AuthService {
                 throw new common_1.BadRequestException('Instituição não encontrada.');
             }
         }
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const rounds = Number(process.env.BCRYPT_ROUNDS || 12);
+        const hashedPassword = await bcrypt.hash(password, rounds);
         const user = await this.prisma.user.create({
             data: {
                 name,
