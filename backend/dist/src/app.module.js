@@ -26,7 +26,9 @@ const prisma_module_1 = require("./prisma/prisma.module");
 const public_pages_module_1 = require("./public-pages/public-pages.module");
 const questions_module_1 = require("./questions/questions.module");
 const results_module_1 = require("./results/results.module");
+const simulations_module_1 = require("./modules/simulations/simulations.module");
 const stats_module_1 = require("./stats/stats.module");
+const study_contents_module_1 = require("./modules/study-contents/study-contents.module");
 const subjects_module_1 = require("./subjects/subjects.module");
 const uploads_module_1 = require("./uploads/uploads.module");
 const users_module_1 = require("./users/users.module");
@@ -48,6 +50,8 @@ exports.AppModule = AppModule = __decorate([
             questions_module_1.QuestionsModule,
             exams_module_1.ExamsModule,
             results_module_1.ResultsModule,
+            simulations_module_1.SimulationsModule,
+            study_contents_module_1.StudyContentsModule,
             pages_module_1.PagesModule,
             public_pages_module_1.PublicPagesModule,
             admin_module_1.AdminModule,

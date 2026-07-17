@@ -133,6 +133,8 @@ model Subject {
   updatedAt      DateTime @updatedAt
 
   @@map("subjects")
+  @@index([courseId])
+  @@index([institutionId])
 }
 
 model Question {

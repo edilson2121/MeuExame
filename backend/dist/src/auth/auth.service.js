@@ -118,6 +118,51 @@ let AuthService = class AuthService {
             token,
         };
     }
+    async googleAuthCallback(code, res) {
+        try {
+            const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    code,
+                    client_id: process.env.GOOGLE_CLIENT_ID,
+                    client_secret: process.env.GOOGLE_CLIENT_SECRET,
+                    redirect_uri: process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3000/auth/google/callback',
+                    grant_type: 'authorization_code',
+                }),
+            });
+            const tokens = await tokenResponse.json();
+            const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+                headers: { Authorization: `Bearer ${tokens.access_token}` },
+            });
+            const googleUser = await userResponse.json();
+            let user = await this.prisma.user.findUnique({
+                where: { email: googleUser.email },
+                include: { subscription: true },
+            });
+            if (!user) {
+                user = await this.prisma.user.create({
+                    data: {
+                        name: googleUser.name,
+                        email: googleUser.email,
+                        password: await bcrypt.hash(Math.random().toString(36), 12),
+                        role: 'USER',
+                    },
+                    include: { subscription: true },
+                });
+            }
+            const token = this.jwtService.sign({
+                sub: user.id,
+                email: user.email,
+                role: user.role,
+            });
+            const { password: _, ...result } = user;
+            res.redirect(`http://localhost:3000/auth/callback?token=${token}&user=${encodeURIComponent(JSON.stringify(result))}`);
+        }
+        catch (error) {
+            res.redirect('http://localhost:3000/login?error=google_auth_failed');
+        }
+    }
 };
 exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([

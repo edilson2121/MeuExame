@@ -1,6 +1,7 @@
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { Response } from 'express';
 export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);
@@ -75,4 +76,6 @@ export declare class AuthController {
         };
         token: string;
     }>;
+    googleAuth(res: Response): void;
+    googleAuthCallback(code: string, res: Response): Promise<void>;
 }

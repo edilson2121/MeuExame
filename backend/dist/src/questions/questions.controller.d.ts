@@ -8,12 +8,14 @@ export declare class QuestionsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        type: import(".prisma/client").$Enums.QuestionType;
         imageUrl: string | null;
+        points: number;
         text: string;
         options: import("@prisma/client/runtime/library").JsonValue | null;
         correctAnswer: string | null;
         explanation: string | null;
-        exerciseId: string;
+        exerciseId: string | null;
     }>;
     findAll(): Promise<({
         exercise: {
@@ -30,12 +32,14 @@ export declare class QuestionsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        type: import(".prisma/client").$Enums.QuestionType;
         imageUrl: string | null;
+        points: number;
         text: string;
         options: import("@prisma/client/runtime/library").JsonValue | null;
         correctAnswer: string | null;
         explanation: string | null;
-        exerciseId: string;
+        exerciseId: string | null;
     })[]>;
     findByExercise(exerciseId: string): Promise<({
         exercise: {
@@ -52,12 +56,14 @@ export declare class QuestionsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        type: import(".prisma/client").$Enums.QuestionType;
         imageUrl: string | null;
+        points: number;
         text: string;
         options: import("@prisma/client/runtime/library").JsonValue | null;
         correctAnswer: string | null;
         explanation: string | null;
-        exerciseId: string;
+        exerciseId: string | null;
     })[]>;
     findOne(id: string): Promise<{
         exercise: {
@@ -96,33 +102,39 @@ export declare class QuestionsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        type: import(".prisma/client").$Enums.QuestionType;
         imageUrl: string | null;
+        points: number;
         text: string;
         options: import("@prisma/client/runtime/library").JsonValue | null;
         correctAnswer: string | null;
         explanation: string | null;
-        exerciseId: string;
+        exerciseId: string | null;
     }>;
     update(id: string, updateQuestionDto: UpdateQuestionDto): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        type: import(".prisma/client").$Enums.QuestionType;
         imageUrl: string | null;
+        points: number;
         text: string;
         options: import("@prisma/client/runtime/library").JsonValue | null;
         correctAnswer: string | null;
         explanation: string | null;
-        exerciseId: string;
+        exerciseId: string | null;
     }>;
     remove(id: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        type: import(".prisma/client").$Enums.QuestionType;
         imageUrl: string | null;
+        points: number;
         text: string;
         options: import("@prisma/client/runtime/library").JsonValue | null;
         correctAnswer: string | null;
         explanation: string | null;
-        exerciseId: string;
+        exerciseId: string | null;
     }>;
 }

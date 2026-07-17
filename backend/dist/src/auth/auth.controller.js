@@ -30,6 +30,17 @@ let AuthController = class AuthController {
     register(registerDto) {
         return this.authService.register(registerDto);
     }
+    googleAuth(res) {
+        const googleAuthUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' +
+            'client_id=' + process.env.GOOGLE_CLIENT_ID +
+            '&redirect_uri=' + encodeURIComponent(process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3000/auth/google/callback') +
+            '&response_type=code' +
+            '&scope=profile email';
+        res.redirect(googleAuthUrl);
+    }
+    googleAuthCallback(code, res) {
+        return this.authService.googleAuthCallback(code, res);
+    }
 };
 exports.AuthController = AuthController;
 __decorate([
@@ -53,6 +64,21 @@ __decorate([
     __metadata("design:paramtypes", [register_dto_1.RegisterDto]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "register", null);
+__decorate([
+    (0, common_1.Get)('google'),
+    __param(0, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "googleAuth", null);
+__decorate([
+    (0, common_1.Get)('google/callback'),
+    __param(0, (0, common_1.Query)('code')),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "googleAuthCallback", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])

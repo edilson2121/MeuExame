@@ -21,14 +21,17 @@ export declare class ExamsController {
     } & {
         title: string;
         description: string | null;
+        status: import(".prisma/client").$Enums.ExamStatus;
         id: string;
         createdAt: Date;
         updatedAt: Date;
         duration: number | null;
-        subjectId: string;
+        year: number | null;
+        subjectId: string | null;
         authorId: string;
         imageUrl: string | null;
-        questions: import("@prisma/client/runtime/library").JsonValue | null;
+        totalPoints: number;
+        examDate: Date | null;
     }>;
     findAll(): Promise<({
         subject: {
@@ -47,14 +50,17 @@ export declare class ExamsController {
     } & {
         title: string;
         description: string | null;
+        status: import(".prisma/client").$Enums.ExamStatus;
         id: string;
         createdAt: Date;
         updatedAt: Date;
         duration: number | null;
-        subjectId: string;
+        year: number | null;
+        subjectId: string | null;
         authorId: string;
         imageUrl: string | null;
-        questions: import("@prisma/client/runtime/library").JsonValue | null;
+        totalPoints: number;
+        examDate: Date | null;
     })[]>;
     findBySubject(subjectId: string): Promise<({
         subject: {
@@ -73,14 +79,17 @@ export declare class ExamsController {
     } & {
         title: string;
         description: string | null;
+        status: import(".prisma/client").$Enums.ExamStatus;
         id: string;
         createdAt: Date;
         updatedAt: Date;
         duration: number | null;
-        subjectId: string;
+        year: number | null;
+        subjectId: string | null;
         authorId: string;
         imageUrl: string | null;
-        questions: import("@prisma/client/runtime/library").JsonValue | null;
+        totalPoints: number;
+        examDate: Date | null;
     })[]>;
     findByInstitution(institutionId: string): Promise<({
         subject: {
@@ -99,14 +108,17 @@ export declare class ExamsController {
     } & {
         title: string;
         description: string | null;
+        status: import(".prisma/client").$Enums.ExamStatus;
         id: string;
         createdAt: Date;
         updatedAt: Date;
         duration: number | null;
-        subjectId: string;
+        year: number | null;
+        subjectId: string | null;
         authorId: string;
         imageUrl: string | null;
-        questions: import("@prisma/client/runtime/library").JsonValue | null;
+        totalPoints: number;
+        examDate: Date | null;
     })[]>;
     findOne(id: string): Promise<{
         subject: {
@@ -125,14 +137,17 @@ export declare class ExamsController {
     } & {
         title: string;
         description: string | null;
+        status: import(".prisma/client").$Enums.ExamStatus;
         id: string;
         createdAt: Date;
         updatedAt: Date;
         duration: number | null;
-        subjectId: string;
+        year: number | null;
+        subjectId: string | null;
         authorId: string;
         imageUrl: string | null;
-        questions: import("@prisma/client/runtime/library").JsonValue | null;
+        totalPoints: number;
+        examDate: Date | null;
     }>;
     validateAnswers(id: string, body: {
         answers: any;
@@ -159,25 +174,31 @@ export declare class ExamsController {
     } & {
         title: string;
         description: string | null;
+        status: import(".prisma/client").$Enums.ExamStatus;
         id: string;
         createdAt: Date;
         updatedAt: Date;
         duration: number | null;
-        subjectId: string;
+        year: number | null;
+        subjectId: string | null;
         authorId: string;
         imageUrl: string | null;
-        questions: import("@prisma/client/runtime/library").JsonValue | null;
+        totalPoints: number;
+        examDate: Date | null;
     }>;
     remove(id: string): Promise<{
         title: string;
         description: string | null;
+        status: import(".prisma/client").$Enums.ExamStatus;
         id: string;
         createdAt: Date;
         updatedAt: Date;
         duration: number | null;
-        subjectId: string;
+        year: number | null;
+        subjectId: string | null;
         authorId: string;
         imageUrl: string | null;
-        questions: import("@prisma/client/runtime/library").JsonValue | null;
+        totalPoints: number;
+        examDate: Date | null;
     }>;
 }

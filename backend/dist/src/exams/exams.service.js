@@ -125,8 +125,20 @@ let ExamsService = class ExamsService {
         });
     }
     async validateAnswers(examId, userAnswers) {
-        const exam = await this.findOne(examId);
-        const questions = exam.questions;
+        const exam = await this.prisma.exam.findUnique({
+            where: { id: examId },
+            include: {
+                examQuestions: {
+                    include: {
+                        question: true,
+                    },
+                },
+            },
+        });
+        if (!exam) {
+            throw new common_1.NotFoundException('Exame não encontrado');
+        }
+        const questions = exam.examQuestions.map(eq => eq.question);
         let correctCount = 0;
         const results = [];
         for (const question of questions) {

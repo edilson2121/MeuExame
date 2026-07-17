@@ -40,12 +40,14 @@ export declare class ExercisesService {
             id: string;
             createdAt: Date;
             updatedAt: Date;
+            type: import(".prisma/client").$Enums.QuestionType;
             imageUrl: string | null;
+            points: number;
             text: string;
             options: import("@prisma/client/runtime/library").JsonValue | null;
             correctAnswer: string | null;
             explanation: string | null;
-            exerciseId: string;
+            exerciseId: string | null;
         }[];
     } & {
         title: string;
@@ -83,12 +85,14 @@ export declare class ExercisesService {
             id: string;
             createdAt: Date;
             updatedAt: Date;
+            type: import(".prisma/client").$Enums.QuestionType;
             imageUrl: string | null;
+            points: number;
             text: string;
             options: import("@prisma/client/runtime/library").JsonValue | null;
             correctAnswer: string | null;
             explanation: string | null;
-            exerciseId: string;
+            exerciseId: string | null;
         }[];
     } & {
         title: string;
@@ -105,12 +109,14 @@ export declare class ExercisesService {
             id: string;
             createdAt: Date;
             updatedAt: Date;
+            type: import(".prisma/client").$Enums.QuestionType;
             imageUrl: string | null;
+            points: number;
             text: string;
             options: import("@prisma/client/runtime/library").JsonValue | null;
             correctAnswer: string | null;
             explanation: string | null;
-            exerciseId: string;
+            exerciseId: string | null;
         }[];
     } & {
         title: string;
