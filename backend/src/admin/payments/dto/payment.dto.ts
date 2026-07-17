@@ -5,8 +5,8 @@ export class CreateSubscriptionDto {
   @IsString()
   userId: string;
 
-  @IsEnum(SubscriptionPlan)
-  plan: SubscriptionPlan;
+  @IsString()
+  planId: string;
 
   @IsNumber()
   amount: number;
@@ -51,8 +51,8 @@ export class MarkUserPaidDto {
   @IsString()
   userId: string;
 
-  @IsEnum(SubscriptionPlan)
-  plan: SubscriptionPlan;
+  @IsString()
+  planId: string;
 
   @IsNumber()
   amount: number;

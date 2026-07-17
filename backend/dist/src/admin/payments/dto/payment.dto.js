@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RecordPaymentDto = exports.ApprovePaymentDto = exports.CreateSubscriptionDto = void 0;
+exports.MarkUserPaidDto = exports.RecordPaymentDto = exports.ApprovePaymentDto = exports.CreateSubscriptionDto = void 0;
 const class_validator_1 = require("class-validator");
 const client_1 = require("@prisma/client");
 class CreateSubscriptionDto {
@@ -20,9 +20,9 @@ __decorate([
     __metadata("design:type", String)
 ], CreateSubscriptionDto.prototype, "userId", void 0);
 __decorate([
-    (0, class_validator_1.IsEnum)(client_1.SubscriptionPlan),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], CreateSubscriptionDto.prototype, "plan", void 0);
+], CreateSubscriptionDto.prototype, "planId", void 0);
 __decorate([
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
@@ -73,4 +73,33 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], RecordPaymentDto.prototype, "currency", void 0);
+class MarkUserPaidDto {
+}
+exports.MarkUserPaidDto = MarkUserPaidDto;
+__decorate([
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], MarkUserPaidDto.prototype, "userId", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], MarkUserPaidDto.prototype, "planId", void 0);
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], MarkUserPaidDto.prototype, "amount", void 0);
+__decorate([
+    (0, class_validator_1.IsEnum)(client_1.PaymentMethod),
+    __metadata("design:type", String)
+], MarkUserPaidDto.prototype, "method", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], MarkUserPaidDto.prototype, "reference", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], MarkUserPaidDto.prototype, "currency", void 0);
 //# sourceMappingURL=payment.dto.js.map

@@ -17,35 +17,46 @@ let CoursesService = class CoursesService {
         this.prisma = prisma;
     }
     async findAll() {
-        return this.prisma.course.findMany({
-            include: { subjects: true },
+        return this.prisma.subject.findMany({
+            orderBy: { name: 'asc' },
+        });
+    }
+    async findByInstitution(institutionId) {
+        return this.prisma.subject.findMany({
+            where: { institutionId },
+            orderBy: { name: 'asc' },
         });
     }
     async findOne(id) {
-        const course = await this.prisma.course.findUnique({
+        const subject = await this.prisma.subject.findUnique({
             where: { id },
-            include: { subjects: true },
         });
-        if (!course) {
-            throw new common_1.NotFoundException('Curso não encontrado');
+        if (!subject) {
+            throw new common_1.NotFoundException('Disciplina não encontrada');
         }
-        return course;
+        return subject;
     }
-    async create(createCourseDto) {
-        return this.prisma.course.create({
-            data: createCourseDto,
+    async create(name, institutionId) {
+        return this.prisma.subject.create({
+            data: {
+                name,
+                institutionId,
+            },
         });
     }
-    async update(id, updateCourseDto) {
+    async update(id, name, institutionId) {
         await this.findOne(id);
-        return this.prisma.course.update({
+        return this.prisma.subject.update({
             where: { id },
-            data: updateCourseDto,
+            data: {
+                name,
+                institutionId,
+            },
         });
     }
     async remove(id) {
         await this.findOne(id);
-        return this.prisma.course.delete({
+        return this.prisma.subject.delete({
             where: { id },
         });
     }

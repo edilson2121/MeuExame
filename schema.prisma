@@ -12,6 +12,9 @@ model User {
   email         String      @unique
   password      String
   name          String
+  avatar        String?
+  phone         String?
+  bio           String?
   role          Role        @default(USER)
   institutionId String?
   institution   Institution? @relation(fields: [institutionId], references: [id])
@@ -19,6 +22,8 @@ model User {
   exercises     Exercise[]
   exams         Exam[]
   results       Result[]
+  subscription  Subscription?
+  payments      Payment[]
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
@@ -77,6 +82,7 @@ model Exam {
   authorId    String
   duration    Int?
   questions   Json?
+  imageUrl    String?
   author      User     @relation(fields: [authorId], references: [id])
   subject     Subject  @relation(fields: [subjectId], references: [id])
   results     Result[]
@@ -114,8 +120,9 @@ model Question {
   id          String   @id @default(cuid())
   text        String
   options     Json?
-  answer      String?
+  correctAnswer String?
   explanation String?
+  imageUrl    String?
   exerciseId  String
   exercise    Exercise @relation(fields: [exerciseId], references: [id])
   createdAt   DateTime @default(now())
@@ -138,6 +145,69 @@ model Result {
   @@map("results")
 }
 
+model Subscription {
+  id          String     @id @default(cuid())
+  userId      String     @unique
+  user        User       @relation(fields: [userId], references: [id])
+  planId      String
+  plan        Plan       @relation(fields: [planId], references: [id])
+  status      SubscriptionStatus @default(ACTIVE)
+  startDate   DateTime   @default(now())
+  endDate     DateTime
+  autoRenew   Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("subscriptions")
+}
+
+model Payment {
+  id              String      @id @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  planId          String
+  plan            Plan        @relation(fields: [planId], references: [id])
+  amount          Float
+  status          PaymentStatus @default(PENDING)
+  paymentMethod   String?
+  transactionId   String?     @unique
+  paidAt          DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@map("payments")
+}
+
+model Plan {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  duration    Int      // in days
+  type        PlanType
+  isActive    Boolean  @default(true)
+  subscriptions Subscription[]
+  payments    Payment[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("plans")
+}
+
+model DynamicPage {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  content     String
+  imageUrl    String?
+  isPublished Boolean  @default(false)
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("dynamic_pages")
+}
+
 enum Role {
   USER
   ADMIN
@@ -155,4 +225,24 @@ enum Difficulty {
   EASY
   MEDIUM
   HARD
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  PENDING
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PlanType {
+  DAILY
+  WEEKLY
+  MONTHLY
 }

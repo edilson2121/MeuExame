@@ -84,14 +84,14 @@ export class AdminLayoutsService {
   async deleteLayout(layoutId: string) {
     const layout = await this.prisma.layoutTemplate.findUnique({
       where: { id: layoutId },
-      include: { pages: true },
+      include: { institutionPages: true },
     });
 
     if (!layout) {
       throw new NotFoundException('Layout não encontrado');
     }
 
-    if (layout.pages && layout.pages.length > 0) {
+    if (layout.institutionPages && layout.institutionPages.length > 0) {
       throw new BadRequestException(
         'Não é possível deletar um layout que está sendo utilizado por páginas',
       );

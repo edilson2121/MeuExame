@@ -7,148 +7,148 @@ export declare class PagesController {
     create(createPageDto: CreatePageDto, req: any): Promise<{
         user: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         };
     } & {
         content: string;
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         slug: string;
         description: string | null;
-        keywords: string | null;
-        template: string | null;
         showInMenu: boolean;
         menuOrder: number;
         status: import(".prisma/client").$Enums.PublishStatus;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
         publishedAt: Date | null;
         authorId: string;
+        keywords: string | null;
+        template: string;
     }>;
     findAllAdmin(req: any): Promise<({
         user: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         };
     } & {
         content: string;
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         slug: string;
         description: string | null;
-        keywords: string | null;
-        template: string | null;
         showInMenu: boolean;
         menuOrder: number;
         status: import(".prisma/client").$Enums.PublishStatus;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
         publishedAt: Date | null;
         authorId: string;
+        keywords: string | null;
+        template: string;
     })[]>;
     findOneAdmin(id: string, req: any): Promise<{
         user: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         };
     } & {
         content: string;
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         slug: string;
         description: string | null;
-        keywords: string | null;
-        template: string | null;
         showInMenu: boolean;
         menuOrder: number;
         status: import(".prisma/client").$Enums.PublishStatus;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
         publishedAt: Date | null;
         authorId: string;
+        keywords: string | null;
+        template: string;
     }>;
     update(id: string, updatePageDto: UpdatePageDto, req: any): Promise<{
         user: {
             id: string;
-            email: string;
             name: string;
+            email: string;
         };
     } & {
         content: string;
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         slug: string;
         description: string | null;
-        keywords: string | null;
-        template: string | null;
         showInMenu: boolean;
         menuOrder: number;
         status: import(".prisma/client").$Enums.PublishStatus;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
         publishedAt: Date | null;
         authorId: string;
+        keywords: string | null;
+        template: string;
     }>;
     publish(id: string, req: any): Promise<{
         content: string;
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         slug: string;
         description: string | null;
-        keywords: string | null;
-        template: string | null;
         showInMenu: boolean;
         menuOrder: number;
         status: import(".prisma/client").$Enums.PublishStatus;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
         publishedAt: Date | null;
         authorId: string;
+        keywords: string | null;
+        template: string;
     }>;
     archive(id: string, req: any): Promise<{
         content: string;
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         slug: string;
         description: string | null;
-        keywords: string | null;
-        template: string | null;
         showInMenu: boolean;
         menuOrder: number;
         status: import(".prisma/client").$Enums.PublishStatus;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
         publishedAt: Date | null;
         authorId: string;
+        keywords: string | null;
+        template: string;
     }>;
     remove(id: string, req: any): Promise<{
         content: string;
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         slug: string;
         description: string | null;
-        keywords: string | null;
-        template: string | null;
         showInMenu: boolean;
         menuOrder: number;
         status: import(".prisma/client").$Enums.PublishStatus;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
         publishedAt: Date | null;
         authorId: string;
+        keywords: string | null;
+        template: string;
     }>;
     findMenu(): Promise<any[]>;
     findPublished(): Promise<{
         user: {
             name: string;
         };
-        id: string;
         title: string;
         slug: string;
         description: string;
+        id: string;
         publishedAt: Date;
     }[]>;
     findBySlug(slug: string): Promise<{
@@ -158,18 +158,18 @@ export declare class PagesController {
         };
     } & {
         content: string;
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
         title: string;
         slug: string;
         description: string | null;
-        keywords: string | null;
-        template: string | null;
         showInMenu: boolean;
         menuOrder: number;
         status: import(".prisma/client").$Enums.PublishStatus;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
         publishedAt: Date | null;
         authorId: string;
+        keywords: string | null;
+        template: string;
     }>;
 }

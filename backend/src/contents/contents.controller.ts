@@ -23,7 +23,7 @@ export class ContentsController {
   @Get('user/:userId')
   @UseGuards(AuthGuard('jwt'))
   findByUser(@Param('userId') userId: string) {
-    return this.contentsService.findByUser(userId);
+    return this.contentsService.findByAuthor(userId);
   }
 
   @Get(':id')

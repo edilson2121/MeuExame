@@ -29,7 +29,7 @@ let ContentsController = class ContentsController {
         return this.contentsService.findAll();
     }
     findByUser(userId) {
-        return this.contentsService.findByUser(userId);
+        return this.contentsService.findByAuthor(userId);
     }
     findOne(id) {
         return this.contentsService.findOne(id);

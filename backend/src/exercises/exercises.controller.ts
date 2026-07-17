@@ -20,10 +20,10 @@ export class ExercisesController {
     return this.exercisesService.findAll();
   }
 
-  @Get('content/:contentId')
+  @Get('subject/:subjectId')
   @UseGuards(AuthGuard('jwt'))
-  findByContent(@Param('contentId') contentId: string) {
-    return this.exercisesService.findByContent(contentId);
+  findBySubject(@Param('subjectId') subjectId: string) {
+    return this.exercisesService.findBySubject(subjectId);
   }
 
   @Get(':id')

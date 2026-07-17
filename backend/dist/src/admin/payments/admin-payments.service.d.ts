@@ -1,29 +1,28 @@
 import { PrismaService } from '../../database/prisma.service';
-import { CreateSubscriptionDto, ApprovePaymentDto, RecordPaymentDto } from './dto/payment.dto';
+import { ApprovePaymentDto, CreateSubscriptionDto, MarkUserPaidDto, RecordPaymentDto } from './dto/payment.dto';
 import { PaymentStatus } from '@prisma/client';
 export declare class AdminPaymentsService {
     private prisma;
     constructor(prisma: PrismaService);
     createSubscription(dto: CreateSubscriptionDto): Promise<{
         user: {
+            institutionId: string;
             id: string;
-            email: string;
-            password: string;
             name: string;
-            phone: string | null;
-            role: import(".prisma/client").$Enums.Role;
-            institutionId: string | null;
             createdAt: Date;
             updatedAt: Date;
+            email: string;
+            phone: string;
+            role: import(".prisma/client").$Enums.Role;
         };
     } & {
+        status: import(".prisma/client").$Enums.SubscriptionStatus;
         id: string;
+        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        status: import(".prisma/client").$Enums.SubscriptionStatus;
-        isActive: boolean;
         userId: string;
-        plan: import(".prisma/client").$Enums.SubscriptionPlan;
+        planId: string;
         amount: number;
         currency: string;
         startDate: Date | null;
@@ -31,34 +30,33 @@ export declare class AdminPaymentsService {
     }>;
     recordPayment(dto: RecordPaymentDto, adminId: string): Promise<{
         user: {
+            institutionId: string;
             id: string;
-            email: string;
-            password: string;
             name: string;
-            phone: string | null;
-            role: import(".prisma/client").$Enums.Role;
-            institutionId: string | null;
             createdAt: Date;
             updatedAt: Date;
+            email: string;
+            phone: string;
+            role: import(".prisma/client").$Enums.Role;
         };
         subscription: {
+            status: import(".prisma/client").$Enums.SubscriptionStatus;
             id: string;
+            isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            status: import(".prisma/client").$Enums.SubscriptionStatus;
-            isActive: boolean;
             userId: string;
-            plan: import(".prisma/client").$Enums.SubscriptionPlan;
+            planId: string;
             amount: number;
             currency: string;
             startDate: Date | null;
             endDate: Date | null;
         };
     } & {
+        status: import(".prisma/client").$Enums.PaymentStatus;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: import(".prisma/client").$Enums.PaymentStatus;
         userId: string;
         amount: number;
         currency: string;
@@ -68,11 +66,64 @@ export declare class AdminPaymentsService {
         approvedBy: string | null;
         approvedAt: Date | null;
     }>;
+    markUserPaid(dto: MarkUserPaidDto, adminId: string): Promise<{
+        subscription: {
+            status: import(".prisma/client").$Enums.SubscriptionStatus;
+            id: string;
+            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+            planId: string;
+            amount: number;
+            currency: string;
+            startDate: Date | null;
+            endDate: Date | null;
+        };
+        payment: {
+            user: {
+                institutionId: string;
+                id: string;
+                name: string;
+                createdAt: Date;
+                updatedAt: Date;
+                email: string;
+                phone: string;
+                role: import(".prisma/client").$Enums.Role;
+            };
+            subscription: {
+                status: import(".prisma/client").$Enums.SubscriptionStatus;
+                id: string;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: string;
+                planId: string;
+                amount: number;
+                currency: string;
+                startDate: Date | null;
+                endDate: Date | null;
+            };
+        } & {
+            status: import(".prisma/client").$Enums.PaymentStatus;
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+            amount: number;
+            currency: string;
+            subscriptionId: string;
+            method: import(".prisma/client").$Enums.PaymentMethod;
+            reference: string | null;
+            approvedBy: string | null;
+            approvedAt: Date | null;
+        };
+    }>;
     approvePayment(paymentId: string, dto: ApprovePaymentDto, adminId: string): Promise<{
+        status: import(".prisma/client").$Enums.PaymentStatus;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: import(".prisma/client").$Enums.PaymentStatus;
         userId: string;
         amount: number;
         currency: string;
@@ -84,38 +135,36 @@ export declare class AdminPaymentsService {
     }>;
     getSubscriptionByUserId(userId: string): Promise<{
         user: {
+            institutionId: string;
             id: string;
-            email: string;
-            password: string;
             name: string;
-            phone: string | null;
-            role: import(".prisma/client").$Enums.Role;
-            institutionId: string | null;
             createdAt: Date;
             updatedAt: Date;
+            email: string;
+            phone: string;
+            role: import(".prisma/client").$Enums.Role;
         };
         payments: {
+            status: import(".prisma/client").$Enums.PaymentStatus;
             id: string;
+            paidAt: Date | null;
             createdAt: Date;
             updatedAt: Date;
-            status: import(".prisma/client").$Enums.PaymentStatus;
             userId: string;
+            planId: string;
             amount: number;
-            currency: string;
-            subscriptionId: string;
-            method: import(".prisma/client").$Enums.PaymentMethod;
-            reference: string | null;
-            approvedBy: string | null;
-            approvedAt: Date | null;
+            subscriptionId: string | null;
+            paymentMethod: string | null;
+            transactionId: string | null;
         }[];
     } & {
+        status: import(".prisma/client").$Enums.SubscriptionStatus;
         id: string;
+        isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        status: import(".prisma/client").$Enums.SubscriptionStatus;
-        isActive: boolean;
         userId: string;
-        plan: import(".prisma/client").$Enums.SubscriptionPlan;
+        planId: string;
         amount: number;
         currency: string;
         startDate: Date | null;
@@ -123,34 +172,33 @@ export declare class AdminPaymentsService {
     }>;
     getPaymentsByUserId(userId: string): Promise<({
         user: {
+            institutionId: string;
             id: string;
-            email: string;
-            password: string;
             name: string;
-            phone: string | null;
-            role: import(".prisma/client").$Enums.Role;
-            institutionId: string | null;
             createdAt: Date;
             updatedAt: Date;
+            email: string;
+            phone: string;
+            role: import(".prisma/client").$Enums.Role;
         };
         subscription: {
+            status: import(".prisma/client").$Enums.SubscriptionStatus;
             id: string;
+            isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            status: import(".prisma/client").$Enums.SubscriptionStatus;
-            isActive: boolean;
             userId: string;
-            plan: import(".prisma/client").$Enums.SubscriptionPlan;
+            planId: string;
             amount: number;
             currency: string;
             startDate: Date | null;
             endDate: Date | null;
         };
     } & {
+        status: import(".prisma/client").$Enums.PaymentStatus;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: import(".prisma/client").$Enums.PaymentStatus;
         userId: string;
         amount: number;
         currency: string;
@@ -162,34 +210,33 @@ export declare class AdminPaymentsService {
     })[]>;
     getAllPendingPayments(): Promise<({
         user: {
+            institutionId: string;
             id: string;
-            email: string;
-            password: string;
             name: string;
-            phone: string | null;
-            role: import(".prisma/client").$Enums.Role;
-            institutionId: string | null;
             createdAt: Date;
             updatedAt: Date;
+            email: string;
+            phone: string;
+            role: import(".prisma/client").$Enums.Role;
         };
         subscription: {
+            status: import(".prisma/client").$Enums.SubscriptionStatus;
             id: string;
+            isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            status: import(".prisma/client").$Enums.SubscriptionStatus;
-            isActive: boolean;
             userId: string;
-            plan: import(".prisma/client").$Enums.SubscriptionPlan;
+            planId: string;
             amount: number;
             currency: string;
             startDate: Date | null;
             endDate: Date | null;
         };
     } & {
+        status: import(".prisma/client").$Enums.PaymentStatus;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: import(".prisma/client").$Enums.PaymentStatus;
         userId: string;
         amount: number;
         currency: string;
@@ -201,34 +248,33 @@ export declare class AdminPaymentsService {
     })[]>;
     getAllPayments(status?: PaymentStatus): Promise<({
         user: {
+            institutionId: string;
             id: string;
-            email: string;
-            password: string;
             name: string;
-            phone: string | null;
-            role: import(".prisma/client").$Enums.Role;
-            institutionId: string | null;
             createdAt: Date;
             updatedAt: Date;
+            email: string;
+            phone: string;
+            role: import(".prisma/client").$Enums.Role;
         };
         subscription: {
+            status: import(".prisma/client").$Enums.SubscriptionStatus;
             id: string;
+            isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            status: import(".prisma/client").$Enums.SubscriptionStatus;
-            isActive: boolean;
             userId: string;
-            plan: import(".prisma/client").$Enums.SubscriptionPlan;
+            planId: string;
             amount: number;
             currency: string;
             startDate: Date | null;
             endDate: Date | null;
         };
     } & {
+        status: import(".prisma/client").$Enums.PaymentStatus;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        status: import(".prisma/client").$Enums.PaymentStatus;
         userId: string;
         amount: number;
         currency: string;
@@ -243,102 +289,57 @@ export declare class AdminPaymentsService {
             users: ({
                 subscription: {
                     payments: {
+                        status: import(".prisma/client").$Enums.PaymentStatus;
                         id: string;
+                        paidAt: Date | null;
                         createdAt: Date;
                         updatedAt: Date;
-                        status: import(".prisma/client").$Enums.PaymentStatus;
                         userId: string;
+                        planId: string;
                         amount: number;
-                        currency: string;
-                        subscriptionId: string;
-                        method: import(".prisma/client").$Enums.PaymentMethod;
-                        reference: string | null;
-                        approvedBy: string | null;
-                        approvedAt: Date | null;
+                        subscriptionId: string | null;
+                        paymentMethod: string | null;
+                        transactionId: string | null;
                     }[];
                 } & {
+                    status: import(".prisma/client").$Enums.SubscriptionStatus;
                     id: string;
+                    isActive: boolean;
                     createdAt: Date;
                     updatedAt: Date;
-                    status: import(".prisma/client").$Enums.SubscriptionStatus;
-                    isActive: boolean;
                     userId: string;
-                    plan: import(".prisma/client").$Enums.SubscriptionPlan;
+                    planId: string;
                     amount: number;
                     currency: string;
                     startDate: Date | null;
                     endDate: Date | null;
                 };
             } & {
-                id: string;
-                email: string;
-                password: string;
-                name: string;
-                phone: string | null;
-                role: import(".prisma/client").$Enums.Role;
                 institutionId: string | null;
+                id: string;
+                name: string;
                 createdAt: Date;
                 updatedAt: Date;
+                email: string;
+                password: string;
+                avatar: string | null;
+                phone: string | null;
+                bio: string | null;
+                role: import(".prisma/client").$Enums.Role;
             })[];
         } & {
             id: string;
-            email: string | null;
             name: string;
-            phone: string | null;
-            createdAt: Date;
-            updatedAt: Date;
-            description: string | null;
-            logo: string | null;
-            website: string | null;
-            address: string | null;
             city: string | null;
-            country: string | null;
+            country: string;
+            isActive: boolean;
             isPaid: boolean;
             paidAt: Date | null;
-            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
         };
         isPaid: boolean;
         paidAt: Date;
-        users: ({
-            subscription: {
-                payments: {
-                    id: string;
-                    createdAt: Date;
-                    updatedAt: Date;
-                    status: import(".prisma/client").$Enums.PaymentStatus;
-                    userId: string;
-                    amount: number;
-                    currency: string;
-                    subscriptionId: string;
-                    method: import(".prisma/client").$Enums.PaymentMethod;
-                    reference: string | null;
-                    approvedBy: string | null;
-                    approvedAt: Date | null;
-                }[];
-            } & {
-                id: string;
-                createdAt: Date;
-                updatedAt: Date;
-                status: import(".prisma/client").$Enums.SubscriptionStatus;
-                isActive: boolean;
-                userId: string;
-                plan: import(".prisma/client").$Enums.SubscriptionPlan;
-                amount: number;
-                currency: string;
-                startDate: Date | null;
-                endDate: Date | null;
-            };
-        } & {
-            id: string;
-            email: string;
-            password: string;
-            name: string;
-            phone: string | null;
-            role: import(".prisma/client").$Enums.Role;
-            institutionId: string | null;
-            createdAt: Date;
-            updatedAt: Date;
-        })[];
     }>;
     private calculateEndDate;
 }

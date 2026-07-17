@@ -14,9 +14,12 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminPaymentsController = void 0;
 const common_1 = require("@nestjs/common");
+const passport_1 = require("@nestjs/passport");
 const admin_payments_service_1 = require("./admin-payments.service");
 const payment_dto_1 = require("./dto/payment.dto");
 const client_1 = require("@prisma/client");
+const roles_decorator_1 = require("../../common/decorators/roles.decorator");
+const roles_guard_1 = require("../../common/guards/roles.guard");
 let AdminPaymentsController = class AdminPaymentsController {
     constructor(paymentsService) {
         this.paymentsService = paymentsService;
@@ -24,13 +27,16 @@ let AdminPaymentsController = class AdminPaymentsController {
     async createSubscription(dto) {
         return this.paymentsService.createSubscription(dto);
     }
-    async recordPayment(dto) {
-        const adminId = 'admin-default';
+    async recordPayment(dto, req) {
+        const adminId = req.user.id;
         return this.paymentsService.recordPayment(dto, adminId);
     }
-    async approvePayment(paymentId, dto) {
-        const adminId = 'admin-default';
+    async approvePayment(paymentId, dto, req) {
+        const adminId = req.user.id;
         return this.paymentsService.approvePayment(paymentId, dto, adminId);
+    }
+    async markUserPaid(dto, req) {
+        return this.paymentsService.markUserPaid(dto, req.user.id);
     }
     async getSubscriptionByUserId(userId) {
         return this.paymentsService.getSubscriptionByUserId(userId);
@@ -61,18 +67,29 @@ __decorate([
     (0, common_1.Post)('record'),
     (0, common_1.HttpCode)(201),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [payment_dto_1.RecordPaymentDto]),
+    __metadata("design:paramtypes", [payment_dto_1.RecordPaymentDto, Object]),
     __metadata("design:returntype", Promise)
 ], AdminPaymentsController.prototype, "recordPayment", null);
 __decorate([
     (0, common_1.Put)('approve/:paymentId'),
     __param(0, (0, common_1.Param)('paymentId')),
     __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, payment_dto_1.ApprovePaymentDto]),
+    __metadata("design:paramtypes", [String, payment_dto_1.ApprovePaymentDto, Object]),
     __metadata("design:returntype", Promise)
 ], AdminPaymentsController.prototype, "approvePayment", null);
+__decorate([
+    (0, common_1.Post)('mark-paid'),
+    (0, common_1.HttpCode)(201),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [payment_dto_1.MarkUserPaidDto, Object]),
+    __metadata("design:returntype", Promise)
+], AdminPaymentsController.prototype, "markUserPaid", null);
 __decorate([
     (0, common_1.Get)('subscription/:userId'),
     __param(0, (0, common_1.Param)('userId')),
@@ -109,6 +126,8 @@ __decorate([
 ], AdminPaymentsController.prototype, "getInstitutionPaymentStatus", null);
 exports.AdminPaymentsController = AdminPaymentsController = __decorate([
     (0, common_1.Controller)('admin/payments'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('ADMIN'),
     __metadata("design:paramtypes", [admin_payments_service_1.AdminPaymentsService])
 ], AdminPaymentsController);
 //# sourceMappingURL=admin-payments.controller.js.map

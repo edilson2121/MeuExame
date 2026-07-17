@@ -3,13 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import { 
   Users, 
   Building2, 
   BookOpen, 
   GraduationCap,
   Plus,
-  TrendingUp,
   Activity
 } from 'lucide-react';
 
@@ -30,8 +31,8 @@ function Card({ title, value, icon }: { title: string; value: string | number; i
   );
 }
 
-export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null);
+function AdminDashboardContent() {
+  const { user, logout } = useAuth();
   const [stats, setStats] = useState({
     users: 0,
     institutions: 0,
@@ -42,25 +43,16 @@ export default function DashboardPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-
     const fetchData = async () => {
       try {
-        const profileRes = await fetch('http://localhost:3001/api/auth/profile', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const userData = await profileRes.json();
-        setUser(userData);
-
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+        const token = localStorage.getItem('token');
+        
         const [usersRes, institutionsRes, coursesRes, subjectsRes] = await Promise.all([
-          fetch('http://localhost:3001/api/users', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('http://localhost:3001/api/institutions', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('http://localhost:3001/api/courses', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('http://localhost:3001/api/subjects', { headers: { 'Authorization': `Bearer ${token}` } })
+          fetch(`${apiUrl}/users`, { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch(`${apiUrl}/institutions`, { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch(`${apiUrl}/courses`, { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch(`${apiUrl}/subjects`, { headers: { 'Authorization': `Bearer ${token}` } })
         ]);
 
         const users = await usersRes.json();
@@ -76,19 +68,17 @@ export default function DashboardPage() {
         });
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
-        localStorage.removeItem('token');
-        router.push('/login');
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [router]);
+  }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    router.push('/login');
+    logout();
+    router.push('/admin/login');
   };
 
   if (loading) {
@@ -163,5 +153,13 @@ export default function DashboardPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function AdminDashboardPage() {
+  return (
+    <ProtectedRoute requireAuth={true} requireAdmin={true}>
+      <AdminDashboardContent />
+    </ProtectedRoute>
   );
 }

@@ -28,8 +28,8 @@ let ExercisesController = class ExercisesController {
     findAll() {
         return this.exercisesService.findAll();
     }
-    findByContent(contentId) {
-        return this.exercisesService.findByContent(contentId);
+    findBySubject(subjectId) {
+        return this.exercisesService.findBySubject(subjectId);
     }
     findOne(id) {
         return this.exercisesService.findOne(id);
@@ -58,13 +58,13 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ExercisesController.prototype, "findAll", null);
 __decorate([
-    (0, common_1.Get)('content/:contentId'),
+    (0, common_1.Get)('subject/:subjectId'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
-    __param(0, (0, common_1.Param)('contentId')),
+    __param(0, (0, common_1.Param)('subjectId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
-], ExercisesController.prototype, "findByContent", null);
+], ExercisesController.prototype, "findBySubject", null);
 __decorate([
     (0, common_1.Get)(':id'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),

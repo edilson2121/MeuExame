@@ -9,7 +9,7 @@ export class ContentsService {
 
   async create(createContentDto: CreateContentDto) {
     const user = await this.prisma.user.findUnique({
-      where: { id: createContentDto.userId },
+      where: { id: createContentDto.authorId },
     });
 
     if (!user) {
@@ -19,8 +19,13 @@ export class ContentsService {
     return this.prisma.content.create({
       data: {
         title: createContentDto.title,
-        body: createContentDto.body,
-        userId: createContentDto.userId,
+        description: createContentDto.description,
+        content: createContentDto.content,
+        type: createContentDto.type,
+        subjectId: createContentDto.subjectId,
+        authorId: createContentDto.authorId,
+        views: createContentDto.views,
+        likes: createContentDto.likes,
       },
     });
   }
@@ -28,8 +33,8 @@ export class ContentsService {
   async findAll() {
     return this.prisma.content.findMany({
       include: {
-        user: true,
-        exercises: true,
+        author: true,
+        subject: true,
       },
       orderBy: {
         createdAt: 'desc',
@@ -41,12 +46,8 @@ export class ContentsService {
     const content = await this.prisma.content.findUnique({
       where: { id },
       include: {
-        user: true,
-        exercises: {
-          include: {
-            questions: true,
-          },
-        },
+        author: true,
+        subject: true,
       },
     });
 
@@ -57,11 +58,11 @@ export class ContentsService {
     return content;
   }
 
-  async findByUser(userId: string) {
+  async findByAuthor(authorId: string) {
     return this.prisma.content.findMany({
-      where: { userId },
+      where: { authorId },
       include: {
-        exercises: true,
+        subject: true,
       },
       orderBy: {
         createdAt: 'desc',

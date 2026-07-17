@@ -5,111 +5,134 @@ export declare class ContentsService {
     private prisma;
     constructor(prisma: PrismaService);
     create(createContentDto: CreateContentDto): Promise<{
+        content: string;
+        title: string;
+        description: string | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
-        userId: string;
-        body: string;
+        type: import(".prisma/client").$Enums.ContentType;
+        subjectId: string;
+        authorId: string;
+        views: number;
+        likes: number;
     }>;
     findAll(): Promise<({
-        user: {
+        subject: {
+            institutionId: string | null;
             id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            courseId: string | null;
+        };
+        author: {
+            institutionId: string | null;
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
             email: string;
             password: string;
-            name: string;
+            avatar: string | null;
             phone: string | null;
+            bio: string | null;
             role: import(".prisma/client").$Enums.Role;
-            institutionId: string | null;
-            createdAt: Date;
-            updatedAt: Date;
         };
-        exercises: {
-            id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            title: string;
-            userId: string;
-            body: string;
-            contentId: string;
-        }[];
     } & {
+        content: string;
+        title: string;
+        description: string | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
-        userId: string;
-        body: string;
+        type: import(".prisma/client").$Enums.ContentType;
+        subjectId: string;
+        authorId: string;
+        views: number;
+        likes: number;
     })[]>;
     findOne(id: string): Promise<{
-        user: {
+        subject: {
+            institutionId: string | null;
             id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            courseId: string | null;
+        };
+        author: {
+            institutionId: string | null;
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
             email: string;
             password: string;
-            name: string;
+            avatar: string | null;
             phone: string | null;
+            bio: string | null;
             role: import(".prisma/client").$Enums.Role;
-            institutionId: string | null;
-            createdAt: Date;
-            updatedAt: Date;
         };
-        exercises: ({
-            questions: {
-                id: string;
-                createdAt: Date;
-                updatedAt: Date;
-                text: string;
-                exerciseId: string;
-            }[];
-        } & {
-            id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            title: string;
-            userId: string;
-            body: string;
-            contentId: string;
-        })[];
     } & {
+        content: string;
+        title: string;
+        description: string | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
-        userId: string;
-        body: string;
+        type: import(".prisma/client").$Enums.ContentType;
+        subjectId: string;
+        authorId: string;
+        views: number;
+        likes: number;
     }>;
-    findByUser(userId: string): Promise<({
-        exercises: {
+    findByAuthor(authorId: string): Promise<({
+        subject: {
+            institutionId: string | null;
             id: string;
+            name: string;
             createdAt: Date;
             updatedAt: Date;
-            title: string;
-            userId: string;
-            body: string;
-            contentId: string;
-        }[];
+            courseId: string | null;
+        };
     } & {
+        content: string;
+        title: string;
+        description: string | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
-        userId: string;
-        body: string;
+        type: import(".prisma/client").$Enums.ContentType;
+        subjectId: string;
+        authorId: string;
+        views: number;
+        likes: number;
     })[]>;
     update(id: string, updateContentDto: UpdateContentDto): Promise<{
+        content: string;
+        title: string;
+        description: string | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
-        userId: string;
-        body: string;
+        type: import(".prisma/client").$Enums.ContentType;
+        subjectId: string;
+        authorId: string;
+        views: number;
+        likes: number;
     }>;
     remove(id: string): Promise<{
+        content: string;
+        title: string;
+        description: string | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
-        userId: string;
-        body: string;
+        type: import(".prisma/client").$Enums.ContentType;
+        subjectId: string;
+        authorId: string;
+        views: number;
+        likes: number;
     }>;
 }

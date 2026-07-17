@@ -40,7 +40,7 @@ export class CoursesController {
   @UseGuards(...adminGuards)
   @Roles('ADMIN')
   async create(@Body() createCourseDto: CreateCourseDto) {
-    return this.coursesService.create(createCourseDto);
+    return this.coursesService.create(createCourseDto.name, createCourseDto.institutionId);
   }
 
   @Put(':id')
@@ -48,7 +48,7 @@ export class CoursesController {
   @UseGuards(...adminGuards)
   @Roles('ADMIN')
   async update(@Param('id') id: string, @Body() updateCourseDto: Partial<CreateCourseDto>) {
-    return this.coursesService.update(id, updateCourseDto);
+    return this.coursesService.update(id, updateCourseDto.name, updateCourseDto.institutionId);
   }
 
   @Delete(':id')

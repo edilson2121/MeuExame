@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
+import Navbar from '@/components/navbar/Navbar';
 
 interface Course {
   id: string;
@@ -80,7 +81,8 @@ export default function CoursesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-muted p-8">
+    <diNavbar />
+      <v className="min-h-screen bg-muted p-8">
       <div className="container-custom">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>

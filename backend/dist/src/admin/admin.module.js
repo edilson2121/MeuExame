@@ -15,13 +15,14 @@ const admin_payments_controller_1 = require("./payments/admin-payments.controlle
 const admin_layouts_service_1 = require("./layouts/admin-layouts.service");
 const admin_layouts_controller_1 = require("./layouts/admin-layouts.controller");
 const prisma_service_1 = require("../database/prisma.service");
+const roles_guard_1 = require("../common/guards/roles.guard");
 let AdminModule = class AdminModule {
 };
 exports.AdminModule = AdminModule;
 exports.AdminModule = AdminModule = __decorate([
     (0, common_1.Module)({
         controllers: [admin_pages_controller_1.AdminPagesController, admin_payments_controller_1.AdminPaymentsController, admin_layouts_controller_1.AdminLayoutsController],
-        providers: [admin_pages_service_1.AdminPagesService, admin_payments_service_1.AdminPaymentsService, admin_layouts_service_1.AdminLayoutsService, prisma_service_1.PrismaService],
+        providers: [admin_pages_service_1.AdminPagesService, admin_payments_service_1.AdminPaymentsService, admin_layouts_service_1.AdminLayoutsService, prisma_service_1.PrismaService, roles_guard_1.RolesGuard],
         exports: [admin_pages_service_1.AdminPagesService, admin_payments_service_1.AdminPaymentsService, admin_layouts_service_1.AdminLayoutsService],
     })
 ], AdminModule);

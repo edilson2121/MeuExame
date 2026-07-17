@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 
 interface SidebarProps {
-  user: { name: string; email: string } | null;
+  user: { name: string; email: string; role?: string } | null;
   isSidebarOpen: boolean;
   setIsSidebarOpen: (isOpen: boolean) => void;
   handleLogout: () => void;

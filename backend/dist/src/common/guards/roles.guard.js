@@ -19,7 +19,10 @@ let RolesGuard = class RolesGuard {
         this.prisma = prisma;
     }
     async canActivate(context) {
-        const requiredRoles = this.reflector.get('roles', context.getHandler());
+        const requiredRoles = this.reflector.getAllAndOverride('roles', [
+            context.getHandler(),
+            context.getClass(),
+        ]);
         if (!requiredRoles || requiredRoles.length === 0) {
             return true;
         }

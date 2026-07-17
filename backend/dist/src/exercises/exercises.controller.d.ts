@@ -5,119 +5,141 @@ export declare class ExercisesController {
     private readonly exercisesService;
     constructor(exercisesService: ExercisesService);
     create(createExerciseDto: CreateExerciseDto): Promise<{
+        title: string;
+        description: string | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
-        userId: string;
-        body: string;
-        contentId: string;
+        subjectId: string;
+        authorId: string;
+        difficulty: import(".prisma/client").$Enums.Difficulty;
     }>;
     findAll(): Promise<({
-        user: {
+        subject: {
+            institutionId: string | null;
             id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            courseId: string | null;
+        };
+        author: {
+            institutionId: string | null;
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
             email: string;
             password: string;
-            name: string;
+            avatar: string | null;
             phone: string | null;
+            bio: string | null;
             role: import(".prisma/client").$Enums.Role;
-            institutionId: string | null;
-            createdAt: Date;
-            updatedAt: Date;
-        };
-        content: {
-            id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            title: string;
-            userId: string;
-            body: string;
         };
         questions: {
             id: string;
             createdAt: Date;
             updatedAt: Date;
+            imageUrl: string | null;
             text: string;
+            options: import("@prisma/client/runtime/library").JsonValue | null;
+            correctAnswer: string | null;
+            explanation: string | null;
             exerciseId: string;
         }[];
     } & {
+        title: string;
+        description: string | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
-        userId: string;
-        body: string;
-        contentId: string;
+        subjectId: string;
+        authorId: string;
+        difficulty: import(".prisma/client").$Enums.Difficulty;
     })[]>;
-    findByContent(contentId: string): Promise<({
+    findBySubject(subjectId: string): Promise<({
         questions: {
             id: string;
             createdAt: Date;
             updatedAt: Date;
+            imageUrl: string | null;
             text: string;
+            options: import("@prisma/client/runtime/library").JsonValue | null;
+            correctAnswer: string | null;
+            explanation: string | null;
             exerciseId: string;
         }[];
     } & {
+        title: string;
+        description: string | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
-        userId: string;
-        body: string;
-        contentId: string;
+        subjectId: string;
+        authorId: string;
+        difficulty: import(".prisma/client").$Enums.Difficulty;
     })[]>;
     findOne(id: string): Promise<{
-        user: {
+        subject: {
+            institutionId: string | null;
             id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            courseId: string | null;
+        };
+        author: {
+            institutionId: string | null;
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
             email: string;
             password: string;
-            name: string;
+            avatar: string | null;
             phone: string | null;
+            bio: string | null;
             role: import(".prisma/client").$Enums.Role;
-            institutionId: string | null;
-            createdAt: Date;
-            updatedAt: Date;
-        };
-        content: {
-            id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            title: string;
-            userId: string;
-            body: string;
         };
         questions: {
             id: string;
             createdAt: Date;
             updatedAt: Date;
+            imageUrl: string | null;
             text: string;
+            options: import("@prisma/client/runtime/library").JsonValue | null;
+            correctAnswer: string | null;
+            explanation: string | null;
             exerciseId: string;
         }[];
     } & {
+        title: string;
+        description: string | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
-        userId: string;
-        body: string;
-        contentId: string;
+        subjectId: string;
+        authorId: string;
+        difficulty: import(".prisma/client").$Enums.Difficulty;
     }>;
     update(id: string, updateExerciseDto: UpdateExerciseDto): Promise<{
+        title: string;
+        description: string | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
-        userId: string;
-        body: string;
-        contentId: string;
+        subjectId: string;
+        authorId: string;
+        difficulty: import(".prisma/client").$Enums.Difficulty;
     }>;
     remove(id: string): Promise<{
+        title: string;
+        description: string | null;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        title: string;
-        userId: string;
-        body: string;
-        contentId: string;
+        subjectId: string;
+        authorId: string;
+        difficulty: import(".prisma/client").$Enums.Difficulty;
     }>;
 }

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
+import Navbar from '@/components/navbar/Navbar';
 
 interface Subject {
   id: string;
@@ -88,6 +89,7 @@ export default function SubjectsPage() {
 
   return (
     <div className="min-h-screen bg-muted p-8">
+      <Navbar />
       <div className="container-custom">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">

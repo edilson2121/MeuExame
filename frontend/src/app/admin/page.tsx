@@ -28,44 +28,12 @@ export default function AdminPage() {
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Gerenciar Usuários */}
-        <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
-          <h2 className="text-xl font-bold mb-2">👥 Usuários</h2>
-          <p className="text-gray-600 mb-4">Gerenciar todos os usuários do sistema</p>
-          <Link
-            href="/admin/users"
-            className="text-blue-600 hover:text-blue-800 font-semibold"
-          >
-            Gerenciar →
-          </Link>
-        </div>
-
-        {/* Gerenciar Cursos */}
-        <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
-          <h2 className="text-xl font-bold mb-2">📚 Cursos</h2>
-          <p className="text-gray-600 mb-4">Criar e gerenciar cursos</p>
-          <div className="space-y-2">
-            <Link
-              href="/courses"
-              className="block text-blue-600 hover:text-blue-800 font-semibold"
-            >
-              Ver Cursos →
-            </Link>
-            <Link
-              href="/courses/new"
-              className="block text-green-600 hover:text-green-800 font-semibold"
-            >
-              + Novo Curso
-            </Link>
-          </div>
-        </div>
-
         {/* Gerenciar Instituições */}
         <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
           <h2 className="text-xl font-bold mb-2">🏛️ Instituições</h2>
-          <p className="text-gray-600 mb-4">Gerenciar instituições parceiras</p>
+          <p className="text-gray-600 mb-4">Gerenciar instituições</p>
           <Link
-            href="/institutions"
+            href="/admin/instituicoes"
             className="text-blue-600 hover:text-blue-800 font-semibold"
           >
             Gerenciar →
@@ -74,37 +42,61 @@ export default function AdminPage() {
 
         {/* Gerenciar Disciplinas */}
         <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
-          <h2 className="text-xl font-bold mb-2">📖 Disciplinas</h2>
-          <p className="text-gray-600 mb-4">Gerenciar disciplinas dos cursos</p>
+          <h2 className="text-xl font-bold mb-2">� Disciplinas</h2>
+          <p className="text-gray-600 mb-4">Gerenciar disciplinas</p>
           <Link
-            href="/subjects"
+            href="/admin/disciplinas"
             className="text-blue-600 hover:text-blue-800 font-semibold"
           >
             Gerenciar →
           </Link>
         </div>
 
-        {/* Gerenciar Páginas */}
+        {/* Gerenciar Exames */}
+        <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+          <h2 className="text-xl font-bold mb-2">📝 Exames</h2>
+          <p className="text-gray-600 mb-4">Criar e gerenciar exames</p>
+          <Link
+            href="/admin/exames"
+            className="text-blue-600 hover:text-blue-800 font-semibold"
+          >
+            Gerenciar →
+          </Link>
+        </div>
+
+        {/* Gerenciar Pagamentos */}
+        <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+          <h2 className="text-xl font-bold mb-2">� Pagamentos</h2>
+          <p className="text-gray-600 mb-4">Gerenciar pagamentos e assinaturas</p>
+          <Link
+            href="/admin/pagamentos"
+            className="text-blue-600 hover:text-blue-800 font-semibold"
+          >
+            Gerenciar →
+          </Link>
+        </div>
+
+        {/* Gerenciar Planos */}
+        <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+          <h2 className="text-xl font-bold mb-2">� Planos</h2>
+          <p className="text-gray-600 mb-4">Gerenciar planos de assinatura</p>
+          <Link
+            href="/admin/planos"
+            className="text-blue-600 hover:text-blue-800 font-semibold"
+          >
+            Gerenciar →
+          </Link>
+        </div>
+
+        {/* Gerenciar Páginas Dinâmicas */}
         <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
           <h2 className="text-xl font-bold mb-2">📄 Páginas</h2>
-          <p className="text-gray-600 mb-4">Gerenciar páginas do site</p>
+          <p className="text-gray-600 mb-4">Criar páginas para usuários</p>
           <Link
             href="/admin/pages"
             className="text-blue-600 hover:text-blue-800 font-semibold"
           >
             Gerenciar →
-          </Link>
-        </div>
-
-        {/* Configurações */}
-        <div className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
-          <h2 className="text-xl font-bold mb-2">⚙️ Configurações</h2>
-          <p className="text-gray-600 mb-4">Configurações gerais do sistema</p>
-          <Link
-            href="/admin/settings"
-            className="text-blue-600 hover:text-blue-800 font-semibold"
-          >
-            Configurar →
           </Link>
         </div>
       </div>

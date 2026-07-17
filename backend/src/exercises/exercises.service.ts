@@ -9,27 +9,28 @@ export class ExercisesService {
 
   async create(createExerciseDto: CreateExerciseDto) {
     const user = await this.prisma.user.findUnique({
-      where: { id: createExerciseDto.userId },
+      where: { id: createExerciseDto.authorId },
     });
 
     if (!user) {
       throw new NotFoundException('Usuário não encontrado');
     }
 
-    const content = await this.prisma.content.findUnique({
-      where: { id: createExerciseDto.contentId },
+    const subject = await this.prisma.subject.findUnique({
+      where: { id: createExerciseDto.subjectId },
     });
 
-    if (!content) {
-      throw new NotFoundException('Conteúdo não encontrado');
+    if (!subject) {
+      throw new NotFoundException('Disciplina não encontrada');
     }
 
     return this.prisma.exercise.create({
       data: {
         title: createExerciseDto.title,
-        body: createExerciseDto.body,
-        userId: createExerciseDto.userId,
-        contentId: createExerciseDto.contentId,
+        description: createExerciseDto.description,
+        subjectId: createExerciseDto.subjectId,
+        authorId: createExerciseDto.authorId,
+        difficulty: createExerciseDto.difficulty,
       },
     });
   }
@@ -37,8 +38,8 @@ export class ExercisesService {
   async findAll() {
     return this.prisma.exercise.findMany({
       include: {
-        user: true,
-        content: true,
+        author: true,
+        subject: true,
         questions: true,
       },
       orderBy: {
@@ -51,8 +52,8 @@ export class ExercisesService {
     const exercise = await this.prisma.exercise.findUnique({
       where: { id },
       include: {
-        user: true,
-        content: true,
+        author: true,
+        subject: true,
         questions: true,
       },
     });
@@ -64,9 +65,9 @@ export class ExercisesService {
     return exercise;
   }
 
-  async findByContent(contentId: string) {
+  async findBySubject(subjectId: string) {
     return this.prisma.exercise.findMany({
-      where: { contentId },
+      where: { subjectId },
       include: {
         questions: true,
       },

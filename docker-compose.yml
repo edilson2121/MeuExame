@@ -11,10 +11,11 @@
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U meuexame"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: ["CMD-SHELL", "pg_isready -U meuexame -d meuexame"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
     networks:
       - meuexame-network
 
@@ -49,6 +50,8 @@
         condition: service_healthy
     networks:
       - meuexame-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   frontend:
     build:
@@ -58,7 +61,7 @@
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NEXT_PUBLIC_API_URL: http://backend:3001/api
     depends_on:
       - backend
     networks:

@@ -42,16 +42,25 @@ async function main() {
   ];
 
   for (const data of subjects) {
-    const subject = await prisma.subject.upsert({
-      where: { name: data.name },
-      update: {},
-      create: {
+    const existingSubject = await prisma.subject.findFirst({
+      where: { 
         name: data.name,
-        description: data.description,
-        institutionId: institution.id
+        institutionId: institution.id 
       }
     });
-    console.log('✅ Disciplina criada:', subject.name);
+
+    if (!existingSubject) {
+      const subject = await prisma.subject.create({
+        data: {
+          name: data.name,
+          description: data.description,
+          institutionId: institution.id
+        }
+      });
+      console.log('✅ Disciplina criada:', subject.name);
+    } else {
+      console.log('ℹ️ Disciplina já existe:', data.name);
+    }
   }
 
   console.log('🌱 Seed concluído com sucesso!');
@@ -60,8 +69,8 @@ async function main() {
 main()
   .catch((e) => {
     console.error('❌ Erro no seed:', e);
-    process.exit(1);
+    throw e;
   })
-  .finally(() => {
-    prisma.();
+  .finally(async () => {
+    await prisma.$disconnect();
   });

@@ -1,4 +1,6 @@
 export declare class CreateSubjectDto {
     name: string;
-    courseId: string;
+    description?: string;
+    courseId?: string;
+    institutionId?: string;
 }

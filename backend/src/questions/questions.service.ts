@@ -41,7 +41,8 @@ export class QuestionsService {
       include: {
         exercise: {
           include: {
-            content: true,
+            subject: true,
+            author: true,
           },
         },
       },

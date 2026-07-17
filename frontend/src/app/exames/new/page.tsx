@@ -239,9 +239,9 @@ export default function NewExamPage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {q.options.map((opt, oIdx) => (
                           <div key={opt.id} className={`flex items-center gap-3 p-1.5 pr-4 border rounded-xl transition-all ${q.correctOptionIndex === oIdx ? 'border-[#10A63D] bg-green-50/20' : 'border-gray-100 bg-gray-50/50'}`}>
-                            <button 
+                            <button
                               type="button"
-                              onClick={() => { const n = [...questions]; n[qIdx].correctOptionIndex = oIndex; setQuestions(n); }}
+                              onClick={() => { const n = [...questions]; n[qIdx].correctOptionIndex = oIdx; setQuestions(n); }}
                               className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs transition-all ${q.correctOptionIndex === oIdx ? 'bg-[#10A63D] text-white' : 'bg-white text-gray-400 shadow-xs'}`}
                             >
                               {String.fromCharCode(65 + oIdx)}

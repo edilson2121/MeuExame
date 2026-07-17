@@ -44,7 +44,7 @@ export class AdminPaymentsService {
     return this.prisma.subscription.create({
       data: {
         userId: dto.userId,
-        plan: dto.plan,
+        planId: dto.planId,
         amount: dto.amount,
         currency: dto.currency ?? 'MZN',
         status: SubscriptionStatus.INACTIVE,
@@ -99,12 +99,18 @@ export class AdminPaymentsService {
     }
 
     const now = new Date();
-    const endDate = this.calculateEndDate(dto.plan, now);
+    const plan = await this.prisma.plan.findUnique({
+      where: { id: dto.planId },
+    });
+    if (!plan) {
+      throw new NotFoundException('Plano não encontrado');
+    }
+    const endDate = this.calculateEndDate(plan.type, now);
     const subscription = await this.prisma.subscription.upsert({
       where: { userId: dto.userId },
       create: {
         userId: dto.userId,
-        plan: dto.plan,
+        planId: dto.planId,
         amount: dto.amount,
         currency: dto.currency ?? 'MZN',
         status: SubscriptionStatus.ACTIVE,
@@ -113,7 +119,7 @@ export class AdminPaymentsService {
         endDate,
       },
       update: {
-        plan: dto.plan,
+        planId: dto.planId,
         amount: dto.amount,
         currency: dto.currency ?? 'MZN',
         status: SubscriptionStatus.ACTIVE,
@@ -158,7 +164,11 @@ export class AdminPaymentsService {
     const payment = await this.prisma.paymentTransaction.findUnique({
       where: { id: paymentId },
       include: {
-        subscription: true,
+        subscription: {
+          include: {
+            plan: true,
+          },
+        },
       },
     });
 
@@ -185,7 +195,7 @@ export class AdminPaymentsService {
           status: SubscriptionStatus.ACTIVE,
           isActive: true,
           startDate: new Date(),
-          endDate: this.calculateEndDate(payment.subscription.plan),
+          endDate: this.calculateEndDate(payment.subscription.plan.type),
         },
       });
 
@@ -277,17 +287,15 @@ export class AdminPaymentsService {
       institution,
       isPaid: institution.isPaid,
       paidAt: institution.paidAt,
-      users: institution.users,
     };
   }
 
   private calculateEndDate(plan: SubscriptionPlan, from = new Date()): Date {
     const endDate = new Date(from);
     const daysByPlan: Record<SubscriptionPlan, number> = {
-       BASIC: 30, 
-      DAILY: 1,
-      WEEKLY: 7,
-      MONTHLY: 30,
+       DAILY: 1,
+       WEEKLY: 7,
+       MONTHLY: 30,
     };
 
     endDate.setDate(endDate.getDate() + daysByPlan[plan]);

@@ -11,22 +11,16 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SubjectsService = void 0;
 const common_1 = require("@nestjs/common");
-const prisma_service_1 = require("../prisma/prisma.service");
+const prisma_service_1 = require("../database/prisma.service");
 let SubjectsService = class SubjectsService {
     constructor(prisma) {
         this.prisma = prisma;
     }
     async create(createSubjectDto) {
-        const course = await this.prisma.course.findUnique({
-            where: { id: createSubjectDto.courseId },
-        });
-        if (!course) {
-            throw new common_1.NotFoundException('Curso não encontrado');
-        }
         return this.prisma.subject.create({
-            data: {
-                name: createSubjectDto.name,
-                courseId: createSubjectDto.courseId,
+            data: createSubjectDto,
+            include: {
+                course: true,
             },
         });
     }
@@ -35,9 +29,25 @@ let SubjectsService = class SubjectsService {
             include: {
                 course: true,
             },
-            orderBy: {
-                name: 'asc',
+            orderBy: { name: 'asc' },
+        });
+    }
+    async findByInstitution(institutionId) {
+        return this.prisma.subject.findMany({
+            where: { institutionId },
+            include: {
+                course: true,
             },
+            orderBy: { name: 'asc' },
+        });
+    }
+    async findByCourse(courseId) {
+        return this.prisma.subject.findMany({
+            where: { courseId },
+            include: {
+                course: true,
+            },
+            orderBy: { name: 'asc' },
         });
     }
     async findOne(id) {
@@ -52,34 +62,18 @@ let SubjectsService = class SubjectsService {
         }
         return subject;
     }
-    async findByCourse(courseId) {
-        return this.prisma.subject.findMany({
-            where: { courseId },
-            include: {
-                course: true,
-            },
-            orderBy: {
-                name: 'asc',
-            },
-        });
-    }
     async update(id, updateSubjectDto) {
-        await this.findOne(id);
-        if (updateSubjectDto.courseId) {
-            const course = await this.prisma.course.findUnique({
-                where: { id: updateSubjectDto.courseId },
-            });
-            if (!course) {
-                throw new common_1.NotFoundException('Curso não encontrado');
-            }
-        }
+        const subject = await this.findOne(id);
         return this.prisma.subject.update({
             where: { id },
             data: updateSubjectDto,
+            include: {
+                course: true,
+            },
         });
     }
     async remove(id) {
-        await this.findOne(id);
+        const subject = await this.findOne(id);
         return this.prisma.subject.delete({
             where: { id },
         });
