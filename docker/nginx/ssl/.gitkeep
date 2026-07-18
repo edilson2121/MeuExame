@@ -1,0 +1,3 @@
+# Placeholder for SSL certificates
+# Copy your certificates here: fullchain.pem and privkey.pem
+# Or use Let's Encrypt to generate them automatically
