@@ -1,0 +1,153 @@
+version: '3.8'
+
+services:
+  # Nginx - Proxy Reverso
+  nginx:
+    build:
+      context: ./docker/nginx
+      dockerfile: Dockerfile
+    container_name: meuexame-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
+      - ./uploads:/app/uploads:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - meuexame-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PostgreSQL - Banco de Dados
+  postgres:
+    image: postgres:15-alpine
+    container_name: meuexame-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-meuexame}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-meuexame123}
+      POSTGRES_DB: ${POSTGRES_DB:-meuexame}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-meuexame} -d ${POSTGRES_DB:-meuexame}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - meuexame-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  # Redis - Cache
+  redis:
+    image: redis:7-alpine
+    container_name: meuexame-redis
+    command: redis-server /usr/local/etc/redis/redis.conf
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - meuexame-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  # Backend - API NestJS
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ./docker/backend/Dockerfile
+    container_name: meuexame-backend
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://${POSTGRES_USER:-meuexame}:${POSTGRES_PASSWORD:-meuexame123}@postgres:5432/${POSTGRES_DB:-meuexame}?schema=public
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      CORS_ORIGIN: ${CORS_ORIGIN:-https://meuexame.com}
+      # Email (opcional)
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      # M-Pesa / Débitado Pay
+      DEBITO_SECRET_KEY: ${DEBITO_SECRET_KEY:-}
+      DEBITO_WALLET_CODE: ${DEBITO_WALLET_CODE:-}
+      DEBITO_WALLET_CODE_EMOLA: ${DEBITO_WALLET_CODE_EMOLA:-}
+      DEBITO_MERCHANT_ID: ${DEBITO_MERCHANT_ID:-}
+      DEBITO_API_URL: ${DEBITO_API_URL:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - meuexame-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  # Frontend - Next.js
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: meuexame-frontend
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${API_URL:-http://backend:3001/api}
+      NEXT_PUBLIC_APP_URL: ${APP_URL:-https://meuexame.com}
+    depends_on:
+      - backend
+    networks:
+      - meuexame-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+networks:
+  meuexame-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
