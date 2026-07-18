@@ -2,14 +2,15 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
-  turbopack: {
-    root: '/workspace/project/MeuExame/frontend',
-  },
+  
   images: {
+    domains: ['localhost'],
     remotePatterns: [
       {
         protocol: 'http',
         hostname: 'localhost',
+        port: '3001',
+        pathname: '/uploads/**',
       },
       {
         protocol: 'https',
@@ -17,14 +18,18 @@ const nextConfig = {
       },
     ],
   },
+  
   async rewrites() {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://backend:3001/api/:path*',
+        destination: 'http://localhost:3001/api/:path*',
       },
     ];
   },
-}
+  
+  // ✅ Configuração do Turbopack (vazia para evitar erro)
+  turbopack: {},
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;
