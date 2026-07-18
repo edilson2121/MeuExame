@@ -6,18 +6,20 @@ import Link from 'next/link';
 import Sidebar from '@/components/layout/Sidebar';
 import { useAuth } from '@/contexts/AuthContext';
 
+interface Institution {
+  id: string;
+  name: string;
+  status?: string;
+}
+
 export default function AdminInstitutionsPage() {
   const { user } = useAuth();
-  const [institutions, setInstitutions] = useState([]);
+  const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({ name: '' });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    fetchInstitutions();
-  }, []);
 
   const fetchInstitutions = async () => {
     try {
@@ -35,6 +37,10 @@ export default function AdminInstitutionsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchInstitutions();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,7 +62,7 @@ export default function AdminInstitutionsPage() {
       } else {
         alert('Erro ao criar instituição');
       }
-    } catch (error) {
+    } catch {
       alert('Erro ao criar instituição');
     }
   };
@@ -78,7 +84,7 @@ export default function AdminInstitutionsPage() {
       } else {
         alert('Erro ao deletar instituição');
       }
-    } catch (error) {
+    } catch {
       alert('Erro ao deletar instituição');
     }
   };

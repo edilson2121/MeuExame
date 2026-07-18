@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 
 interface Question {
@@ -13,13 +13,29 @@ interface Question {
   imageUrl: string;
 }
 
+interface Exam {
+  id: string;
+  title: string;
+  description?: string;
+  subjectId: string;
+  subject?: Subject;
+  duration?: number;
+  imageUrl?: string;
+  questions?: Question[];
+  createdAt?: string;
+}
+
+interface Subject {
+  id: string;
+  name: string;
+}
+
 export default function AdminExamesPage() {
-  const [exams, setExams] = useState([]);
-  const [subjects, setSubjects] = useState([]);
+  const [exams, setExams] = useState<Exam[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showQuestionModal, setShowQuestionModal] = useState(false);
-  const [selectedExam, setSelectedExam] = useState<any>(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -35,12 +51,6 @@ export default function AdminExamesPage() {
     explanation: '',
     imageUrl: '',
   });
-  const router = useRouter();
-
-  useEffect(() => {
-    fetchExams();
-    fetchSubjects();
-  }, []);
 
   const fetchExams = async () => {
     try {
@@ -74,6 +84,11 @@ export default function AdminExamesPage() {
       console.error('Erro ao buscar disciplinas:', error);
     }
   };
+
+  useEffect(() => {
+    fetchExams();
+    fetchSubjects();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -154,7 +169,7 @@ export default function AdminExamesPage() {
       } else {
         alert('Erro ao criar exame');
       }
-    } catch (error) {
+    } catch {
       alert('Erro ao criar exame');
     }
   };
@@ -197,7 +212,7 @@ export default function AdminExamesPage() {
       } else {
         alert('Erro ao deletar exame');
       }
-    } catch (error) {
+    } catch {
       alert('Erro ao deletar exame');
     }
   };
@@ -226,7 +241,7 @@ export default function AdminExamesPage() {
       } else {
         alert('Erro ao fazer upload da imagem');
       }
-    } catch (error) {
+    } catch {
       alert('Erro ao fazer upload da imagem');
     }
   };
@@ -277,7 +292,7 @@ export default function AdminExamesPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {exams.map((exam: any) => (
+                {exams.map((exam) => (
                   <tr key={exam.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{exam.title}</div>
@@ -349,7 +364,7 @@ export default function AdminExamesPage() {
                   required
                 >
                   <option value="">Selecione uma disciplina</option>
-                  {subjects.map((subject: any) => (
+                  {subjects.map((subject) => (
                     <option key={subject.id} value={subject.id}>
                       {subject.name}
                     </option>
@@ -378,7 +393,7 @@ export default function AdminExamesPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
                 {formData.imageUrl && (
-                  <img src={formData.imageUrl} alt="Preview" className="mt-2 w-full max-w-xs rounded" />
+                  <Image src={formData.imageUrl} alt="Preview" width={300} height={200} className="mt-2 rounded" />
                 )}
               </div>
               <div className="mb-4">
@@ -395,7 +410,7 @@ export default function AdminExamesPage() {
                   </button>
                 </div>
                 <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {formData.questions.map((q: any, index: number) => (
+                  {formData.questions.map((q, index: number) => (
                     <div key={q.id} className="bg-gray-50 p-2 rounded text-sm">
                       <span className="font-medium">{index + 1}.</span> {q.text}
                     </div>

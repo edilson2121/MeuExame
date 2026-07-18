@@ -1,21 +1,26 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+interface Course {
+  id: string;
+  name: string;
+}
+
+interface Subject {
+  id: string;
+  name: string;
+  course?: Course;
+  createdAt?: string;
+}
+
 export default function AdminDisciplinasPage() {
-  const [subjects, setSubjects] = useState([]);
-  const [courses, setCourses] = useState([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({ name: '', courseId: '' });
-  const router = useRouter();
-
-  useEffect(() => {
-    fetchSubjects();
-    fetchCourses();
-  }, []);
 
   const fetchSubjects = async () => {
     try {
@@ -49,6 +54,11 @@ export default function AdminDisciplinasPage() {
     }
   };
 
+  useEffect(() => {
+    fetchSubjects();
+    fetchCourses();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -69,7 +79,7 @@ export default function AdminDisciplinasPage() {
       } else {
         alert('Erro ao criar disciplina');
       }
-    } catch (error) {
+    } catch {
       alert('Erro ao criar disciplina');
     }
   };
@@ -91,7 +101,7 @@ export default function AdminDisciplinasPage() {
       } else {
         alert('Erro ao deletar disciplina');
       }
-    } catch (error) {
+    } catch {
       alert('Erro ao deletar disciplina');
     }
   };
@@ -142,7 +152,7 @@ export default function AdminDisciplinasPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {subjects.map((subject: any) => (
+                {subjects.map((subject) => (
                   <tr key={subject.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{subject.name}</div>
@@ -152,7 +162,7 @@ export default function AdminDisciplinasPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500">
-                        {new Date(subject.createdAt).toLocaleDateString('pt-BR')}
+                        {subject.createdAt ? new Date(subject.createdAt).toLocaleDateString('pt-BR') : '-'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -200,7 +210,7 @@ export default function AdminDisciplinasPage() {
                   required
                 >
                   <option value="">Selecione um curso</option>
-                  {courses.map((course: any) => (
+                  {courses.map((course) => (
                     <option key={course.id} value={course.id}>
                       {course.name}
                     </option>

@@ -81,8 +81,9 @@ export default function CoursesPage() {
   }
 
   return (
-    <diNavbar />
-      <v className="min-h-screen bg-muted p-8">
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-muted p-8">
       <div className="container-custom">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
@@ -137,6 +138,7 @@ export default function CoursesPage() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
