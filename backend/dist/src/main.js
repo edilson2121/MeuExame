@@ -11,7 +11,7 @@ async function bootstrap() {
         forbidNonWhitelisted: true,
     }));
     app.enableCors({
-        origin: '*',
+        origin: 'http://localhost:3000',
         credentials: true,
     });
     app.setGlobalPrefix('api');
