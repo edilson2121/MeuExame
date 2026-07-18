@@ -21,6 +21,7 @@ import { SimulationsModule } from './modules/simulations/simulations.module';
 import { StatsModule } from './stats/stats.module';
 import { StudyContentsModule } from './modules/study-contents/study-contents.module';
 import { SubjectsModule } from './subjects/subjects.module';
+import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { UsersModule } from './users/users.module';
 
@@ -46,6 +47,7 @@ import { UsersModule } from './users/users.module';
     AdminModule,
     PlansModule,
     PaymentsModule,
+    SubscriptionsModule,
     DynamicPagesModule,
     UploadsModule,
     StatsModule,
