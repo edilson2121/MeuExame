@@ -37,38 +37,37 @@ export default function Navbar() {
           </Link>
 
           <div className="flex items-center gap-4">
-            <Link href="/">Home</Link>
+            {/* Home para Users normais */}
+            <Link href="/home" className="hover:underline">
+              Instituições
+            </Link>
 
             {menuPages.map((page) => (
-             <Link key={page.id} href={`/pages/${page.slug}`}>
+              <Link key={page.id} href={`/pages/${page.slug}`}>
                 {page.title}
               </Link>
             ))}
 
             {isAuthenticated ? (
               <>
-                <Link href="/dashboard">Dashboard</Link>
-                
                 {isAdmin && (
                   <>
                     <Link href="/admin" className="text-yellow-300 font-bold">
-                      Admin
-                    </Link>
-                    <Link href="/courses/new" className="bg-green-600 px-3 py-1 rounded">
-                      + Curso
+                      🛠️ Admin
                     </Link>
                   </>
                 )}
 
                 {isTeacher && (
                   <Link href="/teacher" className="text-blue-300">
-                    Área do Professor
+                    📝 Professor
                   </Link>
                 )}
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 border-l border-white/30 pl-4">
                   <span className="text-sm">
-                    Olá, {user?.name || 'Usuário'}
+                    Olá, <strong>{user?.name?.split(' ')[0] || 'Usuário'}</strong>
+                    {isAdmin && <span className="ml-1 text-xs bg-yellow-500 px-2 py-0.5 rounded">Admin</span>}
                   </span>
                   <button
                     onClick={handleLogout}
@@ -80,9 +79,11 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <Link href="/login">Login</Link>
+                <Link href="/login" className="hover:underline">
+                  Entrar
+                </Link>
                 <Link href="/register" className="bg-green-600 px-3 py-1 rounded hover:bg-green-700">
-                  Registrar
+                  Criar Conta
                 </Link>
               </>
             )}
