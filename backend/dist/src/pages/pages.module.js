@@ -11,12 +11,13 @@ const common_1 = require("@nestjs/common");
 const pages_service_1 = require("./pages.service");
 const pages_controller_1 = require("./pages.controller");
 const prisma_module_1 = require("../prisma/prisma.module");
+const auth_module_1 = require("../auth/auth.module");
 let PagesModule = class PagesModule {
 };
 exports.PagesModule = PagesModule;
 exports.PagesModule = PagesModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule],
+        imports: [prisma_module_1.PrismaModule, auth_module_1.AuthModule],
         controllers: [pages_controller_1.PagesController],
         providers: [pages_service_1.PagesService],
         exports: [pages_service_1.PagesService],

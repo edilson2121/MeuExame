@@ -40,9 +40,18 @@
     ports:
       - "3001:3001"
     environment:
+      NODE_ENV: production
       DATABASE_URL: postgresql://meuexame:meuexame123@postgres:5432/meuexame?schema=public
-      JWT_SECRET: seu-secret-key-muito-seguro
       REDIS_URL: redis://redis:6379
+      JWT_SECRET: meuexame-super-secret-key-2024
+      JWT_EXPIRES_IN: 7d
+      CORS_ORIGIN: http://localhost:3000
+      # DÉBITO PAY - PAGAMENTOS
+      DEBITO_SECRET_KEY: sk_live_ax5LxA0fcJh6Zmd72fnjFWTteBAMX9U4
+      DEBITO_WALLET_CODE: 15156
+      DEBITO_WALLET_CODE_EMOLA: 61526
+      DEBITO_MERCHANT_ID: 7dfc1d28-d241-4b48-88bf-1eb467fd4b6d
+      DEBITO_API_URL: https://gyqoaningqhurhvdugne.supabase.co/functions/v1
     depends_on:
       postgres:
         condition: service_healthy
@@ -61,7 +70,7 @@
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://backend:3001/api
+      NEXT_PUBLIC_API_URL: http://localhost:3001/api
     depends_on:
       - backend
     networks:

@@ -3,23 +3,23 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { login } = useAuth(); // ✅ Usar o AuthContext
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-      // Usar rota de admin para email de admin
       const loginUrl = email === 'admin@meuexame.com' 
-        ? `${apiUrl}/auth/admin/login` 
-        : `${apiUrl}/auth/login`;
+        ? 'http://localhost:3001/api/auth/admin/login' 
+        : 'http://localhost:3001/api/auth/login';
       
       const response = await fetch(loginUrl, {
         method: 'POST',
@@ -30,17 +30,17 @@ export default function LoginPage() {
       const data = await response.json();
       
       if (response.ok) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        // ✅ Usar o AuthContext para login
+        login(data.token, data.user);
         
-        // Redirect based on user role
+        // ✅ Redirecionar baseado na role
         if (data.user.role === 'ADMIN') {
-          router.push('/admin/dashboard');
+          router.push('/admin');
         } else {
           router.push('/dashboard');
         }
       } else {
-        alert(data.message || 'Erro no login');
+        alert(data.message || 'Credenciais inválidas');
       }
     } catch (error) {
       alert('Erro ao fazer login');
@@ -52,36 +52,18 @@ export default function LoginPage() {
   return (
     <main className="h-screen w-full flex flex-col justify-between items-center bg-white px-6 py-6 overflow-hidden">
       
-      {/* Cabeçalho (Logo, Título e Boas-vindas) */}
       <div className="flex flex-col items-center w-full max-w-sm text-center pt-2">
-        {/* Container do Logo */}
         <div className="flex items-center justify-center w-20 h-20 bg-[#F8F9FA] rounded-2xl shadow-sm">
-          <img
-            src="/logo.png"
-            alt="MeuExame Logo"
-            className="w-14 h-14 object-contain"
-          />
+          <img src="/logo.png" alt="MeuExame Logo" className="w-14 h-14 object-contain" />
         </div>
-
-        {/* Título */}
-        <h1 className="text-2xl font-bold mt-4 text-black tracking-tight">
-          Bem-vindo de Volta
-        </h1>
-
-        {/* Subtítulo */}
-        <p className="mt-1 text-sm text-gray-600 px-4">
-          Acesse sua conta para continuar estudando
-        </p>
+        <h1 className="text-2xl font-bold mt-4 text-black tracking-tight">Bem-vindo de Volta</h1>
+        <p className="mt-1 text-sm text-gray-600 px-4">Acesse sua conta para continuar estudando</p>
       </div>
 
-      {/* Formulário Principal */}
       <form onSubmit={handleSubmit} className="w-full max-w-sm flex flex-col gap-4 my-auto justify-center">
         
-        {/* Campo Email */}
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-gray-700">
-            Email
-          </label>
+          <label className="text-xs font-medium text-gray-700">Email</label>
           <input
             type="email"
             placeholder="Digite seu email"
@@ -92,22 +74,16 @@ export default function LoginPage() {
           />
         </div>
 
-        {/* Campo Palavra-passe */}
         <div className="flex flex-col gap-1">
           <div className="flex justify-between items-center">
-            <label className="text-xs font-medium text-gray-700">
-              Palavra-passe
-            </label>
-            <Link 
-              href="/recuperar-senha" 
-              className="text-xs font-medium text-[#10A63D] hover:underline"
-            >
+            <label className="text-xs font-medium text-gray-700">Palavra-passe</label>
+            <Link href="/recuperar-senha" className="text-xs font-medium text-[#10A63D] hover:underline">
               Esqueci-me da senha?
             </Link>
           </div>
           <input
             type="password"
-            placeholder="Digite seu Senha"
+            placeholder="Digite sua senha"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#10A63D] text-black placeholder-gray-400 text-sm"
@@ -115,7 +91,6 @@ export default function LoginPage() {
           />
         </div>
 
-        {/* Botão Entrar */}
         <button
           type="submit"
           disabled={loading}
@@ -125,25 +100,17 @@ export default function LoginPage() {
         </button>
       </form>
 
-       {/* Seção de Login Social e Cadastro */}
       <div className="w-full max-w-sm flex flex-col items-center gap-4 pb-4">
         
-        {/* Divisor "OU ENTRAR COM" */}
         <div className="w-full flex items-center justify-center gap-3">
           <div className="h-[1px] bg-gray-100 flex-1" />
-          <span className="text-[10px] font-bold text-gray-400 tracking-wider">
-            OU
-          </span>
+          <span className="text-[10px] font-bold text-gray-400 tracking-wider">OU</span>
           <div className="h-[1px] bg-gray-100 flex-1" />
         </div>
 
-        {/* Botão Google com Ícone SVG */}
         <button 
           type="button"
-          onClick={() => {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-            window.location.href = `${apiUrl}/auth/google`;
-          }}
+          onClick={() => window.location.href = 'http://localhost:3001/api/auth/google'}
           className="w-full bg-white text-black border border-gray-200 py-3.5 px-5 rounded-xl font-bold text-xs flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors tracking-wider"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -155,7 +122,6 @@ export default function LoginPage() {
           Continuar com Google
         </button>
 
-        {/* Link para Criar Conta */}
         <p className="text-sm font-medium text-gray-600 mt-1">
           Ainda não tem uma conta?{' '}
           <Link href="/register" className="text-[#10A63D] hover:underline font-semibold">
@@ -163,7 +129,6 @@ export default function LoginPage() {
           </Link>
         </p>
 
-        {/* Dica de credenciais oculta ou super discreta para não quebrar o layout */}
         <span className="text-[10px] text-gray-300 pointer-events-none select-none">
           admin@meuexame.com | admin123
         </span>
