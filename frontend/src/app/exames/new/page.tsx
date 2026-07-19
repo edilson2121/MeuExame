@@ -82,11 +82,7 @@ export default function NewExamPage() {
 
   return (
     <div className="min-h-screen bg-[#F4F7F6] flex flex-col md:flex-row relative text-sm font-normal">
-      <Sidebar 
-        user={{ name: 'Administrador', email: 'admin@meuexame.com', role: 'admin' }} 
-        isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} 
-        handleLogout={() => router.push('/login')} 
-      />
+      <Sidebar />
 
       <div className="flex-1 flex flex-col w-full overflow-x-hidden">
         

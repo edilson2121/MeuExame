@@ -296,12 +296,7 @@ export default function UsersPage() {
         </button>
       </header>
 
-      <Sidebar 
-        user={{ name: 'Administrador', email: 'admin@meuexame.com' }} 
-        isSidebarOpen={isSidebarOpen} 
-        setIsSidebarOpen={setIsSidebarOpen} 
-        handleLogout={handleLogout} 
-      />
+      <Sidebar />
 
       {isSidebarOpen && (
         <div className="fixed inset-0 bg-black/20 z-30 md:hidden" onClick={() => setIsSidebarOpen(false)} />

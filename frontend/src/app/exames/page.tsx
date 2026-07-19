@@ -56,12 +56,7 @@ export default function TestesPage() {
       </header>
 
       {/* SIDEBAR COMPONENTE */}
-      <Sidebar 
-        user={{ name: 'Administrador', email: 'admin@meuexame.com', role: 'admin' }} 
-        isSidebarOpen={isSidebarOpen} 
-        setIsSidebarOpen={setIsSidebarOpen} 
-        handleLogout={() => router.push('/login')} 
-      />
+      <Sidebar />
 
       {/* Overlay para fechar sidebar no mobile */}
       {isSidebarOpen && (

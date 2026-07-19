@@ -19,7 +19,7 @@ interface AuthContextType {
   isTeacher: boolean;
   login: (token: string, user: User) => void;
   logout: () => void;
-  updateUser: (user: User) => void;
+  updateUser: (data: { name?: string; phone?: string }) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -53,9 +53,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
-  const updateUser = (updatedUser: User) => {
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-    setUser(updatedUser);
+  const updateUser = (data: { name?: string; phone?: string }) => {
+    if (user) {
+      const updatedUser = { ...user, ...data };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+    }
   };
 
   const isAdmin = user?.role === 'ADMIN';

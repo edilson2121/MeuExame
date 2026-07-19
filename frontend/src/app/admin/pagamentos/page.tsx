@@ -30,7 +30,7 @@ export default function PagamentosPage() {
 
   return (
     <div className="min-h-screen bg-[#F4F7F6] flex flex-col md:flex-row text-sm">
-      <Sidebar user={{ name: 'Admin', email: 'admin@meuexame.com', role: 'admin' }} isSidebarOpen={true} setIsSidebarOpen={() => {}} handleLogout={() => {}} />
+      <Sidebar />
 
       <div className="flex-1 w-full">
         <header className="h-16 border-b border-gray-200 bg-white flex items-center justify-between px-8">

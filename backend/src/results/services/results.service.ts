@@ -34,7 +34,7 @@ export class ResultsService {
       include: {
         exam: {
           include: {
-            questions: {
+            examQuestions: {
               include: {
                 question: true,
               },

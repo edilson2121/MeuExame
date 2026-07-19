@@ -91,12 +91,7 @@ export default function AdminInstitutionsPage() {
 
   return (
     <div className="min-h-screen bg-[#F4F7F6] flex flex-col md:flex-row">
-      <Sidebar 
-        user={user} 
-        isSidebarOpen={isSidebarOpen} 
-        setIsSidebarOpen={setIsSidebarOpen} 
-        handleLogout={() => router.push('/login')} 
-      />
+      <Sidebar />
       
       <div className="flex-1 w-full">
         {/* Header */}

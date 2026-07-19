@@ -28,6 +28,7 @@ model User {
   paymentTransactions PaymentTransaction[]
   payments      Payment[]
   pages         Page[]
+  examAccesses  ExamAccess[]
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
@@ -102,10 +103,33 @@ model Exam {
   results     Result[]
   examQuestions ExamQuestion[]
   simulations ExamSimulation[]
+  examAccesses ExamAccess[]
+  payments     Payment[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
   @@map("exams")
+}
+
+model ExamAccess {
+  id        String   @id @default(cuid())
+  examId    String
+  userId    String
+  type      ExamAccessType @default(FREE)
+  expiresAt DateTime?
+  exam      Exam @relation(fields: [examId], references: [id], onDelete: Cascade)
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([examId, userId])
+  @@map("exam_access")
+}
+
+enum ExamAccessType {
+  FREE
+  PAID
+  SUBSCRIPTION
 }
 
 model Course {
@@ -242,15 +266,19 @@ model Payment {
   id              String      @id @default(cuid())
   userId          String
   user            User        @relation(fields: [userId], references: [id])
-  planId          String
-  plan            Plan        @relation(fields: [planId], references: [id])
+  planId          String?
+  plan            Plan?        @relation(fields: [planId], references: [id])
+  examId          String?
+  exam            Exam?        @relation(fields: [examId], references: [id])
   subscriptionId  String?
   subscription    Subscription? @relation(fields: [subscriptionId], references: [id])
   amount          Float
   status          PaymentStatus @default(PENDING)
   paymentMethod   String?
   transactionId   String?     @unique
+  instructionId   String?
   paidAt          DateTime?
+  webhookData     Json?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
