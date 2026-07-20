@@ -24,14 +24,20 @@ export default function AdminPlanosPage() {
 
   const fetchPlans = async () => {
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/plans`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
-      setPlans(data);
+      
+      let data: any[] = [];
+      try {
+        const response = await fetch(`${apiUrl}/plans`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (response.ok) data = await response.json();
+      } catch (e) {
+        console.warn('Planos não carregados');
+      }
+      
+      setPlans(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Erro ao buscar planos:', error);
     } finally {
@@ -42,8 +48,9 @@ export default function AdminPlanosPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/plans`, {
+      const response = await fetch(`${apiUrl}/plans`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -77,8 +84,9 @@ export default function AdminPlanosPage() {
 
   const handleToggleActive = async (id: string, isActive: boolean) => {
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/plans/${id}`, {
+      const response = await fetch(`${apiUrl}/plans/${id}`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -101,12 +109,11 @@ export default function AdminPlanosPage() {
     if (!confirm('Tem certeza que deseja deletar este plano?')) return;
 
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/plans/${id}`, {
+      const response = await fetch(`${apiUrl}/plans/${id}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: { 'Authorization': `Bearer ${token}` },
       });
 
       if (response.ok) {

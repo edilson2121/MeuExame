@@ -23,14 +23,24 @@ export default function AdminInstitutionsPage() {
 
   const fetchInstitutions = async () => {
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/institutions`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
-      setInstitutions(data);
+      
+      let data: any[] = [];
+      try {
+        const response = await fetch(`${apiUrl}/institutions`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        if (response.ok) {
+          data = await response.json();
+        }
+      } catch (e) {
+        console.warn('Backend indisponível');
+      }
+      
+      setInstitutions(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Erro ao buscar instituições:', error);
     } finally {
@@ -45,8 +55,9 @@ export default function AdminInstitutionsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/institutions`, {
+      const response = await fetch(`${apiUrl}/institutions`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -71,8 +82,9 @@ export default function AdminInstitutionsPage() {
     if (!confirm('Tem certeza que deseja deletar esta instituição?')) return;
 
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/institutions/${id}`, {
+      const response = await fetch(`${apiUrl}/institutions/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

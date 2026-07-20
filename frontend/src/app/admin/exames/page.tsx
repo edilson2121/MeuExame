@@ -54,14 +54,20 @@ export default function AdminExamesPage() {
 
   const fetchExams = async () => {
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/exams`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
-      setExams(data);
+      
+      let data: any[] = [];
+      try {
+        const response = await fetch(`${apiUrl}/exams`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (response.ok) data = await response.json();
+      } catch (e) {
+        console.warn('Exames não carregados');
+      }
+      
+      setExams(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Erro ao buscar exames:', error);
     } finally {
@@ -71,15 +77,20 @@ export default function AdminExamesPage() {
 
   const fetchSubjects = async () => {
     try {
-      const token = localStorage.getItem('token');
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-      const response = await fetch(`${apiUrl}/subjects`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
-      setSubjects(data);
+      const token = localStorage.getItem('token');
+      
+      let data: any[] = [];
+      try {
+        const response = await fetch(`${apiUrl}/subjects`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (response.ok) data = await response.json();
+      } catch (e) {
+        console.warn('Disciplinas não carregadas');
+      }
+      
+      setSubjects(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Erro ao buscar disciplinas:', error);
     }

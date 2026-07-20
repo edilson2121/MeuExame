@@ -24,14 +24,20 @@ export default function AdminDisciplinasPage() {
 
   const fetchSubjects = async () => {
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/subjects`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
-      setSubjects(data);
+      
+      let data: any[] = [];
+      try {
+        const response = await fetch(`${apiUrl}/subjects`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (response.ok) data = await response.json();
+      } catch (e) {
+        console.warn('Disciplinas não carregadas');
+      }
+      
+      setSubjects(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Erro ao buscar disciplinas:', error);
     } finally {
@@ -41,14 +47,20 @@ export default function AdminDisciplinasPage() {
 
   const fetchCourses = async () => {
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/courses`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
-      setCourses(data);
+      
+      let data: any[] = [];
+      try {
+        const response = await fetch(`${apiUrl}/courses`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (response.ok) data = await response.json();
+      } catch (e) {
+        console.warn('Cursos não carregados');
+      }
+      
+      setCourses(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Erro ao buscar cursos:', error);
     }
@@ -62,8 +74,9 @@ export default function AdminDisciplinasPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/subjects`, {
+      const response = await fetch(`${apiUrl}/subjects`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -88,12 +101,11 @@ export default function AdminDisciplinasPage() {
     if (!confirm('Tem certeza que deseja deletar esta disciplina?')) return;
 
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/subjects/${id}`, {
+      const response = await fetch(`${apiUrl}/subjects/${id}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: { 'Authorization': `Bearer ${token}` },
       });
 
       if (response.ok) {

@@ -28,14 +28,20 @@ export default function AdminPagesPage() {
 
   const fetchPages = async () => {
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       const token = localStorage.getItem("token");
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/pages`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setPages(data);
+      
+      let data: any[] = [];
+      try {
+        const response = await fetch(`${apiUrl}/admin/pages`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.ok) data = await response.json();
+      } catch (e) {
+        console.warn('Páginas não carregadas');
       }
+      
+      setPages(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching pages:", error);
     } finally {
@@ -45,14 +51,20 @@ export default function AdminPagesPage() {
 
   const fetchInstitutions = async () => {
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       const token = localStorage.getItem("token");
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/institutions`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setInstitutions(data);
+      
+      let data: any[] = [];
+      try {
+        const response = await fetch(`${apiUrl}/admin/institutions`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.ok) data = await response.json();
+      } catch (e) {
+        console.warn('Instituições não carregadas');
       }
+      
+      setInstitutions(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching institutions:", error);
     }
@@ -61,10 +73,11 @@ export default function AdminPagesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       const token = localStorage.getItem("token");
       const url = editingPage
-        ? `${process.env.NEXT_PUBLIC_API_URL}/admin/pages/${editingPage.id}`
-        : `${process.env.NEXT_PUBLIC_API_URL}/admin/pages`;
+        ? `${apiUrl}/admin/pages/${editingPage.id}`
+        : `${apiUrl}/admin/pages`;
       
       const method = editingPage ? "PUT" : "POST";
 
@@ -116,8 +129,9 @@ export default function AdminPagesPage() {
     if (!confirm("Tem certeza que deseja excluir esta página?")) return;
 
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       const token = localStorage.getItem("token");
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/pages/${id}`, {
+      const response = await fetch(`${apiUrl}/admin/pages/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -132,8 +146,9 @@ export default function AdminPagesPage() {
 
   const handlePublish = async (id: string) => {
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       const token = localStorage.getItem("token");
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/pages/${id}/publish`, {
+      const response = await fetch(`${apiUrl}/admin/pages/${id}/publish`, {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}` },
       });

@@ -58,10 +58,17 @@ export default function AdminContentPage() {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       const token = localStorage.getItem('token');
-      const res = await fetch(`${apiUrl}/contents`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
+      
+      let data: any[] = [];
+      try {
+        const res = await fetch(`${apiUrl}/contents`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) data = await res.json();
+      } catch (e) {
+        console.warn('Conteúdos não carregados');
+      }
+      
       setContents(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Erro ao carregar conteúdos:', error);
@@ -74,10 +81,17 @@ export default function AdminContentPage() {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       const token = localStorage.getItem('token');
-      const res = await fetch(`${apiUrl}/disciplines`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
+      
+      let data: any[] = [];
+      try {
+        const res = await fetch(`${apiUrl}/disciplines`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) data = await res.json();
+      } catch (e) {
+        console.warn('Disciplinas não carregadas');
+      }
+      
       setDisciplines(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Erro ao carregar disciplinas:', error);
