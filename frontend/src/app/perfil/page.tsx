@@ -73,34 +73,48 @@ function ProfileContent() {
           setEmail(profileData.email || '');
           setPhone(profileData.phone || '');
           setAvatar(profileData.avatar || null);
+        } else if (profileRes.status === 401) {
+          // Token expirado ou inválido
+          logout();
+          router.push('/login');
+          return;
         }
 
         // Fetch results
-        const resultsRes = await fetch(`${apiUrl}/results/my`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (resultsRes.ok) {
-          const resultsData = await resultsRes.json();
-          setResults(Array.isArray(resultsData) ? resultsData.slice(0, 5) : []);
+        try {
+          const resultsRes = await fetch(`${apiUrl}/results/my`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (resultsRes.ok) {
+            const resultsData = await resultsRes.json();
+            setResults(Array.isArray(resultsData) ? resultsData.slice(0, 5) : []);
+          }
+        } catch (e) {
+          console.warn('Resultados não disponíveis');
         }
 
         // Fetch subscriptions
-        const subRes = await fetch(`${apiUrl}/subscriptions/my`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (subRes.ok) {
-          const subData = await subRes.json();
-          setSubscriptions(Array.isArray(subData) ? subData : []);
+        try {
+          const subRes = await fetch(`${apiUrl}/subscriptions/my`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (subRes.ok) {
+            const subData = await subRes.json();
+            setSubscriptions(Array.isArray(subData) ? subData : []);
+          }
+        } catch (e) {
+          console.warn('Assinaturas não disponíveis');
         }
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
+        // Não redireciona - mostra dados vazios em vez de quebrar a página
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [router]);
+  }, [router, logout]);
 
   const handleSaveProfile = async () => {
     setSaving(true);
