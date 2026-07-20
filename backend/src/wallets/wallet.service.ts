@@ -3,6 +3,7 @@ import { PrismaService } from '../database/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import { AxiosResponse } from 'axios';
 
 export interface DebitPayConfig {
   apiKey: string;
@@ -42,6 +43,14 @@ export interface DebitPayWebhookPayload {
     transactionId?: string;
     timestamp?: string;
   };
+}
+
+interface TokenResponse {
+  accessToken: string;
+}
+
+interface PaymentResponse {
+  transactionId?: string;
 }
 
 @Injectable()
@@ -84,7 +93,7 @@ export class WalletService {
 
     try {
       const response = await firstValueFrom(
-        this.httpService.post(`${this.config.baseUrl}/auth/token`, {
+        this.httpService.post<TokenResponse>(`${this.config.baseUrl}/auth/token`, {
           apiKey: this.config.apiKey,
         })
       );
@@ -135,7 +144,7 @@ export class WalletService {
 
       // Call DebitPay M-Pesa API
       const response = await firstValueFrom(
-        this.httpService.post(
+        this.httpService.post<PaymentResponse>(
           `${this.config.baseUrl}/payments/mpesa/stk`,
           {
             phone: this.formatPhone(phone),
@@ -214,7 +223,7 @@ export class WalletService {
       const token = await this.getAccessToken();
 
       const response = await firstValueFrom(
-        this.httpService.post(
+        this.httpService.post<PaymentResponse>(
           `${this.config.baseUrl}/payments/emola/push`,
           {
             phone: this.formatPhone(phone),
@@ -280,6 +289,7 @@ export class WalletService {
   private async createTransaction(data: {
     reference: string;
     userId?: string;
+    examId?: string;
     method: 'MPESA' | 'EMOLA' | 'DEBITPAY';
     amount: number;
     phone: string;
@@ -288,11 +298,12 @@ export class WalletService {
     return this.prisma.walletTransaction.create({
       data: {
         reference: data.reference,
-        externalId: data.externalId,
+        externalId: data.externalId ?? null,
         method: data.method,
         amount: data.amount,
         phone: data.phone,
-        userId: data.userId,
+        userId: data.userId ?? '',
+        examId: data.examId ?? '',
         status: 'PENDING',
       },
     });

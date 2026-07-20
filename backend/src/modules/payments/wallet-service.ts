@@ -567,20 +567,25 @@ export class WalletService {
    * Check user exam access
    */
   async checkExamAccess(userId: string, examId: string): Promise<boolean> {
-    const exam = await this.prisma.exam.findUnique({
-      where: { id: examId },
+    // Check if there's a FREE access record for this exam
+    const freeAccess = await this.prisma.examAccess.findFirst({
+      where: {
+        examId,
+        type: 'FREE',
+      },
     });
 
     // Free exams are always accessible
-    if (exam?.accessType === 'FREE') {
+    if (freeAccess) {
       return true;
     }
 
-    // Check if user has access
+    // Check if user has paid access
     const access = await this.prisma.examAccess.findFirst({
       where: {
         userId,
         examId,
+        type: 'PAID',
         expiresAt: { gt: new Date() },
       },
     });
