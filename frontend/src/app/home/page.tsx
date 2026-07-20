@@ -6,67 +6,66 @@ import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import {
-  Book,
   FileText,
-  Users,
-  Award,
-  ChevronRight,
-  Search,
-  Star,
+  CheckCircle,
+  XCircle,
   Clock,
-  TrendingUp,
   Loader2,
   Bell,
-  Settings,
   LogOut,
   User,
   BookOpen,
   Download,
-  Play
+  Play,
+  Target,
+  Trophy,
+  RefreshCw,
+  Book,
+  ChevronRight,
+  TrendingUp,
+  Award,
+  Star,
 } from 'lucide-react';
 
-interface Exam {
+// Tipos
+interface ExamResult {
+  id: string;
+  examId: string;
+  examTitle: string;
+  discipline: string;
+  date: string;
+  totalQuestions: number;
+  correctAnswers: number;
+  wrongAnswers: number;
+  percentage: number;
+  passed: boolean;
+  timeSpent: number;
+}
+
+interface QuickExam {
   id: string;
   title: string;
-  description: string;
   discipline: string;
   questions: number;
   duration: number;
   price: number;
-  imageUrl?: string;
-}
-
-interface Manual {
-  id: string;
-  title: string;
-  description: string;
-  discipline: string;
-  disciplineId: string;
-  fileUrl: string;
-  downloads: number;
-}
-
-interface UserData {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
+  isFree: boolean;
+  completed?: boolean;
+  bestScore?: number;
 }
 
 export default function HomePage() {
   const router = useRouter();
-  const [user, setUser] = useState<UserData | null>(null);
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [exams, setExams] = useState<Exam[]>([]);
-  const [manuals, setManuals] = useState<Manual[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [examResults, setExamResults] = useState<ExamResult[]>([]);
+  const [quickExams, setQuickExams] = useState<QuickExam[]>([]);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
   useEffect(() => {
     checkAuth();
-    fetchData();
+    fetchUserData();
   }, []);
 
   const checkAuth = () => {
@@ -90,51 +89,21 @@ export default function HomePage() {
     setLoading(false);
   };
 
-  const fetchData = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      
-      // Fetch exams
-      const examsRes = await fetch(`${apiUrl}/exams?status=PUBLISHED`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      
-      if (examsRes.ok) {
-        const examsData = await examsRes.json();
-        setExams(Array.isArray(examsData) ? examsData.slice(0, 6) : []);
-      } else {
-        setExams([
-          { id: '1', title: 'Matemática para Admisão UCM', description: 'Exame completo de matemática', discipline: 'Matemática', questions: 40, duration: 60, price: 299 },
-          { id: '2', title: 'Física Geral', description: 'Questões de física para técnicos', discipline: 'Física', questions: 30, duration: 45, price: 299 },
-          { id: '3', title: 'Português e Literatura', description: 'Exame de português e literatura', discipline: 'Português', questions: 50, duration: 90, price: 299 },
-          { id: '4', title: 'Química Orgânica', description: 'Exame de química para médicos', discipline: 'Química', questions: 35, duration: 60, price: 299 },
-        ]);
-      }
+  const fetchUserData = async () => {
+    // Simular dados do usuário
+    setExamResults([
+      { id: '1', examId: '1', examTitle: 'Matemática para Admissão', discipline: 'Matemática', date: '2026-07-19', totalQuestions: 20, correctAnswers: 16, wrongAnswers: 4, percentage: 80, passed: true, timeSpent: 35 },
+      { id: '2', examId: '2', examTitle: 'Física Geral', discipline: 'Física', date: '2026-07-18', totalQuestions: 15, correctAnswers: 9, wrongAnswers: 6, percentage: 60, passed: false, timeSpent: 28 },
+      { id: '3', examId: '3', examTitle: 'Português - Gramática', discipline: 'Português', date: '2026-07-17', totalQuestions: 25, correctAnswers: 22, wrongAnswers: 3, percentage: 88, passed: true, timeSpent: 42 },
+      { id: '4', examId: '4', examTitle: 'Química Orgânica', discipline: 'Química', date: '2026-07-15', totalQuestions: 18, correctAnswers: 12, wrongAnswers: 6, percentage: 67, passed: false, timeSpent: 30 },
+    ]);
 
-      // Fetch manuals
-      const manualsRes = await fetch(`${apiUrl}/manuals?active=true`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (manualsRes.ok) {
-        const manualsData = await manualsRes.json();
-        setManuals(Array.isArray(manualsData) ? manualsData.slice(0, 6) : []);
-      } else {
-        setManuals([
-          { id: '1', title: 'Guia de Preparação para Exames', description: 'Manual completo com dicas', discipline: 'Geral', disciplineId: '1', fileUrl: '#', downloads: 156 },
-          { id: '2', title: 'Matemática para Iniciantes', description: 'Fundamentos de matemática', discipline: 'Matemática', disciplineId: '2', fileUrl: '#', downloads: 89 },
-          { id: '3', title: 'Português - Gramática', description: 'Manual de gramática', discipline: 'Português', disciplineId: '3', fileUrl: '#', downloads: 67 },
-        ]);
-      }
-    } catch (err) {
-      setExams([
-        { id: '1', title: 'Matemática para Admisão UCM', description: 'Exame completo de matemática', discipline: 'Matemática', questions: 40, duration: 60, price: 299 },
-        { id: '2', title: 'Física Geral', description: 'Questões de física para técnicos', discipline: 'Física', questions: 30, duration: 45, price: 299 },
-      ]);
-      setManuals([
-        { id: '1', title: 'Guia de Preparação para Exames', description: 'Manual completo com dicas', discipline: 'Geral', disciplineId: '1', fileUrl: '#', downloads: 156 },
-      ]);
-    }
+    setQuickExams([
+      { id: '1', title: 'Matemática para Admissão UCM', discipline: 'Matemática', questions: 40, duration: 60, price: 0, isFree: true, completed: true, bestScore: 80 },
+      { id: '2', title: 'Física Geral', discipline: 'Física', questions: 30, duration: 45, price: 0, isFree: true, completed: true, bestScore: 60 },
+      { id: '3', title: 'Português e Literatura', discipline: 'Português', questions: 50, duration: 90, price: 299, isFree: false, completed: false },
+      { id: '4', title: 'Química Orgânica', discipline: 'Química', questions: 35, duration: 60, price: 199, isFree: false, completed: false },
+    ]);
   };
 
   const handleLogout = () => {
@@ -143,15 +112,13 @@ export default function HomePage() {
     router.push('/login');
   };
 
-  const filteredExams = exams.filter(exam =>
-    exam.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    exam.discipline.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const filteredManuals = manuals.filter(manual =>
-    manual.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    manual.discipline.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const totalExams = examResults.length;
+  const passedExams = examResults.filter(r => r.passed).length;
+  const averageScore = totalExams > 0 
+    ? Math.round(examResults.reduce((acc, r) => acc + r.percentage, 0) / totalExams) 
+    : 0;
+  const totalCorrect = examResults.reduce((acc, r) => acc + r.correctAnswers, 0);
+  const totalWrong = examResults.reduce((acc, r) => acc + r.wrongAnswers, 0);
 
   if (loading) {
     return (
@@ -168,240 +135,288 @@ export default function HomePage() {
     <div className="min-h-screen bg-gray-50">
       <Header />
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-6xl mx-auto px-4 py-8">
         {/* Welcome Section */}
-        <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl p-8 mb-8 text-white">
+        <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl p-6 mb-8 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold mb-2">
+              <h1 className="text-2xl font-bold mb-1">
                 Bem-vindo, {user?.name?.split(' ')[0] || 'Utilizador'}! 👋
               </h1>
-              <p className="text-green-100">
-                Prepare-se para exames de condução, escolas profissionais e muito mais.
+              <p className="text-green-100 text-sm">
+                Acompanhe o seu progresso e continue a estudar
               </p>
             </div>
-            <div className="hidden md:flex items-center gap-4">
-              <Link
-                href="/notificacoes"
-                className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors"
-              >
-                <Bell className="w-5 h-5" />
-                <span>Notificações</span>
-              </Link>
-              <Link
-                href="/perfil"
-                className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors"
-              >
+            <div className="flex items-center gap-2">
+              <Link href="/perfil" className="p-2 bg-white/20 rounded-lg hover:bg-white/30">
                 <User className="w-5 h-5" />
-                <span>Perfil</span>
               </Link>
+              <button onClick={handleLogout} className="p-2 bg-white/20 rounded-lg hover:bg-white/30">
+                <LogOut className="w-5 h-5" />
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Search */}
-        <div className="mb-8">
-          <div className="relative max-w-2xl mx-auto">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Pesquisar exames, manuais..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-4 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent shadow-sm"
-            />
-          </div>
-        </div>
-
-        {/* Quick Stats */}
+        {/* Estatísticas Pessoais */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+          <div className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-green-500">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <FileText className="w-5 h-5 text-green-600" />
+                <Trophy className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{exams.length}</p>
-                <p className="text-sm text-gray-500">Exames</p>
+                <p className="text-2xl font-bold text-gray-900">{passedExams}/{totalExams}</p>
+                <p className="text-xs text-gray-500">Exames Passados</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+
+          <div className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-blue-500">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Book className="w-5 h-5 text-blue-600" />
+                <Target className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{manuals.length}</p>
-                <p className="text-sm text-gray-500">Manuais</p>
+                <p className="text-2xl font-bold text-gray-900">{averageScore}%</p>
+                <p className="text-xs text-gray-500">Média Geral</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+
+          <div className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-green-600">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Award className="w-5 h-5 text-purple-600" />
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <CheckCircle className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">0</p>
-                <p className="text-sm text-gray-500">Certificados</p>
+                <p className="text-2xl font-bold text-green-600">{totalCorrect}</p>
+                <p className="text-xs text-gray-500">Questões Corretas</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+
+          <div className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-red-500">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-yellow-600" />
+              <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                <XCircle className="w-5 h-5 text-red-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">0%</p>
-                <p className="text-sm text-gray-500">Progresso</p>
+                <p className="text-2xl font-bold text-red-600">{totalWrong}</p>
+                <p className="text-xs text-gray-500">Questões Erradas</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Exams Section */}
-        <section className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <FileText className="w-6 h-6 text-green-600" />
-              Exames Disponíveis
+        {/* Barra de Progresso Geral */}
+        <div className="bg-white rounded-xl p-6 shadow-sm mb-8">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-bold text-gray-900 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-green-600" />
+              Progresso Geral
             </h2>
-            <Link href="/exames" className="text-green-600 hover:text-green-700 flex items-center gap-1">
+            <span className="text-sm text-gray-500">Meta: 80% para passar</span>
+          </div>
+          <div className="relative">
+            <div className="h-6 bg-gray-200 rounded-full overflow-hidden">
+              <div 
+                className={`h-full rounded-full transition-all duration-500 ${
+                  averageScore >= 80 ? 'bg-green-500' : averageScore >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+                }`}
+                style={{ width: `${Math.min(averageScore, 100)}%` }}
+              />
+            </div>
+            {/* Marcador 80% */}
+            <div className="absolute top-0 left-1/5 h-6 w-0.5 bg-gray-800" title="Meta: 80%" />
+            <span className="absolute top-1 left-1/5 transform -translate-x-1/2 text-xs text-gray-600">80%</span>
+          </div>
+          <div className="flex justify-between mt-2 text-sm">
+            <span className={`font-medium ${averageScore >= 80 ? 'text-green-600' : 'text-yellow-600'}`}>
+              {averageScore >= 80 ? '✅ Aprovado!' : averageScore >= 50 ? '⚠️ Em progresso' : '❌ Precisa melhorar'}
+            </span>
+            <span className="text-gray-500">{totalExams} exames realizados</span>
+          </div>
+        </div>
+
+        {/* Resultados dos Exames Recentes */}
+        <div className="bg-white rounded-xl shadow-sm mb-8">
+          <div className="p-4 border-b flex items-center justify-between">
+            <h2 className="font-bold text-gray-900 flex items-center gap-2">
+              <Award className="w-5 h-5 text-green-600" />
+              Meus Resultados
+            </h2>
+            <Link href="/meus-exames" className="text-sm text-green-600 hover:text-green-700 flex items-center gap-1">
               Ver todos <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredExams.length === 0 ? (
-              <div className="col-span-full text-center py-8">
-                <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">Nenhum exame encontrado</p>
-              </div>
-            ) : (
-              filteredExams.map((exam) => (
-                <div key={exam.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                  <div className="h-32 bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
-                    <BookOpen className="w-12 h-12 text-white/80" />
-                  </div>
-                  <div className="p-4">
-                    <span className="inline-block px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full mb-2">
-                      {exam.discipline}
-                    </span>
-                    <h3 className="font-bold text-gray-900 mb-2">{exam.title}</h3>
-                    <p className="text-sm text-gray-500 mb-4">{exam.description}</p>
-                    <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                      <span className="flex items-center gap-1">
-                        <FileText className="w-4 h-4" />
-                        {exam.questions} questões
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        {exam.duration} min
+          
+          <div className="divide-y">
+            {examResults.map((result) => (
+              <div key={result.id} className="p-4 hover:bg-gray-50 transition-colors">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-gray-900">{result.examTitle}</h3>
+                      {result.passed ? (
+                        <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-medium">
+                          ✓ Passou
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full font-medium">
+                          ✗ Reprovou
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-500 mb-2">{result.discipline} • {result.date}</p>
+                    
+                    {/* Barra de resultado */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden flex">
+                        <div 
+                          className="h-full bg-green-500"
+                          style={{ width: `${result.percentage}%` }}
+                        />
+                        <div 
+                          className="h-full bg-red-500"
+                          style={{ width: `${100 - result.percentage}%` }}
+                        />
+                      </div>
+                      <span className={`text-sm font-bold ${
+                        result.passed ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {result.percentage}%
                       </span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold text-green-600">{exam.price} MZN</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 ml-4">
+                    <div className="text-right">
+                      <div className="flex items-center gap-1 text-green-600">
+                        <CheckCircle className="w-4 h-4" />
+                        <span className="text-sm font-medium">{result.correctAnswers}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-red-600">
+                        <XCircle className="w-4 h-4" />
+                        <span className="text-sm font-medium">{result.wrongAnswers}</span>
+                      </div>
+                    </div>
+                    
+                    {!result.passed && (
                       <Link
-                        href={`/pagamentos/${exam.id}`}
-                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors"
+                        href={`/exames/${result.examId}`}
+                        className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center gap-1"
                       >
-                        Comprar
+                        <RefreshCw className="w-4 h-4" /> Refazer
                       </Link>
-                    </div>
+                    )}
                   </div>
                 </div>
-              ))
-            )}
-          </div>
-        </section>
-
-        {/* Manuals Section */}
-        <section className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Book className="w-6 h-6 text-blue-600" />
-              Manuais de Estudo
-            </h2>
-            <Link href="/manuais" className="text-blue-600 hover:text-blue-700 flex items-center gap-1">
-              Ver todos <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredManuals.length === 0 ? (
-              <div className="col-span-full text-center py-8">
-                <Book className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">Nenhum manual encontrado</p>
               </div>
-            ) : (
-              filteredManuals.map((manual) => (
-                <div key={manual.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                  <div className="h-24 bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-                    <Book className="w-10 h-10 text-white/80" />
-                  </div>
-                  <div className="p-4">
-                    <span className="inline-block px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full mb-2">
-                      {manual.discipline}
-                    </span>
-                    <h3 className="font-bold text-gray-900 mb-2">{manual.title}</h3>
-                    <p className="text-sm text-gray-500 mb-4">{manual.description}</p>
-                    <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                      <span className="flex items-center gap-1">
-                        <Download className="w-4 h-4" />
-                        {manual.downloads}
-                      </span>
-                    </div>
-                    <a
-                      href={manual.fileUrl}
-                      download
-                      className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-                    >
-                      <Download className="w-4 h-4" />
-                      Baixar PDF
-                    </a>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </section>
-
-        {/* Disciplines Section */}
-        <section>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Users className="w-6 h-6 text-purple-600" />
-              Disciplinas
-            </h2>
-            <Link href="/disciplinas" className="text-purple-600 hover:text-purple-700 flex items-center gap-1">
-              Ver todas <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {[
-              { name: 'Matemática', icon: '📐', color: 'from-blue-500 to-blue-600' },
-              { name: 'Física', icon: '⚡', color: 'from-yellow-500 to-orange-500' },
-              { name: 'Química', icon: '🧪', color: 'from-green-500 to-emerald-600' },
-              { name: 'Português', icon: '📖', color: 'from-purple-500 to-pink-500' },
-              { name: 'Biologia', icon: '🧬', color: 'from-red-500 to-rose-600' },
-              { name: 'História', icon: '🏛️', color: 'from-amber-500 to-orange-600' },
-            ].map((discipline, i) => (
-              <Link
-                key={i}
-                href={`/disciplinas/${i + 1}`}
-                className="bg-white rounded-xl border border-gray-100 p-4 text-center hover:shadow-md transition-shadow group"
-              >
-                <div className={`w-12 h-12 mx-auto rounded-xl bg-gradient-to-br ${discipline.color} flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition-transform`}>
-                  {discipline.icon}
-                </div>
-                <p className="font-medium text-gray-900">{discipline.name}</p>
-              </Link>
             ))}
           </div>
-        </section>
+        </div>
+
+        {/* Exames Rápidos */}
+        <div className="bg-white rounded-xl shadow-sm mb-8">
+          <div className="p-4 border-b flex items-center justify-between">
+            <h2 className="font-bold text-gray-900 flex items-center gap-2">
+              <Play className="w-5 h-5 text-green-600" />
+              Exames Rápidos
+            </h2>
+            <Link href="/meus-exames" className="text-sm text-green-600 hover:text-green-700 flex items-center gap-1">
+              Ver todos <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+          
+          <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {quickExams.slice(0, 4).map((exam) => (
+              <div key={exam.id} className="border rounded-xl p-4 hover:border-green-500 transition-colors">
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{exam.title}</h3>
+                    <p className="text-sm text-gray-500">{exam.discipline}</p>
+                  </div>
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    exam.isFree ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                  }`}>
+                    {exam.isFree ? 'Grátis' : `${exam.price} MZN`}
+                  </span>
+                </div>
+                
+                <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                  <span className="flex items-center gap-1">
+                    <FileText className="w-4 h-4" /> {exam.questions} questões
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-4 h-4" /> {exam.duration} min
+                  </span>
+                  {exam.bestScore !== undefined && (
+                    <span className={`flex items-center gap-1 ${
+                      exam.bestScore >= 80 ? 'text-green-600' : 'text-yellow-600'
+                    }`}>
+                      <Star className="w-4 h-4" /> {exam.bestScore}%
+                    </span>
+                  )}
+                </div>
+                
+                <Link
+                  href={`/exames/${exam.id}`}
+                  className={`w-full py-2 rounded-lg font-medium text-center flex items-center justify-center gap-2 ${
+                    exam.completed
+                      ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                      : 'bg-green-600 text-white hover:bg-green-700'
+                  }`}
+                >
+                  {exam.completed ? (
+                    <>
+                      <RefreshCw className="w-4 h-4" /> Refazer Exame
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-4 h-4" /> Iniciar Exame
+                    </>
+                  )}
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Links Rápidos */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Link href="/disciplinas" className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow text-center group">
+            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+              <BookOpen className="w-6 h-6 text-purple-600" />
+            </div>
+            <h3 className="font-semibold text-gray-900">Disciplinas</h3>
+            <p className="text-xs text-gray-500 mt-1">Ver todas</p>
+          </Link>
+
+          <Link href="/manuais" className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow text-center group">
+            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+              <Book className="w-6 h-6 text-blue-600" />
+            </div>
+            <h3 className="font-semibold text-gray-900">Manuais</h3>
+            <p className="text-xs text-gray-500 mt-1">Baixar PDF</p>
+          </Link>
+
+          <Link href="/instituicoes" className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow text-center group">
+            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+              <FileText className="w-6 h-6 text-green-600" />
+            </div>
+            <h3 className="font-semibold text-gray-900">Exames</h3>
+            <p className="text-xs text-gray-500 mt-1">Praticar</p>
+          </Link>
+
+          <Link href="/perfil" className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow text-center group">
+            <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+              <User className="w-6 h-6 text-gray-600" />
+            </div>
+            <h3 className="font-semibold text-gray-900">Perfil</h3>
+            <p className="text-xs text-gray-500 mt-1">Editar</p>
+          </Link>
+        </div>
       </main>
 
       <Footer />
