@@ -62,63 +62,78 @@ function DisciplineExamsContent() {
       const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
 
       // Fetch discipline
-      const discRes = await fetch(`${apiUrl}/disciplines/${disciplineId}`, { headers });
-      if (discRes.ok) {
-        const discData = await discRes.json();
-        setDiscipline(discData);
+      try {
+        const discRes = await fetch(`${apiUrl}/disciplines/${disciplineId}`, { headers });
+        if (discRes.ok) {
+          const discData = await discRes.json();
+          setDiscipline(discData);
+        }
+      } catch (e) {
+        console.warn('Disciplina não carregada');
       }
 
       // Fetch exams for this discipline
-      const examsRes = await fetch(`${apiUrl}/exams?disciplineId=${disciplineId}&status=PUBLISHED`, { headers });
-      if (examsRes.ok) {
-        const examsData = await examsRes.json();
-        setExams(Array.isArray(examsData) ? examsData : []);
+      try {
+        const examsRes = await fetch(`${apiUrl}/exams?disciplineId=${disciplineId}&status=PUBLISHED`, { headers });
+        if (examsRes.ok) {
+          const examsData = await examsRes.json();
+          setExams(Array.isArray(examsData) ? examsData : []);
+        }
+      } catch (e) {
+        console.warn('Exames não carregados');
       }
 
       // Fetch related content/links
-      const contentRes = await fetch(`${apiUrl}/contents?disciplineId=${disciplineId}`, { headers });
-      if (contentRes.ok) {
-        const contentData = await contentRes.json();
-        setContents(Array.isArray(contentData) ? contentData.filter((c: any) => c.isActive) : []);
+      try {
+        const contentRes = await fetch(`${apiUrl}/contents?disciplineId=${disciplineId}`, { headers });
+        if (contentRes.ok) {
+          const contentData = await contentRes.json();
+          setContents(Array.isArray(contentData) ? contentData.filter((c: any) => c.isActive) : []);
+        }
+      } catch (e) {
+        console.warn('Conteúdos não carregados');
+      }
+      
+      // Se nada foi carregado, usar fallback
+      if (!discipline && exams.length === 0) {
+        setDiscipline({ 
+          id: disciplineId, 
+          name: 'Matemática', 
+          description: 'Disciplina de matemática para exames de admissão',
+          institution: { id: '1', name: 'Universidade Eduardo Mondlane' }
+        });
+        setExams([
+          { 
+            id: '1', 
+            title: 'Matemática - Exame 2023', 
+            description: 'Exame de admissão Matemática 2023',
+            duration: 120,
+            totalQuestions: 40,
+            accessType: 'FREE',
+            price: null,
+            status: 'PUBLISHED',
+            discipline: { id: disciplineId, name: 'Matemática' },
+            institution: { id: '1', name: 'UEM' }
+          },
+          { 
+            id: '2', 
+            title: 'Matemática - Exame 2024', 
+            description: 'Exame de admissão Matemática 2024',
+            duration: 120,
+            totalQuestions: 50,
+            accessType: 'PAID',
+            price: 150,
+            status: 'PUBLISHED',
+            discipline: { id: disciplineId, name: 'Matemática' },
+            institution: { id: '1', name: 'UEM' }
+          },
+        ]);
+        setContents([
+          { id: '1', title: 'Manual de Matemática', type: 'LINK', url: 'https://exemplo.com/manual.pdf', views: 125 },
+        ]);
       }
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
-      // Fallback
-      setDiscipline({ 
-        id: disciplineId, 
-        name: 'Matemática', 
-        description: 'Disciplina de matemática para exames de admissão',
-        institution: { id: '1', name: 'Universidade Eduardo Mondlane' }
-      });
-      setExams([
-        { 
-          id: '1', 
-          title: 'Matemática - Exame 2023', 
-          description: 'Exame de admissão Matemática 2023',
-          duration: 120,
-          totalQuestions: 40,
-          accessType: 'FREE',
-          price: null,
-          status: 'PUBLISHED',
-          discipline: { id: disciplineId, name: 'Matemática' },
-          institution: { id: '1', name: 'UEM' }
-        },
-        { 
-          id: '2', 
-          title: 'Matemática - Exame 2024', 
-          description: 'Exame de admissão Matemática 2024',
-          duration: 120,
-          totalQuestions: 50,
-          accessType: 'PAID',
-          price: 150,
-          status: 'PUBLISHED',
-          discipline: { id: disciplineId, name: 'Matemática' },
-          institution: { id: '1', name: 'UEM' }
-        },
-      ]);
-      setContents([
-        { id: '1', title: 'Manual de Matemática', type: 'LINK', url: 'https://exemplo.com/manual.pdf', views: 125 },
-      ]);
     } finally {
       setLoading(false);
     }

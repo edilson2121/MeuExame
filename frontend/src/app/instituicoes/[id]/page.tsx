@@ -46,28 +46,39 @@ function InstitutionDisciplinesContent() {
       const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
 
       // Fetch institution
-      const instRes = await fetch(`${apiUrl}/institutions/${institutionId}`, { headers });
-      if (instRes.ok) {
-        const instData = await instRes.json();
-        setInstitution(instData);
+      try {
+        const instRes = await fetch(`${apiUrl}/institutions/${institutionId}`, { headers });
+        if (instRes.ok) {
+          const instData = await instRes.json();
+          setInstitution(instData);
+        }
+      } catch (e) {
+        console.warn('Instituição não carregada');
       }
 
       // Fetch disciplines
-      const discRes = await fetch(`${apiUrl}/disciplines?institutionId=${institutionId}`, { headers });
-      if (discRes.ok) {
-        const discData = await discRes.json();
-        setDisciplines(Array.isArray(discData) ? discData : []);
+      try {
+        const discRes = await fetch(`${apiUrl}/disciplines?institutionId=${institutionId}`, { headers });
+        if (discRes.ok) {
+          const discData = await discRes.json();
+          setDisciplines(Array.isArray(discData) ? discData : []);
+        }
+      } catch (e) {
+        console.warn('Disciplinas não carregadas');
+      }
+      
+      // Se nada foi carregado, usar fallback
+      if (!institution && disciplines.length === 0) {
+        setInstitution({ id: institutionId, name: 'Universidade Eduardo Mondlane', logo: null, description: 'Descrição da instituição' });
+        setDisciplines([
+          { id: '1', name: 'Matemática', description: 'Disciplina de matemática', _count: { exams: 5 } },
+          { id: '2', name: 'Física', description: 'Disciplina de física', _count: { exams: 3 } },
+          { id: '3', name: 'Química', description: 'Disciplina de química', _count: { exams: 4 } },
+          { id: '4', name: 'Biologia', description: 'Disciplina de biologia', _count: { exams: 2 } },
+        ]);
       }
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
-      // Fallback
-      setInstitution({ id: institutionId, name: 'Universidade Eduardo Mondlane', logo: null, description: 'Descrição da instituição' });
-      setDisciplines([
-        { id: '1', name: 'Matemática', description: 'Disciplina de matemática', _count: { exams: 5 } },
-        { id: '2', name: 'Física', description: 'Disciplina de física', _count: { exams: 3 } },
-        { id: '3', name: 'Química', description: 'Disciplina de química', _count: { exams: 4 } },
-        { id: '4', name: 'Biologia', description: 'Disciplina de biologia', _count: { exams: 2 } },
-      ]);
     } finally {
       setLoading(false);
     }

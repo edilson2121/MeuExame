@@ -35,40 +35,52 @@ function InstitutionsContent() {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       const token = localStorage.getItem('token');
-      const res = await fetch(`${apiUrl}/institutions`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      const data = await res.json();
-      setInstitutions(Array.isArray(data) ? data.filter((i: any) => i.isActive !== false) : []);
+      
+      let data: any[] = [];
+      try {
+        const res = await fetch(`${apiUrl}/institutions`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (res.ok) {
+          data = await res.json();
+        }
+      } catch (fetchError) {
+        console.warn('Backend indisponível, usando dados de demonstração');
+      }
+      
+      if (Array.isArray(data) && data.length > 0) {
+        setInstitutions(data.filter((i: any) => i.isActive !== false));
+      } else {
+        // Fallback data quando API não responde
+        setInstitutions([
+          {
+            id: '1',
+            name: 'Universidade Eduardo Mondlane',
+            logo: null,
+            description: 'A maior universidade pública de Moçambique',
+            isActive: true,
+            _count: { disciplines: 12, users: 245 },
+          },
+          {
+            id: '2',
+            name: 'Universidade Católica de Moçambique',
+            logo: null,
+            description: 'Universidade privada católica',
+            isActive: true,
+            _count: { disciplines: 8, users: 180 },
+          },
+          {
+            id: '3',
+            name: 'ISUTC',
+            logo: null,
+            description: 'Instituto Superior de Transportes e Comunicações',
+            isActive: true,
+            _count: { disciplines: 6, users: 95 },
+          },
+        ]);
+      }
     } catch (error) {
       console.error('Erro ao carregar instituições:', error);
-      // Fallback data
-      setInstitutions([
-        {
-          id: '1',
-          name: 'Universidade Eduardo Mondlane',
-          logo: null,
-          description: 'A maior universidade pública de Moçambique',
-          isActive: true,
-          _count: { disciplines: 12, users: 245 },
-        },
-        {
-          id: '2',
-          name: 'Universidade Católica de Moçambique',
-          logo: null,
-          description: 'Universidade privada católica',
-          isActive: true,
-          _count: { disciplines: 8, users: 180 },
-        },
-        {
-          id: '3',
-          name: 'ISUTC',
-          logo: null,
-          description: 'Instituto Superior de Transportes e Comunicações',
-          isActive: true,
-          _count: { disciplines: 6, users: 95 },
-        },
-      ]);
     } finally {
       setLoading(false);
     }
