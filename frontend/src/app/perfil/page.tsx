@@ -5,18 +5,14 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   User,
-  Mail,
   Phone,
   Lock,
   Camera,
   LogOut,
-  ChevronRight,
   Check,
   Loader2,
-  Bell,
-  Shield,
-  HelpCircle,
-  Info,
+  ChevronRight,
+  Save,
 } from 'lucide-react';
 
 export default function PerfilPage() {
@@ -24,12 +20,11 @@ export default function PerfilPage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState('perfil');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [activeSection, setActiveSection] = useState<'dados' | 'senha'>('dados');
   
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
     phone: '',
     currentPassword: '',
     newPassword: '',
@@ -49,7 +44,6 @@ export default function PerfilPage() {
     setUser(parsedUser);
     setFormData({
       name: parsedUser.name || '',
-      email: parsedUser.email || '',
       phone: parsedUser.phone || '',
       currentPassword: '',
       newPassword: '',
@@ -147,14 +141,14 @@ export default function PerfilPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-green-600" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA]">
+    <div className="min-h-screen bg-gray-50">
       {/* Header estilo WhatsApp */}
       <div className="bg-[#008069] text-white">
         <div className="px-4 py-4 flex items-center gap-3">
@@ -181,38 +175,28 @@ export default function PerfilPage() {
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* Tabs simplificadas */}
       <div className="bg-white border-b border-gray-200">
         <div className="flex">
           <button
-            onClick={() => setActiveTab('perfil')}
+            onClick={() => setActiveSection('dados')}
             className={`flex-1 py-3 text-sm font-medium text-center ${
-              activeTab === 'perfil'
+              activeSection === 'dados'
                 ? 'text-green-600 border-b-2 border-green-600'
                 : 'text-gray-500'
             }`}
           >
-            Editar Perfil
+            Dados Pessoais
           </button>
           <button
-            onClick={() => setActiveTab('seguranca')}
+            onClick={() => setActiveSection('senha')}
             className={`flex-1 py-3 text-sm font-medium text-center ${
-              activeTab === 'seguranca'
+              activeSection === 'senha'
                 ? 'text-green-600 border-b-2 border-green-600'
                 : 'text-gray-500'
             }`}
           >
-            Segurança
-          </button>
-          <button
-            onClick={() => setActiveTab('config')}
-            className={`flex-1 py-3 text-sm font-medium text-center ${
-              activeTab === 'config'
-                ? 'text-green-600 border-b-2 border-green-600'
-                : 'text-gray-500'
-            }`}
-          >
-            Configurações
+            Alterar Senha
           </button>
         </div>
       </div>
@@ -227,7 +211,7 @@ export default function PerfilPage() {
 
       {/* Content */}
       <div className="p-4">
-        {activeTab === 'perfil' && (
+        {activeSection === 'dados' && (
           <form onSubmit={handleProfileUpdate} className="space-y-4">
             {/* Nome */}
             <div className="bg-white rounded-xl p-4 shadow-sm">
@@ -245,29 +229,29 @@ export default function PerfilPage() {
                     required
                   />
                 </div>
-                <ChevronRight className="w-5 h-5 text-gray-400" />
               </label>
             </div>
 
-            {/* Email (só leitura) */}
-            <div className="bg-white rounded-xl p-4 shadow-sm">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Mail className="w-6 h-6 text-blue-600" />
+            {/* Email (apenas leitura) */}
+            <div className="bg-gray-100 rounded-xl p-4">
+              <label className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
                 </div>
                 <div className="flex-1">
                   <p className="text-xs text-gray-500">Email</p>
-                  <p className="text-gray-900">{formData.email}</p>
+                  <p className="text-gray-400 font-medium">{user?.email}</p>
                 </div>
-                <ChevronRight className="w-5 h-5 text-gray-400" />
               </label>
             </div>
 
             {/* Telefone */}
             <div className="bg-white rounded-xl p-4 shadow-sm">
               <label className="flex items-center gap-3 cursor-pointer">
-                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                  <Phone className="w-6 h-6 text-purple-600" />
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Phone className="w-6 h-6 text-blue-600" />
                 </div>
                 <div className="flex-1">
                   <p className="text-xs text-gray-500">Telefone</p>
@@ -279,7 +263,6 @@ export default function PerfilPage() {
                     placeholder="+258 XX XXX XXXX"
                   />
                 </div>
-                <ChevronRight className="w-5 h-5 text-gray-400" />
               </label>
             </div>
 
@@ -295,7 +278,7 @@ export default function PerfilPage() {
                 </>
               ) : (
                 <>
-                  <Check className="w-5 h-5" />
+                  <Save className="w-5 h-5" />
                   Guardar Alterações
                 </>
               )}
@@ -303,7 +286,7 @@ export default function PerfilPage() {
           </form>
         )}
 
-        {activeTab === 'seguranca' && (
+        {activeSection === 'senha' && (
           <form onSubmit={handlePasswordChange} className="space-y-4">
             <div className="bg-white rounded-xl p-4 shadow-sm space-y-4">
               <h3 className="font-semibold text-gray-900 flex items-center gap-2">
@@ -368,74 +351,14 @@ export default function PerfilPage() {
           </form>
         )}
 
-        {activeTab === 'config' && (
-          <div className="space-y-4">
-            {/* Notificações */}
-            <div className="bg-white rounded-xl shadow-sm">
-              <button className="w-full flex items-center gap-4 p-4 hover:bg-gray-50">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Bell className="w-5 h-5 text-blue-600" />
-                </div>
-                <div className="flex-1 text-left">
-                  <p className="font-medium text-gray-900">Notificações</p>
-                  <p className="text-sm text-gray-500">Alertas e lembretes</p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-gray-400" />
-              </button>
-            </div>
-
-            {/* Privacidade */}
-            <div className="bg-white rounded-xl shadow-sm">
-              <button className="w-full flex items-center gap-4 p-4 hover:bg-gray-50">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-green-600" />
-                </div>
-                <div className="flex-1 text-left">
-                  <p className="font-medium text-gray-900">Privacidade</p>
-                  <p className="text-sm text-gray-500">Quem pode ver seu perfil</p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-gray-400" />
-              </button>
-            </div>
-
-            {/* Ajuda */}
-            <div className="bg-white rounded-xl shadow-sm">
-              <button className="w-full flex items-center gap-4 p-4 hover:bg-gray-50">
-                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                  <HelpCircle className="w-5 h-5 text-orange-600" />
-                </div>
-                <div className="flex-1 text-left">
-                  <p className="font-medium text-gray-900">Ajuda</p>
-                  <p className="text-sm text-gray-500">Suporte e FAQ</p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-gray-400" />
-              </button>
-            </div>
-
-            {/* Sobre */}
-            <div className="bg-white rounded-xl shadow-sm">
-              <button className="w-full flex items-center gap-4 p-4 hover:bg-gray-50">
-                <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                  <Info className="w-5 h-5 text-gray-600" />
-                </div>
-                <div className="flex-1 text-left">
-                  <p className="font-medium text-gray-900">Sobre</p>
-                  <p className="text-sm text-gray-500">Versão 1.0.0</p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-gray-400" />
-              </button>
-            </div>
-
-            {/* Terminar sessão */}
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 py-3 bg-red-50 text-red-600 font-semibold rounded-xl hover:bg-red-100 transition-colors"
-            >
-              <LogOut className="w-5 h-5" />
-              Terminar Sessão
-            </button>
-          </div>
-        )}
+        {/* Terminar sessão */}
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center justify-center gap-2 py-3 mt-6 bg-red-50 text-red-600 font-semibold rounded-xl hover:bg-red-100 transition-colors"
+        >
+          <LogOut className="w-5 h-5" />
+          Terminar Sessão
+        </button>
       </div>
 
       {/* Versão no rodapé */}
