@@ -48,8 +48,9 @@ export default function Header({ showBackButton = false, backHref = '/', title }
   ] : [
     { label: 'Início', href: '/home', icon: <Home size={18} /> },
     { label: 'Instituições', href: '/instituicoes', icon: <Building2 size={18} /> },
-    { label: 'Meus Exames', href: '/exames', icon: <FileQuestion size={18} /> },
-    { label: 'Pagamentos', href: '/pagamentos', icon: <CreditCard size={18} /> },
+    { label: 'Disciplinas', href: '/disciplinas', icon: <BookOpen size={18} /> },
+    { label: 'Meus Exames', href: '/meus-exames', icon: <FileQuestion size={18} /> },
+    { label: 'Manuais', href: '/manuais', icon: <Book size={18} /> },
   ];
 
   return (
