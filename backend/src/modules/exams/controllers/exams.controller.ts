@@ -34,9 +34,9 @@ export class ExamsController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string, @Req() req: Request) {
+  async findOne(@Param('id') id: string, @Req() req: any) {
     const userId = req.user?.id;
-    return this.examsService.findOne(id, userId);
+    return this.examsService.findOneWithAccess(id, userId);
   }
 
   @Get('subject/:subjectId')
@@ -92,7 +92,7 @@ export class ExamsController {
   submitExam(
     @Param('id') id: string,
     @Body() submitExamDto: SubmitExamDto,
-    @Req() req: Request,
+    @Req() req: any,
   ) {
     const userId = req.user?.id;
     return this.examsService.submitExam(id, userId, submitExamDto.answers);
@@ -100,7 +100,7 @@ export class ExamsController {
 
   @Get(':id/access')
   @UseGuards(AuthGuard)
-  checkAccess(@Param('id') id: string, @Req() req: Request) {
+  checkAccess(@Param('id') id: string, @Req() req: any) {
     const userId = req.user?.id;
     return this.examsService.checkExamAccess(id, userId);
   }

@@ -52,7 +52,7 @@ export class ExamsService implements IExamService {
     });
   }
 
-  async findOne(id: string): Promise<Exam> {
+  async findOne(id: string): Promise<any> {
     const exam = await this.prisma.exam.findUnique({
       where: { id },
       include: {
@@ -79,7 +79,36 @@ export class ExamsService implements IExamService {
       throw new NotFoundException('Exame não encontrado');
     }
 
-    return exam;
+    // Transformar as questões para o formato esperado pelo frontend
+    const questions = exam.examQuestions.map((eq) => {
+      const question = eq.question;
+      let options: any[] = [];
+
+      // Parse options if it's a JSON string
+      if (typeof question.options === 'string') {
+        try {
+          options = JSON.parse(question.options);
+        } catch (e) {
+          options = [];
+        }
+      } else if (Array.isArray(question.options)) {
+        options = question.options;
+      }
+
+      return {
+        id: question.id,
+        text: question.text,
+        type: question.type,
+        imageUrl: question.imageUrl,
+        options,
+        explanation: question.explanation,
+      };
+    });
+
+    return {
+      ...exam,
+      questions,
+    };
   }
 
   async update(id: string, updateExamDto: any): Promise<Exam> {
@@ -153,7 +182,10 @@ export class ExamsService implements IExamService {
   }
 
   async addQuestion(examId: string, questionId: string, order: number, points: number): Promise<void> {
-    const exam = await this.findOne(examId);
+    const exam = await this.prisma.exam.findUnique({ where: { id: examId } });
+    if (!exam) {
+      throw new NotFoundException('Exame não encontrado');
+    }
 
     if (exam.status === ExamStatus.PUBLISHED) {
       throw new BadRequestException('Não é possível adicionar questões a um exame publicado');
@@ -168,7 +200,6 @@ export class ExamsService implements IExamService {
       },
     });
 
-    // Update total points
     const examQuestions = await this.prisma.examQuestion.findMany({
       where: { examId },
     });
@@ -182,7 +213,10 @@ export class ExamsService implements IExamService {
   }
 
   async removeQuestion(examId: string, questionId: string): Promise<void> {
-    const exam = await this.findOne(examId);
+    const exam = await this.prisma.exam.findUnique({ where: { id: examId } });
+    if (!exam) {
+      throw new NotFoundException('Exame não encontrado');
+    }
 
     if (exam.status === ExamStatus.PUBLISHED) {
       throw new BadRequestException('Não é possível remover questões de um exame publicado');
@@ -195,7 +229,6 @@ export class ExamsService implements IExamService {
       },
     });
 
-    // Update total points
     const examQuestions = await this.prisma.examQuestion.findMany({
       where: { examId },
     });
@@ -209,7 +242,10 @@ export class ExamsService implements IExamService {
   }
 
   async publishExam(id: string): Promise<Exam> {
-    const exam = await this.findOne(id);
+    const exam = await this.prisma.exam.findUnique({ where: { id } });
+    if (!exam) {
+      throw new NotFoundException('Exame não encontrado');
+    }
 
     const examQuestions = await this.prisma.examQuestion.findMany({
       where: { examId: id },
@@ -225,78 +261,19 @@ export class ExamsService implements IExamService {
     });
   }
 
-  async findOne(id: string, userId?: string): Promise<any> {
-    const exam = await this.prisma.exam.findUnique({
-      where: { id },
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        subject: true,
-        examQuestions: {
-          include: {
-            question: true,
-          },
-          orderBy: {
-            order: 'asc',
-          },
-        },
-      },
-    });
-
-    if (!exam) {
-      throw new NotFoundException('Exame não encontrado');
-    }
-
-    // Transformar as questões para o formato esperado pelo frontend
-    const questions = exam.examQuestions.map((eq) => {
-      const question = eq.question;
-      let options: { id: number; text: string; isCorrect: boolean }[] = [];
-      
-      // Parse options if it's a JSON string
-      if (typeof question.options === 'string') {
-        try {
-          options = JSON.parse(question.options);
-        } catch (e) {
-          options = [];
-        }
-      } else if (Array.isArray(question.options)) {
-        options = question.options;
-      }
-
-      return {
-        id: question.id,
-        text: question.text,
-        type: question.type,
-        imageUrl: question.imageUrl,
-        options,
-        explanation: question.explanation,
-      };
-    });
+  async findOneWithAccess(id: string, userId?: string): Promise<any> {
+    const exam = await this.findOne(id);
 
     // Verificar acesso
     let hasAccess = true;
     if (userId) {
-      // Verificar se o exame é pago
       const access = await this.checkExamAccess(id, userId);
       hasAccess = access.hasAccess;
     }
 
     return {
-      id: exam.id,
-      title: exam.title,
-      description: exam.description,
-      duration: exam.duration,
-      status: exam.status,
-      imageUrl: exam.imageUrl,
+      ...exam,
       hasAccess,
-      subject: exam.subject,
-      author: exam.author,
-      questions,
     };
   }
 
@@ -358,20 +335,20 @@ export class ExamsService implements IExamService {
     userId: string,
     answers: { questionId: string; selectedOption: number }[],
   ): Promise<{ score: number; total: number; percentage: number }> {
-    const exam = await this.findOne(examId);
-
     // Verificar acesso
     const access = await this.checkExamAccess(examId, userId);
     if (!access.hasAccess) {
       throw new BadRequestException('Não tem acesso a este exame');
     }
 
+    const exam = await this.findOne(examId);
+
     let correct = 0;
     let total = 0;
 
     // Calcular pontuação
     for (const answer of answers) {
-      const question = exam.questions.find((q) => q.id === answer.questionId);
+      const question = exam.questions.find((q: any) => q.id === answer.questionId);
       if (!question) continue;
 
       total++;
