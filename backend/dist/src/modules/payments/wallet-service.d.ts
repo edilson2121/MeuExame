@@ -1,5 +1,5 @@
 import { PrismaService } from '../../database/prisma.service';
-export type PaymentMethod = 'MPESA' | 'EMOLA' | 'DEBITPAY';
+export type PaymentMethod = 'MPESA' | 'EMOLA';
 export type TransactionStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'EXPIRED';
 export interface WalletTransaction {
     id: string;
@@ -32,9 +32,6 @@ export declare class WalletService {
     private readonly EMOLA_API_URL;
     private readonly EMOLA_API_KEY;
     private readonly EMOLA_CALLBACK_URL;
-    private readonly DEBITPAY_API_URL;
-    private readonly DEBITPAY_API_KEY;
-    private readonly DEBITPAY_CALLBACK_URL;
     constructor(prisma: PrismaService);
     generateReference(): string;
     validatePhone(phone: string, method: PaymentMethod): boolean;
@@ -43,7 +40,6 @@ export declare class WalletService {
     initiatePayment(userId: string, examId: string, method: PaymentMethod, phone: string, amount: number): Promise<PaymentInitResult>;
     private initiateMpesaPayment;
     private initiateEmolaPayment;
-    private initiateDebitPayPayment;
     private scheduleStatusCheck;
     getTransactionStatus(reference: string): Promise<{
         status: string;
@@ -66,9 +62,6 @@ export declare class WalletService {
         success: boolean;
     }>;
     handleEmolaCallback(data: any): Promise<{
-        success: boolean;
-    }>;
-    handleDebitPayCallback(data: any): Promise<{
         success: boolean;
     }>;
     private completeTransaction;

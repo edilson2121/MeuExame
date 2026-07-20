@@ -49,7 +49,4 @@ export declare class WalletController {
     handleEmolaWebhook(body: any, signature: string): Promise<{
         success: boolean;
     }>;
-    handleDebitPayWebhook(body: any, signature: string): Promise<{
-        success: boolean;
-    }>;
 }

@@ -102,7 +102,8 @@ export class WalletService {
     phone: string,
     amount: number,
     reference: string,
-    userId?: string,
+    userId: string,
+    examId: string,
   ): Promise<PaymentInitResult> {
     // Demo mode - simulate successful response
     if (this.config.apiKey === 'demo_key') {
@@ -112,6 +113,7 @@ export class WalletService {
       await this.createTransaction({
         reference,
         userId,
+        examId,
         method: 'MPESA',
         amount,
         phone,
@@ -156,6 +158,7 @@ export class WalletService {
       await this.createTransaction({
         reference,
         userId,
+        examId,
         method: 'MPESA',
         amount,
         phone,
@@ -183,7 +186,8 @@ export class WalletService {
     phone: string,
     amount: number,
     reference: string,
-    userId?: string,
+    userId: string,
+    examId: string,
   ): Promise<PaymentInitResult> {
     // Demo mode
     if (this.config.apiKey === 'demo_key') {
@@ -192,6 +196,7 @@ export class WalletService {
       await this.createTransaction({
         reference,
         userId,
+        examId,
         method: 'EMOLA',
         amount,
         phone,
@@ -235,6 +240,7 @@ export class WalletService {
       await this.createTransaction({
         reference,
         userId,
+        examId,
         method: 'EMOLA',
         amount,
         phone,
@@ -279,7 +285,8 @@ export class WalletService {
    */
   private async createTransaction(data: {
     reference: string;
-    userId?: string;
+    userId: string;
+    examId: string;
     method: 'MPESA' | 'EMOLA';
     amount: number;
     phone: string;
@@ -292,6 +299,8 @@ export class WalletService {
         method: data.method,
         amount: data.amount,
         phone: data.phone,
+        userId: data.userId,
+        examId: data.examId,
         status: 'PENDING',
       },
     });
@@ -345,9 +354,9 @@ export class WalletService {
 
     // Initiate payment based on method
     if (data.method === 'MPESA') {
-      return this.initiateMpesaPayment(data.phone, data.amount, reference, data.userId);
+      return this.initiateMpesaPayment(data.phone, data.amount, reference, data.userId || '', data.examId);
     } else {
-      return this.initiateEmolaPayment(data.phone, data.amount, reference, data.userId);
+      return this.initiateEmolaPayment(data.phone, data.amount, reference, data.userId || '', data.examId);
     }
   }
 

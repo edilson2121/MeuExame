@@ -27,9 +27,6 @@ let WalletService = WalletService_1 = class WalletService {
         this.EMOLA_API_URL = process.env.EMOLA_API_URL || 'https://api.emola.co.mz';
         this.EMOLA_API_KEY = process.env.EMOLA_API_KEY || 'demo_key';
         this.EMOLA_CALLBACK_URL = process.env.EMOLA_CALLBACK_URL || 'https://api.meuexame.co.mz/api/wallet/webhooks/emola';
-        this.DEBITPAY_API_URL = process.env.DEBITPAY_API_URL || 'https://api.debitpay.co.mz';
-        this.DEBITPAY_API_KEY = process.env.DEBITPAY_API_KEY || 'demo_key';
-        this.DEBITPAY_CALLBACK_URL = process.env.DEBITPAY_CALLBACK_URL || 'https://api.meuexame.co.mz/api/wallet/webhooks/debitpay';
     }
     generateReference() {
         const timestamp = Date.now();
@@ -49,7 +46,6 @@ let WalletService = WalletService_1 = class WalletService {
         const prefixes = {
             MPESA: ['84', '85'],
             EMOLA: ['86', '87'],
-            DEBITPAY: ['84', '85', '86', '87'],
         };
         const validPrefixes = prefixes[method];
         const prefix = phone.slice(0, 2);
@@ -91,9 +87,6 @@ let WalletService = WalletService_1 = class WalletService {
                     break;
                 case 'EMOLA':
                     result = await this.initiateEmolaPayment(transaction.id, formattedPhone, amount, reference);
-                    break;
-                case 'DEBITPAY':
-                    result = await this.initiateDebitPayPayment(transaction.id, formattedPhone, amount, reference);
                     break;
                 default:
                     return { success: false, reference, message: 'Método de pagamento não suportado' };
@@ -211,52 +204,6 @@ let WalletService = WalletService_1 = class WalletService {
             return { success: false, reference, message: 'Erro ao processar eMola' };
         }
     }
-    async initiateDebitPayPayment(transactionId, phone, amount, reference) {
-        try {
-            if (process.env.DEBITPAY_API_KEY === 'demo_key') {
-                this.logger.log(`[DEMO] DebitPay payment initiated: ${reference}`);
-                const externalId = `DP${Date.now()}${Math.floor(Math.random() * 1000)}`;
-                const paymentCode = `DP${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
-                this.scheduleStatusCheck(transactionId);
-                return {
-                    success: true,
-                    reference,
-                    externalId,
-                    message: `Código de pagamento: ${paymentCode}`,
-                    expiresAt: new Date(Date.now() + 30 * 60 * 1000),
-                };
-            }
-            const response = await fetch(`${this.DEBITPAY_API_URL}/v1/pay`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${this.DEBITPAY_API_KEY}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    phone: phone,
-                    amount: Math.ceil(amount),
-                    reference: reference,
-                    callback_url: this.DEBITPAY_CALLBACK_URL,
-                }),
-            });
-            const data = await response.json();
-            if (data.status === 'success' || data.status === 'pending') {
-                this.scheduleStatusCheck(transactionId);
-                return {
-                    success: true,
-                    reference,
-                    externalId: data.payment_code || data.transaction_id,
-                    message: `Código de pagamento: ${data.payment_code}`,
-                    expiresAt: new Date(Date.now() + 30 * 60 * 1000),
-                };
-            }
-            return { success: false, reference, message: data.message || 'Erro DebitPay' };
-        }
-        catch (error) {
-            this.logger.error('DebitPay payment error:', error);
-            return { success: false, reference, message: 'Erro ao processar DebitPay' };
-        }
-    }
     scheduleStatusCheck(transactionId) {
         setTimeout(async () => {
             const transaction = await this.prisma.walletTransaction.findUnique({
@@ -332,28 +279,6 @@ let WalletService = WalletService_1 = class WalletService {
             return { success: false };
         }
     }
-    async handleDebitPayCallback(data) {
-        try {
-            const transactionId = data.transaction_id || data.payment_code;
-            const status = data.status;
-            const transaction = await this.prisma.walletTransaction.findFirst({
-                where: { externalId: transactionId },
-            });
-            if (!transaction)
-                return { success: false };
-            if (status === 'success' || status === 'completed') {
-                await this.completeTransaction(transaction.id);
-            }
-            else if (status === 'failed') {
-                await this.failTransaction(transaction.id, 'DebitPay recusou o pagamento');
-            }
-            return { success: true };
-        }
-        catch (error) {
-            this.logger.error('DebitPay callback error:', error);
-            return { success: false };
-        }
-    }
     async completeTransaction(transactionId) {
         try {
             const transaction = await this.prisma.walletTransaction.update({
@@ -403,17 +328,23 @@ let WalletService = WalletService_1 = class WalletService {
         return data.access_token;
     }
     async checkExamAccess(userId, examId) {
-        const exam = await this.prisma.exam.findUnique({
-            where: { id: examId },
+        const freeAccess = await this.prisma.examAccess.findFirst({
+            where: {
+                examId,
+                type: 'FREE',
+            },
         });
-        if (exam?.accessType === 'FREE') {
+        if (freeAccess) {
             return true;
         }
         const access = await this.prisma.examAccess.findFirst({
             where: {
                 userId,
                 examId,
-                expiresAt: { gt: new Date() },
+                OR: [
+                    { expiresAt: { gt: new Date() } },
+                    { expiresAt: null }
+                ],
             },
         });
         return !!access;

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 
-export type PaymentMethod = 'MPESA' | 'EMOLA' | 'DEBITPAY';
+export type PaymentMethod = 'MPESA' | 'EMOLA';
 export type TransactionStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'EXPIRED';
 
 export interface WalletTransaction {
@@ -44,11 +44,6 @@ export class WalletService {
   private readonly EMOLA_API_KEY = process.env.EMOLA_API_KEY || 'demo_key';
   private readonly EMOLA_CALLBACK_URL = process.env.EMOLA_CALLBACK_URL || 'https://api.meuexame.co.mz/api/wallet/webhooks/emola';
 
-  // DebitPay API Configuration
-  private readonly DEBITPAY_API_URL = process.env.DEBITPAY_API_URL || 'https://api.debitpay.co.mz';
-  private readonly DEBITPAY_API_KEY = process.env.DEBITPAY_API_KEY || 'demo_key';
-  private readonly DEBITPAY_CALLBACK_URL = process.env.DEBITPAY_CALLBACK_URL || 'https://api.meuexame.co.mz/api/wallet/webhooks/debitpay';
-
   constructor(private prisma: PrismaService) {}
 
   /**
@@ -79,7 +74,6 @@ export class WalletService {
     const prefixes: Record<PaymentMethod, string[]> = {
       MPESA: ['84', '85'],
       EMOLA: ['86', '87'],
-      DEBITPAY: ['84', '85', '86', '87'],
     };
     
     const validPrefixes = prefixes[method];
@@ -144,9 +138,6 @@ export class WalletService {
           break;
         case 'EMOLA':
           result = await this.initiateEmolaPayment(transaction.id, formattedPhone, amount, reference);
-          break;
-        case 'DEBITPAY':
-          result = await this.initiateDebitPayPayment(transaction.id, formattedPhone, amount, reference);
           break;
         default:
           return { success: false, reference, message: 'Método de pagamento não suportado' };
@@ -308,69 +299,6 @@ export class WalletService {
   }
 
   /**
-   * Initiate DebitPay Payment
-   */
-  private async initiateDebitPayPayment(
-    transactionId: string,
-    phone: string,
-    amount: number,
-    reference: string
-  ): Promise<PaymentInitResult> {
-    try {
-      // For demo mode, simulate DebitPay response
-      if (process.env.DEBITPAY_API_KEY === 'demo_key') {
-        this.logger.log(`[DEMO] DebitPay payment initiated: ${reference}`);
-        
-        const externalId = `DP${Date.now()}${Math.floor(Math.random() * 1000)}`;
-        const paymentCode = `DP${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
-        
-        this.scheduleStatusCheck(transactionId);
-        
-        return {
-          success: true,
-          reference,
-          externalId,
-          message: `Código de pagamento: ${paymentCode}`,
-          expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes
-        };
-      }
-
-      const response = await fetch(`${this.DEBITPAY_API_URL}/v1/pay`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.DEBITPAY_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          phone: phone,
-          amount: Math.ceil(amount),
-          reference: reference,
-          callback_url: this.DEBITPAY_CALLBACK_URL,
-        }),
-      });
-
-      const data = await response.json();
-      
-      if (data.status === 'success' || data.status === 'pending') {
-        this.scheduleStatusCheck(transactionId);
-        
-        return {
-          success: true,
-          reference,
-          externalId: data.payment_code || data.transaction_id,
-          message: `Código de pagamento: ${data.payment_code}`,
-          expiresAt: new Date(Date.now() + 30 * 60 * 1000),
-        };
-      }
-
-      return { success: false, reference, message: data.message || 'Erro DebitPay' };
-    } catch (error) {
-      this.logger.error('DebitPay payment error:', error);
-      return { success: false, reference, message: 'Erro ao processar DebitPay' };
-    }
-  }
-
-  /**
    * Schedule automatic status check
    */
   private scheduleStatusCheck(transactionId: string) {
@@ -472,33 +400,6 @@ export class WalletService {
   }
 
   /**
-   * Handle DebitPay callback
-   */
-  async handleDebitPayCallback(data: any) {
-    try {
-      const transactionId = data.transaction_id || data.payment_code;
-      const status = data.status;
-
-      const transaction = await this.prisma.walletTransaction.findFirst({
-        where: { externalId: transactionId },
-      });
-
-      if (!transaction) return { success: false };
-
-      if (status === 'success' || status === 'completed') {
-        await this.completeTransaction(transaction.id);
-      } else if (status === 'failed') {
-        await this.failTransaction(transaction.id, 'DebitPay recusou o pagamento');
-      }
-
-      return { success: true };
-    } catch (error) {
-      this.logger.error('DebitPay callback error:', error);
-      return { success: false };
-    }
-  }
-
-  /**
    * Complete transaction and grant exam access
    */
   private async completeTransaction(transactionId: string) {
@@ -567,21 +468,27 @@ export class WalletService {
    * Check user exam access
    */
   async checkExamAccess(userId: string, examId: string): Promise<boolean> {
-    const exam = await this.prisma.exam.findUnique({
-      where: { id: examId },
+    // Check if exam has free access
+    const freeAccess = await this.prisma.examAccess.findFirst({
+      where: {
+        examId,
+        type: 'FREE',
+      },
     });
 
-    // Free exams are always accessible
-    if (exam?.accessType === 'FREE') {
+    if (freeAccess) {
       return true;
     }
 
-    // Check if user has access
+    // Check if user has paid access
     const access = await this.prisma.examAccess.findFirst({
       where: {
         userId,
         examId,
-        expiresAt: { gt: new Date() },
+        OR: [
+          { expiresAt: { gt: new Date() } },
+          { expiresAt: null }
+        ],
       },
     });
 

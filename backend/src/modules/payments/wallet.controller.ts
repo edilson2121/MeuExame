@@ -79,16 +79,4 @@ export class WalletController {
     // In production, verify signature
     return this.walletService.handleEmolaCallback(body);
   }
-
-  /**
-   * DebitPay Webhook Callback
-   */
-  @Post('webhooks/debitpay')
-  async handleDebitPayWebhook(
-    @Body() body: any,
-    @Headers('x-debitpay-signature') signature: string
-  ) {
-    // In production, verify signature
-    return this.walletService.handleDebitPayCallback(body);
-  }
 }

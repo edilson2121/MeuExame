@@ -29,6 +29,7 @@
   "author": "MeuExame",
   "license": "ISC",
   "dependencies": {
+    "@nestjs/axios": "^4.0.1",
     "@nestjs/bull": "^11.0.4",
     "@nestjs/common": "^11.1.27",
     "@nestjs/config": "^4.0.4",
@@ -41,6 +42,7 @@
     "@nestjs/swagger": "^11.1.27",
     "@types/multer": "^2.2.0",
     "@types/uuid": "^10.0.0",
+    "axios": "^1.18.1",
     "bcryptjs": "^3.0.3",
     "bull": "^4.16.5",
     "class-transformer": "^0.5.1",

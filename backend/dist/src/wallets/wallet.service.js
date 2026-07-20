@@ -9,7 +9,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var WalletService_1;
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WalletService = void 0;
 const common_1 = require("@nestjs/common");
@@ -52,12 +51,13 @@ let WalletService = WalletService_1 = class WalletService {
             throw new common_1.BadRequestException('Erro ao conectar com DebitPay');
         }
     }
-    async initiateMpesaPayment(phone, amount, reference, userId) {
+    async initiateMpesaPayment(phone, amount, reference, userId, examId) {
         if (this.config.apiKey === 'demo_key') {
             this.logger.log(`[DEMO] Initiating M-Pesa payment: ${reference}`);
             await this.createTransaction({
                 reference,
                 userId,
+                examId,
                 method: 'MPESA',
                 amount,
                 phone,
@@ -89,6 +89,7 @@ let WalletService = WalletService_1 = class WalletService {
             await this.createTransaction({
                 reference,
                 userId,
+                examId,
                 method: 'MPESA',
                 amount,
                 phone,
@@ -106,12 +107,13 @@ let WalletService = WalletService_1 = class WalletService {
             throw new common_1.BadRequestException(error?.response?.data?.message || 'Erro ao processar pagamento M-Pesa');
         }
     }
-    async initiateEmolaPayment(phone, amount, reference, userId) {
+    async initiateEmolaPayment(phone, amount, reference, userId, examId) {
         if (this.config.apiKey === 'demo_key') {
             this.logger.log(`[DEMO] Initiating eMola payment: ${reference}`);
             await this.createTransaction({
                 reference,
                 userId,
+                examId,
                 method: 'EMOLA',
                 amount,
                 phone,
@@ -143,6 +145,7 @@ let WalletService = WalletService_1 = class WalletService {
             await this.createTransaction({
                 reference,
                 userId,
+                examId,
                 method: 'EMOLA',
                 amount,
                 phone,
@@ -178,6 +181,8 @@ let WalletService = WalletService_1 = class WalletService {
                 method: data.method,
                 amount: data.amount,
                 phone: data.phone,
+                userId: data.userId,
+                examId: data.examId,
                 status: 'PENDING',
             },
         });
@@ -209,10 +214,10 @@ let WalletService = WalletService_1 = class WalletService {
             throw new common_1.BadRequestException(`Número de telefone inválido para ${data.method === 'MPESA' ? 'M-Pesa' : 'eMola'}`);
         }
         if (data.method === 'MPESA') {
-            return this.initiateMpesaPayment(data.phone, data.amount, reference, data.userId);
+            return this.initiateMpesaPayment(data.phone, data.amount, reference, data.userId || '', data.examId);
         }
         else {
-            return this.initiateEmolaPayment(data.phone, data.amount, reference, data.userId);
+            return this.initiateEmolaPayment(data.phone, data.amount, reference, data.userId || '', data.examId);
         }
     }
     isValidPhone(phone, method) {
@@ -376,6 +381,7 @@ exports.WalletService = WalletService;
 exports.WalletService = WalletService = WalletService_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        config_1.ConfigService, typeof (_a = typeof axios_1.HttpService !== "undefined" && axios_1.HttpService) === "function" ? _a : Object])
+        config_1.ConfigService,
+        axios_1.HttpService])
 ], WalletService);
 //# sourceMappingURL=wallet.service.js.map
