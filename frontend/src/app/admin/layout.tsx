@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import ProtectedRoute from '@/components/ProtectedRoute';
 import {
   LayoutDashboard,
   Building2,
@@ -21,17 +20,86 @@ import {
   TrendingUp,
   TrendingDown,
   Activity,
+  Loader2,
+  Shield,
+  AlertCircle,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
+function AdminAuthGuard({ children }: AdminLayoutProps) {
+  const router = useRouter();
+  const [checking, setChecking] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    checkAdminAuth();
+  }, []);
+
+  const checkAdminAuth = () => {
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
+
+    if (!token || !userData) {
+      router.push('/admin/login');
+      return;
+    }
+
+    try {
+      const user = JSON.parse(userData);
+      if (user.role !== 'ADMIN') {
+        // User is logged in but not admin
+        router.push('/');
+        return;
+      }
+      setIsAdmin(true);
+    } catch (e) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      router.push('/admin/login');
+      return;
+    }
+    setChecking(false);
+  };
+
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-cyan-400 mx-auto mb-4" />
+          <p className="text-slate-400">A verificar permissões...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+        <div className="bg-slate-800/80 backdrop-blur-xl rounded-2xl border border-slate-700 p-8 max-w-md text-center">
+          <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-8 h-8 text-red-400" />
+          </div>
+          <h2 className="text-xl font-bold text-white mb-2">Acesso Negado</h2>
+          <p className="text-slate-400 mb-6">Apenas administradores podem aceder a esta área.</p>
+          <Link href="/" className="inline-block px-6 py-3 bg-cyan-600 text-white rounded-xl hover:bg-cyan-500 transition-colors">
+            Voltar ao Início
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
+
 export default function AdminLayout({ children }: AdminLayoutProps) {
   return (
-    <ProtectedRoute requireAuth={true} requireAdmin={true}>
+    <AdminAuthGuard>
       <AdminLayoutContent>{children}</AdminLayoutContent>
-    </ProtectedRoute>
+    </AdminAuthGuard>
   );
 }
 
