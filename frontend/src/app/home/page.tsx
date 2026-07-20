@@ -177,7 +177,7 @@ export default function HomePage() {
                 Bem-vindo, {user?.name?.split(' ')[0] || 'Utilizador'}! 👋
               </h1>
               <p className="text-green-100">
-                Prepare-se para os seus exames de admissão com as melhores ferramentas.
+                Prepare-se para exames de condução, escolas profissionais e muito mais.
               </p>
             </div>
             <div className="hidden md:flex items-center gap-4">

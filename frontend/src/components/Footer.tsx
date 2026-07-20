@@ -45,21 +45,21 @@ export default function Footer() {
 
   const sections = [
     {
-      title: 'Plataforma',
+      title: 'Exames',
       links: [
-        { label: 'Início', href: '/' },
-        { label: 'Instituições', href: '/instituicoes' },
-        { label: 'Exames', href: '/exames' },
-        { label: 'Preços', href: '/precos' },
+        { label: 'Condução', href: '/exames?type=conducao' },
+        { label: 'Escolas Profissionais', href: '/exames?type=profissional' },
+        { label: 'Técnicos', href: '/exames?type=tecnico' },
+        { label: 'Admissão', href: '/exames?type=admissao' },
       ]
     },
     {
       title: 'Recursos',
       links: [
+        { label: 'Manuais', href: '/manuais' },
+        { label: 'Disciplinas', href: '/disciplinas' },
         { label: 'Ajuda', href: '/ajuda' },
         { label: 'FAQ', href: '/faq' },
-        { label: 'Contacto', href: '/contacto' },
-        { label: 'Blog', href: '/blog' },
       ]
     },
     {
@@ -67,7 +67,7 @@ export default function Footer() {
       links: [
         { label: 'Termos de Uso', href: '/termos' },
         { label: 'Privacidade', href: '/privacidade' },
-        { label: 'Cookies', href: '/cookies' },
+        { label: 'Contacto', href: '/contacto' },
       ]
     }
   ];
@@ -85,7 +85,7 @@ export default function Footer() {
               <span className="font-bold text-xl text-white">MeuExame</span>
             </Link>
             <p className="text-sm text-gray-400 mb-4">
-              A plataforma líder de exames de admissão em Moçambique.
+              A plataforma completa de preparação para exames de condução, escolas profissionais e muito mais em Moçambique.
             </p>
             
             {/* Social Media Icons */}

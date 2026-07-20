@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { GraduationCap, BookOpen, FileQuestion, Award, Play, ChevronRight, Users, Building2, CheckCircle } from "lucide-react";
+import { GraduationCap, BookOpen, FileQuestion, Award, Play, ChevronRight, Users, Building2, CheckCircle, Car } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -36,14 +36,14 @@ export default function Home() {
           <div className="max-w-4xl mx-auto">
             <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full text-xs sm:text-sm font-medium mb-4 sm:mb-6">
               <GraduationCap size={16} className="sm:w-[18px]" />
-              Exames de Admissão em Moçambique
+              Preparação Completa em Moçambique
             </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
-              Prepare-se para os seus <span className="text-primary">Exames Nacionais</span>
+              Prepare-se para <span className="text-primary">Exames de Condução</span> e Mais
             </h1>
             <p className="text-base sm:text-lg lg:text-xl text-gray-600 mb-8 sm:mb-10 leading-relaxed max-w-2xl mx-auto">
-              A sua plataforma completa de preparação. Pratique com exames de instituições 
-              de todo o Moçambique e aumente suas chances de aprovação.
+              A sua plataforma completa de preparação. Pratique para exames de condução, 
+              escolas profissionais, técnicos e muito mais em Moçambique.
             </p>
             
             <button 
@@ -99,31 +99,31 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-10">
             <div className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow">
               <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <BookOpen size={32} className="text-green-600" />
+                <Car size={32} className="text-green-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-3 text-gray-900 text-center">Múltiplas Instituições</h3>
+              <h3 className="text-xl font-semibold mb-3 text-gray-900 text-center">Exames de Condução</h3>
               <p className="text-gray-600 text-center">
-                Acesse exames de universidades e escolas de todo o país
+                Prepare-se para o exame teórico e prático de condução
               </p>
             </div>
             
             <div className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow">
               <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <FileQuestion size={32} className="text-blue-600" />
+                <GraduationCap size={32} className="text-blue-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-3 text-gray-900 text-center">Simulados Realistas</h3>
+              <h3 className="text-xl font-semibold mb-3 text-gray-900 text-center">Escolas Profissionais</h3>
               <p className="text-gray-600 text-center">
-                Questões de anos anteriores com tempo limitado
+                Exames para IFP, INEFP e outras escolas técnicas
               </p>
             </div>
             
             <div className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow">
               <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Award size={32} className="text-purple-600" />
+                <BookOpen size={32} className="text-purple-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-3 text-gray-900 text-center">Resultados Imediatos</h3>
+              <h3 className="text-xl font-semibold mb-3 text-gray-900 text-center">Manuais de Estudo</h3>
               <p className="text-gray-600 text-center">
-                Veja sua pontuação e corrija erros imediatamente
+                Baixe manuais gratuitos para estudar offline
               </p>
             </div>
           </div>
@@ -142,29 +142,29 @@ export default function Home() {
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600 font-bold text-xl">
                 1
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Escolha a Instituição</h3>
-              <p className="text-gray-500 text-sm">Selecione a universidade ou escola que pretende prestar</p>
+              <h3 className="font-semibold text-gray-900 mb-2">Escolha seu Exame</h3>
+              <p className="text-gray-500 text-sm">Selecione condução, escola técnica ou outra categoria</p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600 font-bold text-xl">
                 2
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Escolha a Disciplina</h3>
-              <p className="text-gray-500 text-sm">Selecione a matéria que deseja estudar</p>
+              <h3 className="font-semibold text-gray-900 mb-2">Estude Manuais</h3>
+              <p className="text-gray-500 text-sm">Baixe manuais e materiais de estudo gratuitos</p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600 font-bold text-xl">
                 3
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Faça o Exame</h3>
-              <p className="text-gray-500 text-sm">Responda às questões no tempo disponível</p>
+              <h3 className="font-semibold text-gray-900 mb-2">Pratique Exames</h3>
+              <p className="text-gray-500 text-sm">Responda questões com tempo limitado</p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600 font-bold text-xl">
                 4
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Veja seu Resultado</h3>
-              <p className="text-gray-500 text-sm">Confira sua pontuação e erros</p>
+              <h3 className="font-semibold text-gray-900 mb-2">Veja Resultados</h3>
+              <p className="text-gray-500 text-sm">Confira pontuação e corrija erros</p>
             </div>
           </div>
         </div>
@@ -177,14 +177,14 @@ export default function Home() {
             Pronto para começar?
           </h2>
           <p className="text-green-100 mb-8 max-w-xl mx-auto">
-            Junte-se a milhares de estudantes que já estão se preparando para os exames de admissão
+            Junte-se a milhares de pessoas que já estão se preparando para exames de condução e escolas profissionais em Moçambique
           </p>
           <button 
             onClick={handleStart}
             className="inline-flex items-center gap-2 px-8 py-4 bg-white text-primary rounded-xl font-semibold text-lg hover:bg-gray-100 transition-colors"
           >
             <Play size={20} />
-            {isAuthenticated ? "Ver Instituições" : "Criar Conta Grátis"}
+            {isAuthenticated ? "Ver Exames" : "Criar Conta Grátis"}
           </button>
         </div>
       </section>

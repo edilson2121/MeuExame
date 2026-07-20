@@ -49,15 +49,18 @@ export default function Header({ showBackButton = false, backHref = '/', title }
   const fetchUnreadCount = async () => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) return;
+      
       const res = await fetch(`${apiUrl}/notifications/unread/count`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      
       if (res.ok) {
-        const count = await res.json();
-        setUnreadNotifications(count);
+        const data = await res.json();
+        setUnreadNotifications(typeof data === 'number' ? data : (data?.count || 0));
       }
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      // Silently fail - notifications are not critical
     }
   };
 
