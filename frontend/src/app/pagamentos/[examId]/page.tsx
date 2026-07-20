@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Header from '@/components/Header';
@@ -15,6 +15,8 @@ import {
   AlertCircle,
   Wallet,
   Banknote,
+  RefreshCw,
+  Copy,
 } from 'lucide-react';
 
 type PaymentMethod = 'MPESA' | 'EMOLA' | 'DEBITPAY';
@@ -84,6 +86,8 @@ const PAYMENT_METHODS: PaymentMethodInfo[] = [
   },
 ];
 
+const PAYMENT_PRICE = 299; // Preço fixo em MZN
+
 export default function PaymentPage() {
   const params = useParams();
   const router = useRouter();
@@ -93,10 +97,12 @@ export default function PaymentPage() {
   const [method, setMethod] = useState<PaymentMethod | null>(null);
   const [phone, setPhone] = useState('');
   const [status, setStatus] = useState<PaymentStatus>('idle');
-  const [instructionId, setInstructionId] = useState<string | null>(null);
+  const [reference, setReference] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showInstructions, setShowInstructions] = useState(false);
+  const [countdown, setCountdown] = useState(300); // 5 minutos
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const fetchExam = async () => {
@@ -115,16 +121,23 @@ export default function PaymentPage() {
     };
 
     fetchExam();
+    
+    return () => {
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
   }, [examId]);
 
-  const checkPaymentStatus = useCallback(async (instId: string) => {
+  const checkPaymentStatus = useCallback(async (ref: string) => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-      const res = await fetch(`${apiUrl}/payments/status/${instId}`);
+      const res = await fetch(`${apiUrl}/wallet/status/${ref}`);
       if (res.ok) {
         const data = await res.json();
         if (data.status === 'COMPLETED') {
           setStatus('completed');
+          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+          if (countdownRef.current) clearInterval(countdownRef.current);
           setTimeout(() => {
             router.push(`/exames/${examId}`);
           }, 2000);
@@ -132,6 +145,8 @@ export default function PaymentPage() {
         } else if (data.status === 'FAILED') {
           setStatus('failed');
           setError('Pagamento recusado. Tente novamente.');
+          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+          if (countdownRef.current) clearInterval(countdownRef.current);
           return true;
         }
       }
@@ -149,6 +164,32 @@ export default function PaymentPage() {
     const methodInfo = PAYMENT_METHODS.find((m) => m.id === methodType);
     if (!methodInfo) return false;
     return methodInfo.phonePrefixes.some((prefix) => phoneNumber.startsWith(prefix));
+  };
+
+  const startCountdown = () => {
+    setCountdown(300);
+    countdownRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          if (countdownRef.current) clearInterval(countdownRef.current);
+          if (status === 'pending') {
+            setError('Tempo limite excedido. Verifique o status do pagamento.');
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
   };
 
   const initiatePayment = async () => {
@@ -171,7 +212,7 @@ export default function PaymentPage() {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
       const token = localStorage.getItem('token');
 
-      const res = await fetch(`${apiUrl}/payments/initiate`, {
+      const res = await fetch(`${apiUrl}/wallet/initiate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -181,30 +222,24 @@ export default function PaymentPage() {
           examId,
           method,
           phone: `258${phone}`,
-          amount: exam?.price || 0,
+          amount: PAYMENT_PRICE,
         }),
       });
 
       const data = await res.json();
 
-      if (res.ok) {
-        setInstructionId(data.instructionId);
+      if (data.success) {
+        setReference(data.reference);
         setStatus('pending');
-        setShowInstructions(true);
+        startCountdown();
 
-        const pollInterval = setInterval(async () => {
-          const completed = await checkPaymentStatus(data.instructionId);
+        // Verificar status periodicamente
+        pollIntervalRef.current = setInterval(async () => {
+          const completed = await checkPaymentStatus(data.reference);
           if (completed) {
-            clearInterval(pollInterval);
+            if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
           }
-        }, 5000);
-
-        setTimeout(() => {
-          clearInterval(pollInterval);
-          if (status === 'pending') {
-            setError('Tempo limite excedido. Verifique o status do pagamento mais tarde.');
-          }
-        }, 300000);
+        }, 3000);
       } else {
         setStatus('failed');
         setError(data.message || 'Erro ao iniciar pagamento. Tente novamente.');
@@ -215,6 +250,16 @@ export default function PaymentPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const resetPayment = () => {
+    setStatus('idle');
+    setReference(null);
+    setError(null);
+    setPhone('');
+    setMethod(null);
+    if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+    if (countdownRef.current) clearInterval(countdownRef.current);
   };
 
   if (loading) {
@@ -252,7 +297,7 @@ export default function PaymentPage() {
           <h1 className="text-xl font-bold text-gray-900">{exam.title}</h1>
           <p className="text-sm text-gray-500 mt-1">{exam.discipline?.name}</p>
           <div className="mt-4 flex items-center justify-between">
-            <span className="text-2xl font-bold text-green-600">{exam.price} MZN</span>
+            <span className="text-2xl font-bold text-green-600">{PAYMENT_PRICE} MZN</span>
             <span className="text-sm text-gray-500">Acesso ao exame</span>
           </div>
         </div>
@@ -272,11 +317,7 @@ export default function PaymentPage() {
             <h2 className="text-xl font-bold text-red-700 mt-4">Pagamento Falhou</h2>
             <p className="text-red-600 mt-2">{error || 'Tente novamente.'}</p>
             <button
-              onClick={() => {
-                setStatus('idle');
-                setError(null);
-                setInstructionId(null);
-              }}
+              onClick={resetPayment}
               className="mt-4 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
             >
               Tentar Novamente
@@ -285,18 +326,57 @@ export default function PaymentPage() {
         )}
 
         {status === 'pending' && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mb-6 text-center">
-            <Clock size={48} className="mx-auto text-yellow-600 animate-pulse" />
-            <h2 className="text-xl font-bold text-yellow-700 mt-4">Aguardando Confirmação</h2>
-            <p className="text-yellow-600 mt-2">
-              Aguarde a confirmação do pagamento no seu telemóvel.
-            </p>
-            <p className="text-sm text-yellow-500 mt-4">
-              Número: {phone} | Método: {method === 'MPESA' ? 'M-Pesa' : 'eMola'}
-            </p>
-            <div className="mt-4 flex justify-center">
-              <Loader2 size={24} className="animate-spin text-yellow-600" />
+          <div className="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-6 mb-6">
+            <div className="text-center mb-6">
+              <Clock size={48} className="mx-auto text-yellow-600 animate-pulse" />
+              <h2 className="text-xl font-bold text-yellow-700 mt-4">Aguardando Confirmação</h2>
+              <p className="text-yellow-600 mt-2">
+                Verifique o seu telemóvel e confirme o pagamento
+              </p>
             </div>
+            
+            {/* Reference */}
+            <div className="bg-white rounded-lg p-4 mb-4">
+              <p className="text-xs text-gray-500 mb-1">Referência:</p>
+              <div className="flex items-center justify-between">
+                <span className="font-mono font-bold text-lg text-gray-900">{reference}</span>
+                <button
+                  onClick={() => copyToClipboard(reference || '')}
+                  className="p-2 text-gray-500 hover:text-gray-700"
+                  title="Copiar"
+                >
+                  <Copy size={16} />
+                </button>
+              </div>
+            </div>
+            
+            {/* Method and Phone */}
+            <div className="flex items-center justify-between text-sm mb-4">
+              <span className="text-gray-600">Método: {method === 'MPESA' ? 'M-Pesa' : method === 'EMOLA' ? 'eMola' : 'DebitPay'}</span>
+              <span className="text-gray-600">+258 {phone}</span>
+            </div>
+            
+            {/* Countdown */}
+            <div className="text-center mb-4">
+              <p className="text-xs text-gray-500">Tempo restante:</p>
+              <p className={`text-2xl font-bold ${countdown < 60 ? 'text-red-600' : 'text-gray-900'}`}>
+                {formatTime(countdown)}
+              </p>
+            </div>
+            
+            {/* Loading */}
+            <div className="flex items-center justify-center gap-2 text-yellow-600">
+              <Loader2 size={20} className="animate-spin" />
+              <span className="text-sm">A verificar pagamento...</span>
+            </div>
+            
+            <button
+              onClick={() => checkPaymentStatus(reference || '')}
+              className="w-full mt-4 py-2 border border-yellow-300 rounded-lg text-yellow-700 hover:bg-yellow-100 flex items-center justify-center gap-2"
+            >
+              <RefreshCw size={16} />
+              Verificar Novamente
+            </button>
           </div>
         )}
 
@@ -402,7 +482,7 @@ export default function PaymentPage() {
                   <p className="text-xs text-green-600">{exam.title}</p>
                 </div>
                 <div className="text-right">
-                  <span className="text-3xl font-bold text-green-600">{exam.price}</span>
+                  <span className="text-3xl font-bold text-green-600">{PAYMENT_PRICE}</span>
                   <p className="text-sm text-green-600 font-medium">MZN</p>
                 </div>
               </div>
@@ -422,7 +502,7 @@ export default function PaymentPage() {
               ) : (
                 <>
                   <Banknote size={24} />
-                  Pagar {exam.price} MZN
+                  Pagar {PAYMENT_PRICE} MZN
                 </>
               )}
             </button>

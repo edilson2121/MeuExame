@@ -29,6 +29,7 @@ model User {
   payments      Payment[]
   pages         Page[]
   examAccesses  ExamAccess[]
+  walletTransactions WalletTransaction[]
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
@@ -112,18 +113,53 @@ model Exam {
 }
 
 model ExamAccess {
-  id        String   @id @default(cuid())
-  examId    String
-  userId    String
-  type      ExamAccessType @default(FREE)
-  expiresAt DateTime?
-  exam      Exam @relation(fields: [examId], references: [id], onDelete: Cascade)
-  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                   String   @id @default(cuid())
+  examId               String
+  userId               String
+  type                 ExamAccessType @default(FREE)
+  paymentMethod        String?
+  transactionReference  String?
+  amount               Float?
+  expiresAt            DateTime?
+  exam                 Exam @relation(fields: [examId], references: [id], onDelete: Cascade)
+  user                 User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   @@unique([examId, userId])
   @@map("exam_access")
+}
+
+model WalletTransaction {
+  id            String              @id @default(cuid())
+  userId        String
+  examId        String
+  method        WalletMethod
+  phone         String
+  amount        Float
+  reference     String              @unique
+  externalId    String?
+  status        WalletTransactionStatus @default(PENDING)
+  paidAt        DateTime?
+  failureReason String?
+  user          User                @relation(fields: [userId], references: [id])
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@map("wallet_transactions")
+}
+
+enum WalletMethod {
+  MPESA
+  EMOLA
+  DEBITPAY
+}
+
+enum WalletTransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  EXPIRED
 }
 
 enum ExamAccessType {
