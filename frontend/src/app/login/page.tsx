@@ -16,7 +16,22 @@ export default function LoginPage() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token) {
+    const userData = localStorage.getItem('user');
+    
+    if (token && userData) {
+      try {
+        const user = JSON.parse(userData);
+        // Redirect admin users to admin area
+        if (user.role === 'ADMIN') {
+          router.push('/admin');
+          return;
+        }
+      } catch (e) {
+        // Invalid user data, clear and stay on login
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        return;
+      }
       router.push('/home');
     }
 
@@ -191,9 +206,21 @@ export default function LoginPage() {
         <div className="mt-6 p-4 bg-white/80 backdrop-blur rounded-2xl text-sm border border-green-100">
           <p className="font-semibold text-green-800 mb-2">🔑 Login Rápido (Demo):</p>
           <div className="space-y-1 text-green-700">
-            <p><strong>Admin:</strong> admin@meuexame.com / admin123</p>
             <p><strong>User:</strong> user@meuexame.com / user123</p>
           </div>
+        </div>
+
+        {/* Admin login link */}
+        <div className="mt-4 p-4 bg-slate-100 rounded-2xl text-sm border border-slate-200">
+          <p className="font-semibold text-slate-800 mb-2 flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            É administrador?
+          </p>
+          <Link href="/admin/login" className="block w-full text-center py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors font-medium">
+            Entrar como Admin
+          </Link>
         </div>
       </div>
     </main>
