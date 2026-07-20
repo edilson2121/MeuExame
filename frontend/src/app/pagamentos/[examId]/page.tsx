@@ -11,13 +11,78 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  ChevronLeft,
   Loader2,
   AlertCircle,
+  Wallet,
+  Banknote,
 } from 'lucide-react';
 
-type PaymentMethod = 'MPESA' | 'EMOLA';
+type PaymentMethod = 'MPESA' | 'EMOLA' | 'DEBITPAY';
 type PaymentStatus = 'idle' | 'processing' | 'pending' | 'completed' | 'failed';
+
+interface PaymentMethodInfo {
+  id: PaymentMethod;
+  name: string;
+  shortName: string;
+  description: string;
+  operator: string;
+  icon: React.ReactNode;
+  color: string;
+  bgColor: string;
+  instructions: string[];
+  phonePrefixes: string[];
+}
+
+const PAYMENT_METHODS: PaymentMethodInfo[] = [
+  {
+    id: 'MPESA',
+    name: 'M-Pesa',
+    shortName: 'M-Pesa',
+    description: 'Vodacom',
+    operator: 'Vodacom M-Pesa',
+    icon: <Smartphone size={32} />,
+    color: 'text-green-600',
+    bgColor: 'bg-green-100',
+    instructions: [
+      'Receberá um código USSD no seu telemóvel',
+      'Digite o código no seu telemóvel',
+      'Confirme a transação com o seu PIN M-Pesa',
+    ],
+    phonePrefixes: ['84', '85'],
+  },
+  {
+    id: 'EMOLA',
+    name: 'eMola',
+    shortName: 'eMola',
+    description: 'Movitel',
+    operator: 'Movitel eMola',
+    icon: <Smartphone size={32} />,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+    instructions: [
+      'Receberá uma notificação no seu telemóvel',
+      'Aprovar a transação na app eMola',
+      'Digite o seu PIN eMola para confirmar',
+    ],
+    phonePrefixes: ['86', '87'],
+  },
+  {
+    id: 'DEBITPAY',
+    name: 'DebitPay',
+    shortName: 'DebitPay',
+    description: 'Carteira Digital',
+    operator: 'DebitPay',
+    icon: <Wallet size={32} />,
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-100',
+    instructions: [
+      'Aguarde o código de pagamento',
+      'Copie o código e pague na app DebitPay',
+      'A confirmação é automática em segundos',
+    ],
+    phonePrefixes: ['84', '85', '86', '87'],
+  },
+];
 
 export default function PaymentPage() {
   const params = useParams();
@@ -31,6 +96,7 @@ export default function PaymentPage() {
   const [instructionId, setInstructionId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showInstructions, setShowInstructions] = useState(false);
 
   useEffect(() => {
     const fetchExam = async () => {
@@ -59,7 +125,6 @@ export default function PaymentPage() {
         const data = await res.json();
         if (data.status === 'COMPLETED') {
           setStatus('completed');
-          // Redirecionar para o exame após 2 segundos
           setTimeout(() => {
             router.push(`/exames/${examId}`);
           }, 2000);
@@ -76,16 +141,25 @@ export default function PaymentPage() {
     return false;
   }, [examId, router]);
 
+  const getSelectedMethodInfo = () => {
+    return PAYMENT_METHODS.find((m) => m.id === method);
+  };
+
+  const validatePhone = (phoneNumber: string, methodType: PaymentMethod) => {
+    const methodInfo = PAYMENT_METHODS.find((m) => m.id === methodType);
+    if (!methodInfo) return false;
+    return methodInfo.phonePrefixes.some((prefix) => phoneNumber.startsWith(prefix));
+  };
+
   const initiatePayment = async () => {
     if (!method || !phone) {
       setError('Por favor, selecione o método de pagamento e insira o número de telefone.');
       return;
     }
 
-    // Validar número de telefone moçambicano
-    const phoneRegex = /^(84|85|86|87)\d{7}$/;
-    if (!phoneRegex.test(phone)) {
-      setError('Número de telefone inválido. Use o formato: 84XXXXXXX ou 85XXXXXXX');
+    if (!validatePhone(phone, method)) {
+      const methodInfo = getSelectedMethodInfo();
+      setError(`Número inválido para ${methodInfo?.name}. Use: ${methodInfo?.phonePrefixes.join(', ')}XXXXXXX`);
       return;
     }
 
@@ -106,7 +180,7 @@ export default function PaymentPage() {
         body: JSON.stringify({
           examId,
           method,
-          phone,
+          phone: `258${phone}`,
           amount: exam?.price || 0,
         }),
       });
@@ -116,8 +190,8 @@ export default function PaymentPage() {
       if (res.ok) {
         setInstructionId(data.instructionId);
         setStatus('pending');
+        setShowInstructions(true);
 
-        // Verificar status periodicamente (polling)
         const pollInterval = setInterval(async () => {
           const completed = await checkPaymentStatus(data.instructionId);
           if (completed) {
@@ -125,7 +199,6 @@ export default function PaymentPage() {
           }
         }, 5000);
 
-        // Timeout após 5 minutos
         setTimeout(() => {
           clearInterval(pollInterval);
           if (status === 'pending') {
@@ -238,7 +311,7 @@ export default function PaymentPage() {
         {/* Payment Form */}
         {(status === 'idle' || status === 'failed') && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-6">Método de Pagamento</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-6">Escolha o Método de Pagamento</h2>
 
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-start gap-3">
@@ -247,96 +320,120 @@ export default function PaymentPage() {
               </div>
             )}
 
-            {/* Payment Methods */}
-            <div className="space-y-4 mb-6">
-              <button
-                onClick={() => setMethod('MPESA')}
-                className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all ${
-                  method === 'MPESA'
-                    ? 'border-green-600 bg-green-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center">
-                  <Smartphone size={32} className="text-green-600" />
-                </div>
-                <div className="text-left flex-1">
-                  <p className="font-semibold text-gray-900">M-Pesa</p>
-                  <p className="text-sm text-gray-500">Vodacom</p>
-                </div>
-                {method === 'MPESA' && <CheckCircle size={24} className="text-green-600" />}
-              </button>
-
-              <button
-                onClick={() => setMethod('EMOLA')}
-                className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all ${
-                  method === 'EMOLA'
-                    ? 'border-green-600 bg-green-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <Smartphone size={32} className="text-blue-600" />
-                </div>
-                <div className="text-left flex-1">
-                  <p className="font-semibold text-gray-900">eMola</p>
-                  <p className="text-sm text-gray-500">Movitel</p>
-                </div>
-                {method === 'EMOLA' && <CheckCircle size={24} className="text-green-600" />}
-              </button>
+            {/* Payment Methods Grid */}
+            <div className="grid grid-cols-1 gap-4 mb-6">
+              {PAYMENT_METHODS.map((pm) => (
+                <button
+                  key={pm.id}
+                  onClick={() => {
+                    setMethod(pm.id);
+                    setPhone('');
+                  }}
+                  className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all ${
+                    method === pm.id
+                      ? `border-${pm.color.split('-')[1]}-600 bg-${pm.bgColor.split('-')[1]}-50`
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                  style={{
+                    borderColor: method === pm.id ? (pm.color === 'text-green-600' ? '#16a34a' : pm.color === 'text-blue-600' ? '#2563eb' : '#9333ea') : undefined,
+                    backgroundColor: method === pm.id ? (pm.color === 'text-green-600' ? '#f0fdf4' : pm.color === 'text-blue-600' ? '#eff6ff' : '#faf5ff') : undefined,
+                  }}
+                >
+                  <div className={`w-14 h-14 ${pm.bgColor} rounded-xl flex items-center justify-center`} style={{ color: pm.color === 'text-green-600' ? '#16a34a' : pm.color === 'text-blue-600' ? '#2563eb' : '#9333ea' }}>
+                    {pm.icon}
+                  </div>
+                  <div className="text-left flex-1">
+                    <p className="font-bold text-gray-900">{pm.name}</p>
+                    <p className="text-sm text-gray-500">{pm.description}</p>
+                  </div>
+                  {method === pm.id && (
+                    <CheckCircle size={24} className="text-green-600" />
+                  )}
+                </button>
+              ))}
             </div>
+
+            {/* Selected Method Instructions */}
+            {method && getSelectedMethodInfo() && (
+              <div className={`${getSelectedMethodInfo()?.bgColor} rounded-xl p-4 mb-6`}>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className={getSelectedMethodInfo()?.color}>{getSelectedMethodInfo()?.icon}</span>
+                  <span className="font-semibold text-gray-900">Como pagar com {getSelectedMethodInfo()?.name}</span>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  {getSelectedMethodInfo()?.instructions.map((instruction, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <span className={`${getSelectedMethodInfo()?.color} font-bold`}>{idx + 1}.</span>
+                      {instruction}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Phone Number */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Número de Telefone
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">+258</span>
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                  placeholder="84XXXXXXX"
-                  maxLength={9}
-                  className="w-full pl-16 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 text-lg"
-                />
+            {method && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Número de Telefone {getSelectedMethodInfo()?.name}
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">+258</span>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                    placeholder={getSelectedMethodInfo()?.phonePrefixes[0] + 'XXXXXXX'}
+                    maxLength={9}
+                    className="w-full pl-16 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 text-lg"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Prefixo: {getSelectedMethodInfo()?.phonePrefixes.join(', ')} • Ex: {getSelectedMethodInfo()?.phonePrefixes[0]}XXXXXXX
+                </p>
               </div>
-              <p className="text-xs text-gray-500 mt-2">
-                Insira o número sem o código do país. Ex: 84XXXXXXX
-              </p>
-            </div>
+            )}
 
             {/* Summary */}
-            <div className="bg-gray-50 rounded-xl p-4 mb-6">
+            <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-4 mb-6">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Total a pagar:</span>
-                <span className="text-2xl font-bold text-green-600">{exam.price} MZN</span>
+                <div>
+                  <p className="text-sm text-gray-600">Total a pagar:</p>
+                  <p className="text-xs text-green-600">{exam.title}</p>
+                </div>
+                <div className="text-right">
+                  <span className="text-3xl font-bold text-green-600">{exam.price}</span>
+                  <p className="text-sm text-green-600 font-medium">MZN</p>
+                </div>
               </div>
             </div>
 
             {/* Submit Button */}
             <button
               onClick={initiatePayment}
-              disabled={!method || !phone || loading}
-              className="w-full py-4 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              disabled={!method || phone.length < 8 || loading}
+              className="w-full py-4 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg"
             >
               {loading ? (
                 <>
                   <Loader2 size={20} className="animate-spin" />
-                  A processar...
+                  A processar pagamento...
                 </>
               ) : (
                 <>
-                  <CreditCard size={20} />
+                  <Banknote size={24} />
                   Pagar {exam.price} MZN
                 </>
               )}
             </button>
 
-            <p className="text-xs text-gray-500 text-center mt-4">
-              Ao clicar em "Pagar", você concorda com os termos e condições.
-            </p>
+            {/* Security Note */}
+            <div className="flex items-center justify-center gap-2 mt-4 text-xs text-gray-500">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+              </svg>
+              Pagamento seguro via carteira móvel
+            </div>
           </div>
         )}
 
