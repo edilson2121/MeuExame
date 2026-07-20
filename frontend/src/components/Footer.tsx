@@ -35,21 +35,11 @@ const SocialIcons: Record<string, { icon: JSX.Element; color: string }> = {
 export default function Footer() {
   const [isMobile, setIsMobile] = useState(false);
   const [isSectionsOpen, setIsSectionsOpen] = useState(false);
-  const [socialLinks, setSocialLinks] = useState<any[]>([]);
-
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    
-    // Fetch social media links
-    fetch(`${apiUrl}/social-media`)
-      .then(res => res.ok ? res.json() : [])
-      .then(data => setSocialLinks(data))
-      .catch(() => setSocialLinks([]));
-
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
@@ -100,39 +90,18 @@ export default function Footer() {
             
             {/* Social Media Icons */}
             <div className="flex items-center gap-3">
-              {socialLinks.length > 0 ? (
-                socialLinks.map((social) => {
-                  const socialIcon = SocialIcons[social.platform];
-                  return (
-                    <a
-                      key={social.id}
-                      href={social.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center transition-all ${socialIcon?.color || ''}`}
-                      title={social.platform.charAt(0).toUpperCase() + social.platform.slice(1)}
-                    >
-                      {socialIcon?.icon}
-                    </a>
-                  );
-                })
-              ) : (
-                // Default social icons when no data
-                <>
-                  <a href="https://facebook.com/meuexame" target="_blank" rel="noopener noreferrer" className={`w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center transition-all ${SocialIcons.facebook.color}`}>
-                    {SocialIcons.facebook.icon}
-                  </a>
-                  <a href="https://instagram.com/meuexame" target="_blank" rel="noopener noreferrer" className={`w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center transition-all ${SocialIcons.instagram.color}`}>
-                    {SocialIcons.instagram.icon}
-                  </a>
-                  <a href="https://twitter.com/meuexame" target="_blank" rel="noopener noreferrer" className={`w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center transition-all ${SocialIcons.twitter.color}`}>
-                    {SocialIcons.twitter.icon}
-                  </a>
-                  <a href="https://wa.me/258XXXXXXXXX" target="_blank" rel="noopener noreferrer" className={`w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center transition-all ${SocialIcons.whatsapp.color}`}>
-                    {SocialIcons.whatsapp.icon}
-                  </a>
-                </>
-              )}
+              <a href="https://facebook.com/meuexame" target="_blank" rel="noopener noreferrer" className={`w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center transition-all ${SocialIcons.facebook.color}`}>
+                {SocialIcons.facebook.icon}
+              </a>
+              <a href="https://instagram.com/meuexame" target="_blank" rel="noopener noreferrer" className={`w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center transition-all ${SocialIcons.instagram.color}`}>
+                {SocialIcons.instagram.icon}
+              </a>
+              <a href="https://twitter.com/meuexame" target="_blank" rel="noopener noreferrer" className={`w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center transition-all ${SocialIcons.twitter.color}`}>
+                {SocialIcons.twitter.icon}
+              </a>
+              <a href="https://wa.me/258XXXXXXXXX" target="_blank" rel="noopener noreferrer" className={`w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center transition-all ${SocialIcons.whatsapp.color}`}>
+                {SocialIcons.whatsapp.icon}
+              </a>
             </div>
           </div>
 
