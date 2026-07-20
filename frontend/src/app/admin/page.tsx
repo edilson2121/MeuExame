@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Users,
   Building2,
@@ -42,12 +44,22 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const router = useRouter();
+  const { user, isAdmin, loading: authLoading } = useAuth();
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
   useEffect(() => {
-    fetchStats();
-  }, []);
+    if (!authLoading && !isAdmin) {
+      router.push('/');
+    }
+  }, [authLoading, isAdmin, router]);
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetchStats();
+    }
+  }, [isAdmin]);
 
   const fetchStats = async (showRefresh = false) => {
     if (showRefresh) setRefreshing(true);

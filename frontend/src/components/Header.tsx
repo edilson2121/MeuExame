@@ -18,7 +18,7 @@ interface HeaderProps {
 }
 
 export default function Header({ showBackButton = false, backHref = '/', title }: HeaderProps) {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -38,8 +38,15 @@ export default function Header({ showBackButton = false, backHref = '/', title }
     router.push('/login');
   };
 
-  const navItems = [
-    { label: 'Início', href: '/', icon: <Home size={18} /> },
+  // Links diferentes para Admin vs Estudante
+  const navItems = isAdmin ? [
+    { label: 'Dashboard', href: '/admin', icon: <Home size={18} /> },
+    { label: 'Utilizadores', href: '/admin/usuarios', icon: <User size={18} /> },
+    { label: 'Instituições', href: '/admin/instituicoes', icon: <Building2 size={18} /> },
+    { label: 'Exames', href: '/admin/exames', icon: <FileQuestion size={18} /> },
+    { label: 'Pagamentos', href: '/admin/pagamentos', icon: <CreditCard size={18} /> },
+  ] : [
+    { label: 'Início', href: '/home', icon: <Home size={18} /> },
     { label: 'Instituições', href: '/instituicoes', icon: <Building2 size={18} /> },
     { label: 'Meus Exames', href: '/exames', icon: <FileQuestion size={18} /> },
     { label: 'Pagamentos', href: '/pagamentos', icon: <CreditCard size={18} /> },
@@ -133,8 +140,18 @@ export default function Header({ showBackButton = false, backHref = '/', title }
                           <div className="px-4 py-3 border-b bg-gray-50">
                             <p className="font-medium">{user.name}</p>
                             <p className="text-sm text-gray-500">{user.email}</p>
+                            {isAdmin && (
+                              <span className="inline-block mt-1 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">
+                                Administrador
+                              </span>
+                            )}
                           </div>
                           <div className="py-2">
+                            {isAdmin && (
+                              <Link href="/admin" className="flex items-center gap-3 px-4 py-2.5 text-purple-700 hover:bg-purple-50">
+                                <Home size={18} /> Painel Admin
+                              </Link>
+                            )}
                             <Link href="/notificacoes" className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50">
                               <Bell size={18} /> Notificações
                             </Link>

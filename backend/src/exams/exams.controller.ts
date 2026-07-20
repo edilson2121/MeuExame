@@ -2,16 +2,17 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request }
 import { ExamsService } from './exams.service';
 import { CreateExamDto } from './dto/create-exam.dto';
 import { UpdateExamDto } from './dto/update-exam.dto';
-import { RolesGuard } from '../common/guards/roles.guard';
-import { Roles } from '../common/decorators/roles.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @Controller('exams')
 export class ExamsController {
   constructor(private readonly examsService: ExamsService) {}
 
   @Post()
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN', 'TEACHER')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
   create(@Request() req, @Body() createExamDto: CreateExamDto) {
     return this.examsService.create(createExamDto);
   }
@@ -37,21 +38,21 @@ export class ExamsController {
   }
 
   @Post(':id/validate')
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
   validateAnswers(@Param('id') id: string, @Body() body: { answers: any }) {
     return this.examsService.validateAnswers(id, body.answers);
   }
 
   @Patch(':id')
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN', 'TEACHER')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
   update(@Param('id') id: string, @Body() updateExamDto: UpdateExamDto) {
     return this.examsService.update(id, updateExamDto);
   }
 
   @Delete(':id')
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN', 'TEACHER')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
   remove(@Param('id') id: string) {
     return this.examsService.remove(id);
   }

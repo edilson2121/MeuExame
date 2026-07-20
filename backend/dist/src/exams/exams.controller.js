@@ -17,8 +17,9 @@ const common_1 = require("@nestjs/common");
 const exams_service_1 = require("./exams.service");
 const create_exam_dto_1 = require("./dto/create-exam.dto");
 const update_exam_dto_1 = require("./dto/update-exam.dto");
-const roles_guard_1 = require("../common/guards/roles.guard");
-const roles_decorator_1 = require("../common/decorators/roles.decorator");
+const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const roles_guard_1 = require("../auth/guards/roles.guard");
+const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 let ExamsController = class ExamsController {
     constructor(examsService) {
         this.examsService = examsService;
@@ -51,8 +52,8 @@ let ExamsController = class ExamsController {
 exports.ExamsController = ExamsController;
 __decorate([
     (0, common_1.Post)(),
-    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)('ADMIN', 'TEACHER'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('ADMIN'),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -88,7 +89,7 @@ __decorate([
 ], ExamsController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Post)(':id/validate'),
-    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -97,8 +98,8 @@ __decorate([
 ], ExamsController.prototype, "validateAnswers", null);
 __decorate([
     (0, common_1.Patch)(':id'),
-    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)('ADMIN', 'TEACHER'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('ADMIN'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -107,8 +108,8 @@ __decorate([
 ], ExamsController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)('ADMIN', 'TEACHER'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('ADMIN'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
