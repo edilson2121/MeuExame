@@ -17,7 +17,7 @@ export interface PaymentInitResult {
   success: boolean;
   reference: string;
   message: string;
-  method: 'MPESA' | 'EMOLA' | 'DEBITPAY';
+  method: 'MPESA' | 'EMOLA';
 }
 
 export interface PaymentStatusResult {
@@ -280,7 +280,7 @@ export class WalletService {
   private async createTransaction(data: {
     reference: string;
     userId?: string;
-    method: 'MPESA' | 'EMOLA' | 'DEBITPAY';
+    method: 'MPESA' | 'EMOLA';
     amount: number;
     phone: string;
     externalId?: string;
@@ -292,7 +292,6 @@ export class WalletService {
         method: data.method,
         amount: data.amount,
         phone: data.phone,
-        userId: data.userId,
         status: 'PENDING',
       },
     });

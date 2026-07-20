@@ -19,7 +19,7 @@ import {
   Copy,
 } from 'lucide-react';
 
-type PaymentMethod = 'MPESA' | 'EMOLA' | 'DEBITPAY';
+type PaymentMethod = 'MPESA' | 'EMOLA';
 type PaymentStatus = 'idle' | 'processing' | 'pending' | 'completed' | 'failed';
 
 interface PaymentMethodInfo {
@@ -67,22 +67,6 @@ const PAYMENT_METHODS: PaymentMethodInfo[] = [
       'Digite o seu PIN eMola para confirmar',
     ],
     phonePrefixes: ['86', '87'],
-  },
-  {
-    id: 'DEBITPAY',
-    name: 'DebitPay',
-    shortName: 'DebitPay',
-    description: 'Carteira Digital',
-    operator: 'DebitPay',
-    icon: <Wallet size={32} />,
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-100',
-    instructions: [
-      'Aguarde o código de pagamento',
-      'Copie o código e pague na app DebitPay',
-      'A confirmação é automática em segundos',
-    ],
-    phonePrefixes: ['84', '85', '86', '87'],
   },
 ];
 

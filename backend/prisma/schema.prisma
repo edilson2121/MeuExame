@@ -153,7 +153,6 @@ model WalletTransaction {
 enum WalletMethod {
   MPESA
   EMOLA
-  DEBITPAY
 }
 
 enum WalletTransactionStatus {

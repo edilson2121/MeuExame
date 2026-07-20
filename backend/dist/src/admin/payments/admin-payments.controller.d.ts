@@ -151,11 +151,14 @@ export declare class AdminPaymentsController {
             createdAt: Date;
             updatedAt: Date;
             userId: string;
-            planId: string;
+            planId: string | null;
             amount: number;
             subscriptionId: string | null;
+            examId: string | null;
             paymentMethod: string | null;
             transactionId: string | null;
+            instructionId: string | null;
+            webhookData: import("@prisma/client/runtime/library").JsonValue | null;
         }[];
     } & {
         status: import(".prisma/client").$Enums.SubscriptionStatus;
@@ -295,11 +298,14 @@ export declare class AdminPaymentsController {
                         createdAt: Date;
                         updatedAt: Date;
                         userId: string;
-                        planId: string;
+                        planId: string | null;
                         amount: number;
                         subscriptionId: string | null;
+                        examId: string | null;
                         paymentMethod: string | null;
                         transactionId: string | null;
+                        instructionId: string | null;
+                        webhookData: import("@prisma/client/runtime/library").JsonValue | null;
                     }[];
                 } & {
                     status: import(".prisma/client").$Enums.SubscriptionStatus;

@@ -30,8 +30,10 @@ const simulations_module_1 = require("./modules/simulations/simulations.module")
 const stats_module_1 = require("./stats/stats.module");
 const study_contents_module_1 = require("./modules/study-contents/study-contents.module");
 const subjects_module_1 = require("./subjects/subjects.module");
+const subscriptions_module_1 = require("./modules/subscriptions/subscriptions.module");
 const uploads_module_1 = require("./uploads/uploads.module");
 const users_module_1 = require("./users/users.module");
+const wallet_module_1 = require("./wallets/wallet.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -57,9 +59,11 @@ exports.AppModule = AppModule = __decorate([
             admin_module_1.AdminModule,
             plans_module_1.PlansModule,
             payments_module_1.PaymentsModule,
+            subscriptions_module_1.SubscriptionsModule,
             dynamic_pages_module_1.DynamicPagesModule,
             uploads_module_1.UploadsModule,
             stats_module_1.StatsModule,
+            wallet_module_1.WalletModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

@@ -23,11 +23,14 @@ export declare class PaymentsController {
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        planId: string;
+        planId: string | null;
         amount: number;
         subscriptionId: string | null;
+        examId: string | null;
         paymentMethod: string | null;
         transactionId: string | null;
+        instructionId: string | null;
+        webhookData: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
     findMyPayments(req: any): Promise<({
         plan: {
@@ -48,11 +51,14 @@ export declare class PaymentsController {
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        planId: string;
+        planId: string | null;
         amount: number;
         subscriptionId: string | null;
+        examId: string | null;
         paymentMethod: string | null;
         transactionId: string | null;
+        instructionId: string | null;
+        webhookData: import("@prisma/client/runtime/library").JsonValue | null;
     })[]>;
     findAll(): Promise<({
         user: {
@@ -78,11 +84,14 @@ export declare class PaymentsController {
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        planId: string;
+        planId: string | null;
         amount: number;
         subscriptionId: string | null;
+        examId: string | null;
         paymentMethod: string | null;
         transactionId: string | null;
+        instructionId: string | null;
+        webhookData: import("@prisma/client/runtime/library").JsonValue | null;
     })[]>;
     findOne(id: string): Promise<{
         user: {
@@ -108,11 +117,14 @@ export declare class PaymentsController {
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        planId: string;
+        planId: string | null;
         amount: number;
         subscriptionId: string | null;
+        examId: string | null;
         paymentMethod: string | null;
         transactionId: string | null;
+        instructionId: string | null;
+        webhookData: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
     updateStatus(id: string, updatePaymentDto: UpdatePaymentDto): Promise<{
         status: import(".prisma/client").$Enums.PaymentStatus;
@@ -121,10 +133,13 @@ export declare class PaymentsController {
         createdAt: Date;
         updatedAt: Date;
         userId: string;
-        planId: string;
+        planId: string | null;
         amount: number;
         subscriptionId: string | null;
+        examId: string | null;
         paymentMethod: string | null;
         transactionId: string | null;
+        instructionId: string | null;
+        webhookData: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
 }
