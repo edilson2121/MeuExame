@@ -112,9 +112,23 @@ export default function PaymentPage() {
         if (res.ok) {
           const data = await res.json();
           setExam(data);
+        } else {
+          // Demo mode - exam not found, use demo data
+          setExam({
+            id: examId,
+            title: 'Exame de Preparação',
+            discipline: { id: '1', name: 'Geral' },
+            price: PAYMENT_PRICE,
+          });
         }
       } catch (err) {
-        console.error('Erro ao carregar exame:', err);
+        // Demo mode - backend not running
+        setExam({
+          id: examId,
+          title: 'Exame de Preparação',
+          discipline: { id: '1', name: 'Geral' },
+          price: PAYMENT_PRICE,
+        });
       } finally {
         setLoading(false);
       }

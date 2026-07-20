@@ -24,6 +24,7 @@ import { SubjectsModule } from './subjects/subjects.module';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { UsersModule } from './users/users.module';
+import { WalletModule } from './wallets/wallet.module';
 
 
 @Module({
@@ -51,6 +52,7 @@ import { UsersModule } from './users/users.module';
     DynamicPagesModule,
     UploadsModule,
     StatsModule,
+    WalletModule,
   ],
   controllers: [AppController],
   providers: [AppService],
