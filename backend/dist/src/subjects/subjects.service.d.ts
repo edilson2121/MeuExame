@@ -1,145 +1,105 @@
-import { PrismaService } from '../database/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateSubjectDto } from './dto/create-subject.dto';
+import { UpdateSubjectDto } from './dto/update-subject.dto';
 export declare class SubjectsService {
     private prisma;
     constructor(prisma: PrismaService);
-    create(data: {
-        name: string;
-        description?: string;
-        courseId: string;
-    }): Promise<{
+    create(createSubjectDto: CreateSubjectDto): Promise<{
         course: {
-            institution: {
-                id: string;
-                email: string | null;
-                name: string;
-                createdAt: Date;
-                updatedAt: Date;
-                description: string | null;
-                address: string | null;
-                phone: string | null;
-                website: string | null;
-                logo: string | null;
-            };
-        } & {
             id: string;
             name: string;
-            institutionId: string;
             createdAt: Date;
             updatedAt: Date;
-            description: string | null;
         };
     } & {
+        institutionId: string | null;
         id: string;
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
-        courseId: string;
+        courseId: string | null;
     }>;
-    findAll(): Promise<{
-        _count: {
-            contents: number;
-            exercises: number;
-            exams: number;
-        };
+    findAll(): Promise<({
         course: {
-            institution: {
-                id: string;
-                email: string | null;
-                name: string;
-                createdAt: Date;
-                updatedAt: Date;
-                description: string | null;
-                address: string | null;
-                phone: string | null;
-                website: string | null;
-                logo: string | null;
-            };
-        } & {
             id: string;
             name: string;
-            institutionId: string;
             createdAt: Date;
             updatedAt: Date;
-            description: string | null;
         };
+    } & {
+        institutionId: string | null;
         id: string;
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
-        courseId: string;
-    }[]>;
+        courseId: string | null;
+    })[]>;
+    findByInstitution(institutionId: string): Promise<({
+        course: {
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+    } & {
+        institutionId: string | null;
+        id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        courseId: string | null;
+    })[]>;
+    findByCourse(courseId: string): Promise<({
+        course: {
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+    } & {
+        institutionId: string | null;
+        id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        courseId: string | null;
+    })[]>;
     findOne(id: string): Promise<{
         course: {
-            institution: {
-                id: string;
-                email: string | null;
-                name: string;
-                createdAt: Date;
-                updatedAt: Date;
-                description: string | null;
-                address: string | null;
-                phone: string | null;
-                website: string | null;
-                logo: string | null;
-            };
-        } & {
             id: string;
             name: string;
-            institutionId: string;
             createdAt: Date;
             updatedAt: Date;
-            description: string | null;
         };
     } & {
+        institutionId: string | null;
         id: string;
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
-        courseId: string;
+        courseId: string | null;
     }>;
-    update(id: string, data: {
-        name?: string;
-        description?: string;
-        courseId?: string;
-    }): Promise<{
+    update(id: string, updateSubjectDto: UpdateSubjectDto): Promise<{
         course: {
-            institution: {
-                id: string;
-                email: string | null;
-                name: string;
-                createdAt: Date;
-                updatedAt: Date;
-                description: string | null;
-                address: string | null;
-                phone: string | null;
-                website: string | null;
-                logo: string | null;
-            };
-        } & {
             id: string;
             name: string;
-            institutionId: string;
             createdAt: Date;
             updatedAt: Date;
-            description: string | null;
         };
     } & {
+        institutionId: string | null;
         id: string;
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
-        courseId: string;
+        courseId: string | null;
     }>;
     remove(id: string): Promise<{
+        institutionId: string | null;
         id: string;
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
-        courseId: string;
+        courseId: string | null;
     }>;
 }

@@ -11,51 +11,50 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SubjectsService = void 0;
 const common_1 = require("@nestjs/common");
-const prisma_service_1 = require("../database/prisma.service");
+const prisma_service_1 = require("../prisma/prisma.service");
 let SubjectsService = class SubjectsService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async create(data) {
+    async create(createSubjectDto) {
         return this.prisma.subject.create({
-            data,
+            data: createSubjectDto,
             include: {
-                course: {
-                    include: {
-                        institution: true,
-                    },
-                },
+                course: true,
             },
         });
     }
     async findAll() {
-        const subjects = await this.prisma.subject.findMany({
+        return this.prisma.subject.findMany({
             include: {
-                course: {
-                    include: {
-                        institution: true,
-                    },
-                },
+                course: true,
             },
+            orderBy: { name: 'asc' },
         });
-        return subjects.map(subject => ({
-            ...subject,
-            _count: {
-                contents: 0,
-                exercises: 0,
-                exams: 0,
+    }
+    async findByInstitution(institutionId) {
+        return this.prisma.subject.findMany({
+            where: { institutionId },
+            include: {
+                course: true,
             },
-        }));
+            orderBy: { name: 'asc' },
+        });
+    }
+    async findByCourse(courseId) {
+        return this.prisma.subject.findMany({
+            where: { courseId },
+            include: {
+                course: true,
+            },
+            orderBy: { name: 'asc' },
+        });
     }
     async findOne(id) {
         const subject = await this.prisma.subject.findUnique({
             where: { id },
             include: {
-                course: {
-                    include: {
-                        institution: true,
-                    },
-                },
+                course: true,
             },
         });
         if (!subject) {
@@ -63,29 +62,21 @@ let SubjectsService = class SubjectsService {
         }
         return subject;
     }
-    async update(id, data) {
-        const subject = await this.prisma.subject.findUnique({ where: { id } });
-        if (!subject) {
-            throw new common_1.NotFoundException('Disciplina não encontrada');
-        }
+    async update(id, updateSubjectDto) {
+        const subject = await this.findOne(id);
         return this.prisma.subject.update({
             where: { id },
-            data,
+            data: updateSubjectDto,
             include: {
-                course: {
-                    include: {
-                        institution: true,
-                    },
-                },
+                course: true,
             },
         });
     }
     async remove(id) {
-        const subject = await this.prisma.subject.findUnique({ where: { id } });
-        if (!subject) {
-            throw new common_1.NotFoundException('Disciplina não encontrada');
-        }
-        return this.prisma.subject.delete({ where: { id } });
+        const subject = await this.findOne(id);
+        return this.prisma.subject.delete({
+            where: { id },
+        });
     }
 };
 exports.SubjectsService = SubjectsService;

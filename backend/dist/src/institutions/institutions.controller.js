@@ -15,18 +15,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.InstitutionsController = void 0;
 const common_1 = require("@nestjs/common");
 const institutions_service_1 = require("./institutions.service");
+const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const roles_guard_1 = require("../auth/guards/roles.guard");
+const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 let InstitutionsController = class InstitutionsController {
     constructor(institutionsService) {
         this.institutionsService = institutionsService;
-    }
-    create(createInstitutionDto) {
-        return this.institutionsService.create(createInstitutionDto);
     }
     findAll() {
         return this.institutionsService.findAll();
     }
     findOne(id) {
         return this.institutionsService.findOne(id);
+    }
+    create(createInstitutionDto) {
+        return this.institutionsService.create(createInstitutionDto);
     }
     update(id, updateInstitutionDto) {
         return this.institutionsService.update(id, updateInstitutionDto);
@@ -36,13 +39,6 @@ let InstitutionsController = class InstitutionsController {
     }
 };
 exports.InstitutionsController = InstitutionsController;
-__decorate([
-    (0, common_1.Post)(),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
-], InstitutionsController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
     __metadata("design:type", Function),
@@ -57,7 +53,18 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], InstitutionsController.prototype, "findOne", null);
 __decorate([
+    (0, common_1.Post)(),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('ADMIN'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], InstitutionsController.prototype, "create", null);
+__decorate([
     (0, common_1.Patch)(':id'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('ADMIN'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -66,6 +73,8 @@ __decorate([
 ], InstitutionsController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)('ADMIN'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),

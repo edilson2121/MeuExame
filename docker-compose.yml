@@ -1,36 +1,72 @@
-version: '3.8'
-
-services:
+﻿services:
   postgres:
     image: postgres:15-alpine
     container_name: meuexame-postgres
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: meuexame
+      POSTGRES_PASSWORD: meuexame123
       POSTGRES_DB: meuexame
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meuexame -d meuexame"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
     networks:
       - meuexame-network
-    restart: unless-stopped
 
-  redis:
-    image: redis:7-alpine
-    container_name: meuexame-redis
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: meuexame-backend
     ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://meuexame:meuexame123@postgres:5432/meuexame?schema=public
+      JWT_SECRET: meuexame-super-secret-key-2024
+      JWT_EXPIRES_IN: 7d
+      CORS_ORIGIN: http://localhost:3000
+      # M-Pesa Configuration
+      MPESA_SHORTCODE: ${MPESA_SHORTCODE:-174379}
+      MPESA_CONSUMER_KEY: ${MPESA_CONSUMER_KEY:-demo_key}
+      MPESA_CONSUMER_SECRET: ${MPESA_CONSUMER_SECRET:-demo_secret}
+      MPESA_ENV: ${MPESA_ENV:-sandbox}
+      MPESA_CALLBACK_URL: http://localhost:3001/api/wallet/webhooks/mpesa
+      # eMola Configuration
+      EMOLA_API_URL: ${EMOLA_API_URL:-https://api.emola.co.mz}
+      EMOLA_API_KEY: ${EMOLA_API_KEY:-demo_key}
+      EMOLA_CALLBACK_URL: http://localhost:3001/api/wallet/webhooks/emola
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - meuexame-network
-    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
-volumes:
-  postgres_data:
-  redis_data:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: meuexame-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001/api
+    depends_on:
+      - backend
+    networks:
+      - meuexame-network
 
 networks:
   meuexame-network:
     driver: bridge
+
+volumes:
+  postgres_data:

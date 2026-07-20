@@ -1,0 +1,313 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>MeuExame - Estrutura do Projeto</title>
+    <style>
+        body {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: #0d1117;
+            color: #e6edf3;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #464e5a;
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #30363d;
+        }
+        h1 {
+            color: #58a6ff;
+            text-align: center;
+            border-bottom: 2px solid #30363d;
+            padding-bottom: 15px;
+        }
+        .header-info {
+            background: #0d1117;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border: 1px solid #30363d;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .stat-box {
+            background: #0d1117;
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid #30363d;
+        }
+        .stat-box .label {
+            color: #8b949e;
+            font-size: 12px;
+        }
+        .stat-box .value {
+            color: #58a6ff;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .tree {
+            background: #0d1117;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #30363d;
+            font-size: 13px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+        .tree .folder { color: #58a6ff; }
+        .tree .file { color: #e6edf3; }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #8b949e;
+            font-size: 12px;
+            border-top: 1px solid #30363d;
+            padding-top: 15px;
+        }
+        .ext-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin: 10px 0;
+        }
+        .ext-tag {
+            background: #0d1117;
+            padding: 3px 10px;
+            border-radius: 12px;
+            border: 1px solid #30363d;
+            font-size: 12px;
+        }
+        .ext-tag .ext { color: #f0883e; }
+        .ext-tag .count { color: #58a6ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📁 MeuExame - Estrutura do Projeto</h1>
+        
+        <div class="header-info">
+            <strong>📅 Data:</strong> 02/07/2026 13:35:32<br>
+            <strong>📂 Projeto:</strong> MeuExame<br>
+            <strong>📍 Caminho:</strong> C:\Users\Administrator\Desktop\meuexame\MeuExame
+        </div>
+        
+        <h2>📊 Estatísticas</h2>
+        <div class="stats">
+            <div class="stat-box">
+                <div class="label">📁 Total de Arquivos</div>
+                <div class="value">95</div>
+            </div>
+            <div class="stat-box">
+                <div class="label">💾 Tamanho Total</div>
+                <div class="value">0.77 MB</div>
+            </div>
+        </div>
+        
+        <h3>📋 Distribuição por Tipo</h3>
+        <div class="ext-stats">            <span class='ext-tag'><span class='ext'>.ts</span> <span class='count'>(36)</span></span>
+            <span class='ext-tag'><span class='ext'>.tsx</span> <span class='count'>(29)</span></span>
+            <span class='ext-tag'><span class='ext'>.json</span> <span class='count'>(10)</span></span>
+            <span class='ext-tag'><span class='ext'>.sql</span> <span class='count'>(3)</span></span>
+            <span class='ext-tag'><span class='ext'>.md</span> <span class='count'>(3)</span></span>
+            <span class='ext-tag'><span class='ext'>.mjs</span> <span class='count'>(2)</span></span>
+            <span class='ext-tag'><span class='ext'>.bat</span> <span class='count'>(2)</span></span>
+            <span class='ext-tag'><span class='ext'>.ico</span> <span class='count'>(1)</span></span>
+            <span class='ext-tag'><span class='ext'>.yml</span> <span class='count'>(1)</span></span>
+            <span class='ext-tag'><span class='ext'>.sem_extensao</span> <span class='count'>(1)</span></span>
+            <span class='ext-tag'><span class='ext'>.env</span> <span class='count'>(1)</span></span>
+            <span class='ext-tag'><span class='ext'>.local</span> <span class='count'>(1)</span></span>
+            <span class='ext-tag'><span class='ext'>.prisma</span> <span class='count'>(1)</span></span>
+            <span class='ext-tag'><span class='ext'>.css</span> <span class='count'>(1)</span></span>
+            <span class='ext-tag'><span class='ext'>.toml</span> <span class='count'>(1)</span></span>
+            <span class='ext-tag'><span class='ext'>.txt</span> <span class='count'>(1)</span></span>
+            <span class='ext-tag'><span class='ext'>.gitignore</span> <span class='count'>(1)</span></span>
+        </div>
+        
+        <h2>📂 Estrutura de Diretórios</h2>
+        <div class="tree">├── 📁 frontend/
+│   ├── 📁 public/
+│   │   └── 🖼️ favicon.ico (10 B)
+│   ├── 📁 src/
+│   │   ├── 📁 lib/
+│   │   │   ├── 📘 utils.ts (1.60 KB)
+│   │   │   └── 📘 api.ts (414 B)
+│   │   ├── 📁 services/
+│   │   │   ├── 📘 institution.service.ts (1.01 KB)
+│   │   │   ├── 📘 subject.service.ts (1.00 KB)
+│   │   │   ├── 📘 course.service.ts (957 B)
+│   │   │   └── 📘 index.ts (109 B)
+│   │   ├── 📁 types/
+│   │   ├── 📁 app/
+│   │   │   ├── 📁 register/
+│   │   │   │   └── ⚛️ page.tsx (3.72 KB)
+│   │   │   ├── 📁 login/
+│   │   │   │   └── ⚛️ page.tsx (3.62 KB)
+│   │   │   ├── 📁 users/
+│   │   │   │   └── ⚛️ page.tsx (4.63 KB)
+│   │   │   ├── 📁 subjects/
+│   │   │   │   ├── 📁 [id]/
+│   │   │   │   ├── 📁 new/
+│   │   │   │   │   └── ⚛️ page.tsx (4.03 KB)
+│   │   │   │   └── ⚛️ page.tsx (5.27 KB)
+│   │   │   ├── 📁 courses/
+│   │   │   │   ├── 📁 [id]/
+│   │   │   │   ├── 📁 new/
+│   │   │   │   │   └── ⚛️ page.tsx (4.00 KB)
+│   │   │   │   └── ⚛️ page.tsx (4.92 KB)
+│   │   │   ├── 📁 admin/
+│   │   │   │   └── ⚛️ page.tsx (13.54 KB)
+│   │   │   ├── 📁 institutions/
+│   │   │   │   ├── 📁 [id]/
+│   │   │   │   ├── 📁 new/
+│   │   │   │   │   └── ⚛️ page.tsx (4.52 KB)
+│   │   │   │   └── ⚛️ page.tsx (5.31 KB)
+│   │   │   ├── 📁 dashboard/
+│   │   │   │   └── ⚛️ page.tsx (10.57 KB)
+│   │   │   ├── ⚛️ page.tsx (4.62 KB)
+│   │   │   ├── ⚛️ layout.tsx (529 B)
+│   │   │   └── 🎨 globals.css (0 B)
+│   │   ├── 📁 components/
+│   │   │   ├── 📁 ui/
+│   │   │   │   ├── ⚛️ Input.tsx (1.46 KB)
+│   │   │   │   ├── ⚛️ Modal.tsx (2.26 KB)
+│   │   │   │   ├── ⚛️ Table.tsx (1.34 KB)
+│   │   │   │   ├── ⚛️ Badge.tsx (793 B)
+│   │   │   │   ├── ⚛️ Button.tsx (2.42 KB)
+│   │   │   │   └── ⚛️ Card.tsx (1.13 KB)
+│   │   │   ├── 📁 forms/
+│   │   │   ├── 📁 dashboard/
+│   │   │   │   ├── ⚛️ RecentActivities.tsx (1.24 KB)
+│   │   │   │   ├── ⚛️ StatCard.tsx (1.30 KB)
+│   │   │   │   ├── ⚛️ SystemStatus.tsx (1010 B)
+│   │   │   │   ├── ⚛️ QuickActions.tsx (1.35 KB)
+│   │   │   │   ├── ⚛️ ActivityItem.tsx (1.71 KB)
+│   │   │   │   ├── ⚛️ ChartCard.tsx (370 B)
+│   │   │   │   └── 📘 index.ts (227 B)
+│   │   │   └── ⚛️ theme-provider.tsx (304 B)
+│   │   └── 📁 hooks/
+│   │       └── 📘 usePermissions.ts (1.51 KB)
+│   ├── 📁 .vercel/
+│   │   ├── 📄 README.txt (520 B)
+│   │   └── 📋 project.json (113 B)
+│   ├── 📄 postcss.config.mjs (94 B)
+│   ├── 📋 package.json (1.13 KB)
+│   ├── 📋 package-lock.json (284.22 KB)
+│   ├── 📋 tsconfig.json (702 B)
+│   ├── 📄 start.bat (0 B)
+│   ├── 📝 README.md (1.42 KB)
+│   ├── 📘 next.config.ts (276 B)
+│   ├── 📝 AGENTS.md (327 B)
+│   ├── 🚫 .gitignore (491 B)
+│   ├── 📄 .env.local (96 B)
+│   ├── 📘 next-env.d.ts (251 B)
+│   ├── 📄 eslint.config.mjs (465 B)
+│   └── 📝 CLAUDE.md (11 B)
+├── 📁 uploads/
+│   ├── 📁 profiles/
+│   ├── 📁 images/
+│   └── 📁 documents/
+├── 📁 scripts/
+├── 📁 docs/
+├── 📁 docker/
+│   ├── 📁 postgres/
+│   ├── 📁 redis/
+│   ├── 📁 backend/
+│   └── 📁 nginx/
+├── 📁 backend/
+│   ├── 📁 src/
+│   │   ├── 📁 modules/
+│   │   ├── 📁 results/
+│   │   │   └── 📘 results.module.ts (88 B)
+│   │   ├── 📁 institutions/
+│   │   │   ├── 📘 institutions.service.ts (1.74 KB)
+│   │   │   ├── 📘 institutions.module.ts (415 B)
+│   │   │   └── 📘 institutions.controller.ts (896 B)
+│   │   ├── 📁 jobs/
+│   │   │   ├── 📁 queue/
+│   │   │   └── 📁 cron/
+│   │   ├── 📁 users/
+│   │   │   ├── 📘 users.service.ts (1.80 KB)
+│   │   │   ├── 📘 users.module.ts (359 B)
+│   │   │   └── 📘 users.controller.ts (680 B)
+│   │   ├── 📁 utils/
+│   │   ├── 📁 storage/
+│   │   ├── 📁 subjects/
+│   │   │   ├── 📘 subjects.service.ts (2.04 KB)
+│   │   │   ├── 📘 subjects.module.ts (383 B)
+│   │   │   └── 📘 subjects.controller.ts (836 B)
+│   │   ├── 📁 config/
+│   │   ├── 📁 contents/
+│   │   │   └── 📘 contents.module.ts (89 B)
+│   │   ├── 📁 auth/
+│   │   │   ├── 📁 strategies/
+│   │   │   ├── 📁 guards/
+│   │   │   ├── 📁 dto/
+│   │   │   │   └── 📘 login.dto.ts (173 B)
+│   │   │   ├── 📘 auth.service.spec.ts (464 B)
+│   │   │   ├── 📘 auth.service.ts (1.06 KB)
+│   │   │   ├── 📘 auth.module.ts (746 B)
+│   │   │   ├── 📘 auth.controller.spec.ts (496 B)
+│   │   │   └── 📘 auth.controller.ts (376 B)
+│   │   ├── 📁 common/
+│   │   │   ├── 📁 interceptors/
+│   │   │   ├── 📁 middleware/
+│   │   │   ├── 📁 pipes/
+│   │   │   ├── 📁 guards/
+│   │   │   ├── 📁 decorators/
+│   │   │   ├── 📁 exceptions/
+│   │   │   └── 📁 filters/
+│   │   ├── 📁 exams/
+│   │   │   └── 📘 exams.module.ts (86 B)
+│   │   ├── 📁 exercises/
+│   │   │   └── 📘 exercises.module.ts (90 B)
+│   │   ├── 📁 courses/
+│   │   │   ├── 📘 courses.service.ts (95 B)
+│   │   │   ├── 📘 courses.module.ts (375 B)
+│   │   │   └── 📘 courses.controller.ts (107 B)
+│   │   ├── 📁 database/
+│   │   │   └── 📘 prisma.service.ts (361 B)
+│   │   ├── 📘 main.ts (622 B)
+│   │   └── 📘 app.module.ts (968 B)
+│   ├── 📁 test/
+│   │   ├── 📁 unit/
+│   │   └── 📁 e2e/
+│   ├── 📁 prisma/
+│   │   ├── 📁 migrations/
+│   │   │   ├── 📁 20260630152800_add_all_models/
+│   │   │   │   └── 🗄️ migration.sql (3.92 KB)
+│   │   │   ├── 📁 20260630140603_init_all_models/
+│   │   │   │   └── 🗄️ migration.sql (1.55 KB)
+│   │   │   ├── 📁 20260627114619_init/
+│   │   │   │   └── 🗄️ migration.sql (494 B)
+│   │   │   └── 📄 migration_lock.toml (128 B)
+│   │   ├── 📘 seed.ts (1.07 KB)
+│   │   └── 🗄️ schema.prisma (4.27 KB)
+│   ├── 📋 package.json (1.70 KB)
+│   ├── 📋 tsconfig.json (705 B)
+│   ├── 📋 package-lock.json (351.55 KB)
+│   ├── 🔐 .env (298 B)
+│   └── 📋 nest-cli.json (177 B)
+├── 📋 package.json (1.21 KB)
+├── 📄 start.bat (206 B)
+├── 📋 package-lock.json (10.87 KB)
+├── ⚙️ docker-compose.yml (705 B)
+└── 📄 LICENSE (1.06 KB)
+        </div>
+        
+        <div class="footer">
+            Gerado automaticamente em 02/07/2026 13:35:32<br>
+            MeuExame - Plataforma de Estudos
+        </div>
+    </div>
+</body>
+</html>

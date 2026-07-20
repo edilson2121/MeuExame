@@ -8,66 +8,50 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
+  id            String      @id @default(cuid())
+  email         String      @unique
   password      String
   name          String
-  role          Role     @default(USER)
+  avatar        String?
+  phone         String?
+  bio           String?
+  role          Role        @default(USER)
   institutionId String?
   institution   Institution? @relation(fields: [institutionId], references: [id])
   contents      Content[]
+  studyContents StudyContent[]
   exercises     Exercise[]
   exams         Exam[]
   results       Result[]
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  simulations   ExamSimulation[]
+  subscription  Subscription?
+  paymentTransactions PaymentTransaction[]
+  payments      Payment[]
+  pages         Page[]
+  examAccesses  ExamAccess[]
+  walletTransactions WalletTransaction[]
+  notifications Notification[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
   @@map("users")
 }
 
 model Institution {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  address     String?
-  phone       String?
-  email       String?
-  website     String?
-  logo        String?
-  users       User[]
-  courses     Course[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  name      String   @unique
+  city      String?
+  country   String   @default("Moçambique")
+  isActive  Boolean  @default(true)
+  isPaid    Boolean  @default(false)
+  paidAt    DateTime?
+  users     User[]
+  subjects  Subject[]
+  institutionPages InstitutionPage[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("institutions")
-}
-
-model Course {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  institutionId String
-  institution Institution @relation(fields: [institutionId], references: [id])
-  subjects    Subject[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@map("courses")
-}
-
-model Subject {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  courseId    String
-  course      Course   @relation(fields: [courseId], references: [id])
-  contents    Content[]
-  exercises   Exercise[]
-  exams       Exam[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@map("subjects")
 }
 
 model Content {
@@ -77,11 +61,11 @@ model Content {
   content     String
   type        ContentType @default(TEXT)
   subjectId   String
-  subject     Subject  @relation(fields: [subjectId], references: [id])
   authorId    String
-  author      User     @relation(fields: [authorId], references: [id])
   views       Int      @default(0)
   likes       Int      @default(0)
+  author      User     @relation(fields: [authorId], references: [id])
+  subject     Subject  @relation(fields: [subjectId], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -89,82 +73,402 @@ model Content {
 }
 
 model Exercise {
-  id          String   @id @default(cuid())
+  id          String     @id @default(cuid())
   title       String
   description String?
   subjectId   String
-  subject     Subject  @relation(fields: [subjectId], references: [id])
   authorId    String
-  author      User     @relation(fields: [authorId], references: [id])
   difficulty  Difficulty @default(MEDIUM)
+  author      User       @relation(fields: [authorId], references: [id])
+  subject     Subject    @relation(fields: [subjectId], references: [id])
   questions   Question[]
-  createdAt   DateTime @default(now())
+  createdAt   DateTime   @default(now())
   updatedAt   DateTime @updatedAt
 
   @@map("exercises")
 }
 
-model Question {
-  id            String   @id @default(cuid())
-  text          String
-  type          QuestionType @default(MULTIPLE_CHOICE)
-  options       String[]
-  correctAnswer String
-  explanation   String?
-  exerciseId    String
-  exercise      Exercise @relation(fields: [exerciseId], references: [id])
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@map("questions")
-}
-
 model Exam {
-  id          String   @id @default(cuid())
+  id          String       @id @default(cuid())
   title       String
   description String?
-  subjectId   String
-  subject     Subject  @relation(fields: [subjectId], references: [id])
+  subjectId   String?
   authorId    String
-  author      User     @relation(fields: [authorId], references: [id])
-  duration    Int      // in minutes
-  startDate   DateTime?
-  endDate     DateTime?
+  duration    Int?
+  totalPoints Float        @default(0)
+  examDate    DateTime?
+  status      ExamStatus   @default(DRAFT)
+  imageUrl    String?
+  year        Int?
+  author      User         @relation(fields: [authorId], references: [id])
+  subject     Subject?     @relation(fields: [subjectId], references: [id])
   results     Result[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  examQuestions ExamQuestion[]
+  simulations ExamSimulation[]
+  examAccesses ExamAccess[]
+  payments     Payment[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   @@map("exams")
 }
 
-model Result {
+model ExamAccess {
+  id                   String   @id @default(cuid())
+  examId               String
+  userId               String
+  type                 ExamAccessType @default(FREE)
+  paymentMethod        String?
+  transactionReference  String?
+  amount               Float?
+  expiresAt            DateTime?
+  exam                 Exam @relation(fields: [examId], references: [id], onDelete: Cascade)
+  user                 User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@unique([examId, userId])
+  @@map("exam_access")
+}
+
+model WalletTransaction {
+  id            String              @id @default(cuid())
+  userId        String
+  examId        String
+  method        WalletMethod
+  phone         String
+  amount        Float
+  reference     String              @unique
+  externalId    String?
+  status        WalletTransactionStatus @default(PENDING)
+  paidAt        DateTime?
+  failureReason String?
+  user          User                @relation(fields: [userId], references: [id])
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@map("wallet_transactions")
+}
+
+enum WalletMethod {
+  MPESA
+  EMOLA
+}
+
+enum WalletTransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  EXPIRED
+}
+
+enum ExamAccessType {
+  FREE
+  PAID
+  SUBSCRIPTION
+}
+
+model Course {
+  id        String   @id @default(cuid())
+  name      String
+  subjects Subject[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("courses")
+}
+
+model Subject {
+  id             String   @id @default(cuid())
+  name           String
+  courseId       String?
+  course         Course?  @relation(fields: [courseId], references: [id])
+  institutionId  String?
+  institution    Institution? @relation(fields: [institutionId], references: [id])
+  contents       Content[]
+  studyContents  StudyContent[]
+  exercises      Exercise[]
+  exams          Exam[]
+  manuals        Manual[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("subjects")
+  @@index([courseId])
+  @@index([institutionId])
+}
+
+model Manual {
   id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  examId      String
-  exam        Exam     @relation(fields: [examId], references: [id])
-  score       Float
-  total       Float
-  percentage  Float
-  completedAt DateTime @default(now())
+  title       String
+  description String?
+  fileUrl     String
+  fileName    String
+  fileSize    Int
+  fileType    String   @default("application/pdf")
+  subjectId   String
+  subject     Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  @@map("manuals")
+  @@index([subjectId])
+}
+
+model Notification {
+  id          String           @id @default(cuid())
+  title       String
+  message     String
+  type        NotificationType @default(GENERAL)
+  link        String?
+  isRead      Boolean          @default(false)
+  userId      String?
+  user        User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isGlobal    Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+
+  @@map("notifications")
+  @@index([userId])
+  @@index([isGlobal])
+}
+
+enum NotificationType {
+  GENERAL
+  EXAM
+  PAYMENT
+  SYSTEM
+  PROMOTION
+}
+
+model SocialMedia {
+  id        String   @id @default(cuid())
+  platform  String   // facebook, instagram, twitter, whatsapp, youtube, linkedin
+  url       String
+  icon      String?  // Icon name from lucide
+  isActive  Boolean  @default(true)
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("social_media")
+}
+
+model Question {
+  id             String       @id @default(cuid())
+  text           String
+  type           QuestionType @default(MULTIPLE_CHOICE)
+  options        Json?
+  correctAnswer  String?
+  explanation    String?
+  imageUrl       String?
+  points         Float        @default(1)
+  exerciseId     String?
+  exercise       Exercise?    @relation(fields: [exerciseId], references: [id])
+  examQuestions  ExamQuestion[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@map("questions")
+}
+
+model Result {
+  id        String   @id @default(cuid())
+  score     Float
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  examId    String
+  exam      Exam     @relation(fields: [examId], references: [id])
+  answers   Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@map("results")
+}
+
+model DynamicPage {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  content     String
+  imageUrl    String?
+  isPublished Boolean  @default(false)
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("dynamic_pages")
+}
+
+model Subscription {
+  id          String             @id @default(cuid())
+  userId      String             @unique
+  user        User               @relation(fields: [userId], references: [id])
+  planId      String
+  plan        Plan               @relation(fields: [planId], references: [id])
+  status      SubscriptionStatus @default(INACTIVE)
+  startDate   DateTime?
+  endDate     DateTime?
+  amount      Float
+  currency    String             @default("MZN")
+  isActive    Boolean            @default(false)
+  paymentTransactions PaymentTransaction[]
+  payments    Payment[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@map("subscriptions")
+}
+
+model Plan {
+  id          String           @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  duration    Int
+  type        SubscriptionPlan @default(DAILY)
+  isActive    Boolean          @default(true)
+  subscriptions Subscription[]
+  payments    Payment[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@map("plans")
+}
+
+model PaymentTransaction {
+  id             String           @id @default(cuid())
+  userId         String
+  user           User             @relation(fields: [userId], references: [id])
+  subscriptionId String
+  subscription   Subscription     @relation(fields: [subscriptionId], references: [id])
+  amount         Float
+  currency       String           @default("MZN")
+  status         PaymentStatus    @default(PENDING)
+  method         PaymentMethod
+  reference      String?
+  approvedBy     String?
+  approvedAt     DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@map("payment_transactions")
+}
+
+model Payment {
+  id              String      @id @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  planId          String?
+  plan            Plan?        @relation(fields: [planId], references: [id])
+  examId          String?
+  exam            Exam?        @relation(fields: [examId], references: [id])
+  subscriptionId  String?
+  subscription    Subscription? @relation(fields: [subscriptionId], references: [id])
+  amount          Float
+  status          PaymentStatus @default(PENDING)
+  paymentMethod   String?
+  transactionId   String?     @unique
+  instructionId   String?
+  paidAt          DateTime?
+  webhookData     Json?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@map("payments")
+}
+
+model Page {
+  id          String       @id @default(cuid())
+  title       String
+  slug        String       @unique
+  content     String
+  description String?
+  keywords    String?
+  template    String       @default("default")
+  showInMenu  Boolean      @default(false)
+  menuOrder   Int          @default(0)
+  status      PublishStatus @default(DRAFT)
+  publishedAt DateTime?
+  authorId    String
+  user        User         @relation(fields: [authorId], references: [id])
+  sections    PageSection[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("pages")
+}
+
+model PageSection {
+  id        String   @id @default(cuid())
+  type      String
+  title     String?
+  content   String?
+  imageUrl  String?
+  imageAlt  String?
+  settings  Json?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  pageId    String
+  page      Page     @relation(fields: [pageId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("page_sections")
+}
+
+model LayoutTemplate {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  description String?
+  html        String
+  css         String?
+  thumbnail   String?
+  config      Json?
+  isActive    Boolean          @default(true)
+  institutionPages InstitutionPage[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@map("layout_templates")
+}
+
+model InstitutionPage {
+  id            String       @id @default(cuid())
+  institutionId String
+  institution   Institution  @relation(fields: [institutionId], references: [id])
+  title         String
+  slug          String
+  description   String?
+  content       String?
+  layoutId      String
+  layout        LayoutTemplate @relation(fields: [layoutId], references: [id])
+  settings      Json?
+  status        PublishStatus @default(DRAFT)
+  publishedAt   DateTime?
+  showInMenu    Boolean      @default(false)
+  menuOrder     Int          @default(0)
+  seoTitle      String?
+  seoKeywords   String?
+  isActive      Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@unique([institutionId, slug])
+  @@map("institution_pages")
 }
 
 enum Role {
   USER
   ADMIN
-  SUPER_ADMIN
+  TEACHER
 }
 
 enum ContentType {
   TEXT
   VIDEO
   PDF
-  AUDIO
-  LINK
+  QUIZ
 }
 
 enum Difficulty {
@@ -173,9 +477,107 @@ enum Difficulty {
   HARD
 }
 
+enum PublishStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum SubscriptionPlan {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+enum SubscriptionStatus {
+  INACTIVE
+  ACTIVE
+  SUSPENDED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  M_PESA
+  EMOLA
+  CASH
+  BANK_TRANSFER
+}
+
+model ExamQuestion {
+  id        String   @id @default(cuid())
+  examId    String
+  questionId String
+  order     Int      @default(0)
+  points    Float    @default(1)
+  exam      Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  question  Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([examId, questionId])
+  @@map("exam_questions")
+}
+
+model StudyContent {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  content     String
+  type        ContentType @default(TEXT)
+  subjectId   String?
+  authorId    String
+  views       Int      @default(0)
+  likes       Int      @default(0)
+  isPublished Boolean  @default(false)
+  author      User     @relation(fields: [authorId], references: [id])
+  subject     Subject? @relation(fields: [subjectId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("study_contents")
+}
+
+model ExamSimulation {
+  id          String   @id @default(cuid())
+  examId      String
+  userId      String
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+  duration    Int?
+  answers     Json?
+  score       Float?
+  status      SimulationStatus @default(IN_PROGRESS)
+  exam        Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("exam_simulations")
+}
+
+enum ExamStatus {
+  DRAFT
+  PUBLISHED
+  SCHEDULED
+  ARCHIVED
+}
+
 enum QuestionType {
   MULTIPLE_CHOICE
   TRUE_FALSE
   ESSAY
-  FILL_IN_BLANK
+  SHORT_ANSWER
+}
+
+enum SimulationStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
 }

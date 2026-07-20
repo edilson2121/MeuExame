@@ -1,54 +1,55 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../database/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateSubjectDto } from './dto/create-subject.dto';
+import { UpdateSubjectDto } from './dto/update-subject.dto';
 
 @Injectable()
 export class SubjectsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(data: { name: string; description?: string; courseId: string }) {
+  async create(createSubjectDto: CreateSubjectDto) {
     return this.prisma.subject.create({
-      data,
+      data: createSubjectDto,
       include: {
-        course: {
-          include: {
-            institution: true,
-          },
-        },
+        course: true,
       },
     });
   }
 
   async findAll() {
-    const subjects = await this.prisma.subject.findMany({
+    return this.prisma.subject.findMany({
       include: {
-        course: {
-          include: {
-            institution: true,
-          },
-        },
+        course: true,
       },
+      orderBy: { name: 'asc' },
     });
+  }
 
-    // Adicionar contagem manualmente
-    return subjects.map(subject => ({
-      ...subject,
-      _count: {
-        contents: 0, // Será implementado depois
-        exercises: 0,
-        exams: 0,
+  async findByInstitution(institutionId: string) {
+    return this.prisma.subject.findMany({
+      where: { institutionId },
+      include: {
+        course: true,
       },
-    }));
+      orderBy: { name: 'asc' },
+    });
+  }
+
+  async findByCourse(courseId: string) {
+    return this.prisma.subject.findMany({
+      where: { courseId },
+      include: {
+        course: true,
+      },
+      orderBy: { name: 'asc' },
+    });
   }
 
   async findOne(id: string) {
     const subject = await this.prisma.subject.findUnique({
       where: { id },
       include: {
-        course: {
-          include: {
-            institution: true,
-          },
-        },
+        course: true,
       },
     });
 
@@ -59,33 +60,21 @@ export class SubjectsService {
     return subject;
   }
 
-  async update(id: string, data: { name?: string; description?: string; courseId?: string }) {
-    const subject = await this.prisma.subject.findUnique({ where: { id } });
-
-    if (!subject) {
-      throw new NotFoundException('Disciplina não encontrada');
-    }
-
+  async update(id: string, updateSubjectDto: UpdateSubjectDto) {
+    const subject = await this.findOne(id);
     return this.prisma.subject.update({
       where: { id },
-      data,
+      data: updateSubjectDto,
       include: {
-        course: {
-          include: {
-            institution: true,
-          },
-        },
+        course: true,
       },
     });
   }
 
   async remove(id: string) {
-    const subject = await this.prisma.subject.findUnique({ where: { id } });
-
-    if (!subject) {
-      throw new NotFoundException('Disciplina não encontrada');
-    }
-
-    return this.prisma.subject.delete({ where: { id } });
+    const subject = await this.findOne(id);
+    return this.prisma.subject.delete({
+      where: { id },
+    });
   }
 }

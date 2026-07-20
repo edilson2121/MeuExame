@@ -1,0 +1,248 @@
+﻿generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String      @id @default(cuid())
+  email         String      @unique
+  password      String
+  name          String
+  avatar        String?
+  phone         String?
+  bio           String?
+  role          Role        @default(USER)
+  institutionId String?
+  institution   Institution? @relation(fields: [institutionId], references: [id])
+  contents      Content[]
+  exercises     Exercise[]
+  exams         Exam[]
+  results       Result[]
+  subscription  Subscription?
+  payments      Payment[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@map("users")
+}
+
+model Institution {
+  id        String   @id @default(cuid())
+  name      String
+  users     User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("institutions")
+}
+
+model Content {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  content     String
+  type        ContentType @default(TEXT)
+  subjectId   String
+  authorId    String
+  views       Int      @default(0)
+  likes       Int      @default(0)
+  author      User     @relation(fields: [authorId], references: [id])
+  subject     Subject  @relation(fields: [subjectId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("contents")
+}
+
+model Exercise {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  subjectId   String
+  authorId    String
+  difficulty  Difficulty @default(MEDIUM)
+  author      User       @relation(fields: [authorId], references: [id])
+  subject     Subject    @relation(fields: [subjectId], references: [id])
+  questions   Question[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("exercises")
+}
+
+model Exam {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  subjectId   String
+  authorId    String
+  duration    Int?
+  questions   Json?
+  imageUrl    String?
+  author      User     @relation(fields: [authorId], references: [id])
+  subject     Subject  @relation(fields: [subjectId], references: [id])
+  results     Result[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("exams")
+}
+
+model Course {
+  id        String   @id @default(cuid())
+  name      String
+  subjects  Subject[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("courses")
+}
+
+model Subject {
+  id        String   @id @default(cuid())
+  name      String
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id])
+  contents  Content[]
+  exercises Exercise[]
+  exams     Exam[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("subjects")
+}
+
+model Question {
+  id          String   @id @default(cuid())
+  text        String
+  options     Json?
+  correctAnswer String?
+  explanation String?
+  imageUrl    String?
+  exerciseId  String
+  exercise    Exercise @relation(fields: [exerciseId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("questions")
+}
+
+model Result {
+  id        String   @id @default(cuid())
+  score     Float
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  examId    String
+  exam      Exam     @relation(fields: [examId], references: [id])
+  answers   Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("results")
+}
+
+model Subscription {
+  id          String     @id @default(cuid())
+  userId      String     @unique
+  user        User       @relation(fields: [userId], references: [id])
+  planId      String
+  plan        Plan       @relation(fields: [planId], references: [id])
+  status      SubscriptionStatus @default(ACTIVE)
+  startDate   DateTime   @default(now())
+  endDate     DateTime
+  autoRenew   Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("subscriptions")
+}
+
+model Payment {
+  id              String      @id @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  planId          String
+  plan            Plan        @relation(fields: [planId], references: [id])
+  amount          Float
+  status          PaymentStatus @default(PENDING)
+  paymentMethod   String?
+  transactionId   String?     @unique
+  paidAt          DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@map("payments")
+}
+
+model Plan {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  duration    Int      // in days
+  type        PlanType
+  isActive    Boolean  @default(true)
+  subscriptions Subscription[]
+  payments    Payment[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("plans")
+}
+
+model DynamicPage {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  content     String
+  imageUrl    String?
+  isPublished Boolean  @default(false)
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("dynamic_pages")
+}
+
+enum Role {
+  USER
+  ADMIN
+  TEACHER
+}
+
+enum ContentType {
+  TEXT
+  VIDEO
+  PDF
+  QUIZ
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  PENDING
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PlanType {
+  DAILY
+  WEEKLY
+  MONTHLY
+}

@@ -1,0 +1,1 @@
+﻿ALTER TABLE pages ADD COLUMN "menuOrder" INTEGER DEFAULT 0;

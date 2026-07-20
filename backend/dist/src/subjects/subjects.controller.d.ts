@@ -1,137 +1,105 @@
+import { CreateSubjectDto } from './dto/create-subject.dto';
+import { UpdateSubjectDto } from './dto/update-subject.dto';
 import { SubjectsService } from './subjects.service';
 export declare class SubjectsController {
     private readonly subjectsService;
     constructor(subjectsService: SubjectsService);
-    create(createSubjectDto: any): Promise<{
+    findAll(): Promise<({
         course: {
-            institution: {
-                id: string;
-                email: string | null;
-                name: string;
-                createdAt: Date;
-                updatedAt: Date;
-                description: string | null;
-                address: string | null;
-                phone: string | null;
-                website: string | null;
-                logo: string | null;
-            };
-        } & {
             id: string;
             name: string;
-            institutionId: string;
             createdAt: Date;
             updatedAt: Date;
-            description: string | null;
         };
     } & {
+        institutionId: string | null;
         id: string;
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
-        courseId: string;
-    }>;
-    findAll(): Promise<{
-        _count: {
-            contents: number;
-            exercises: number;
-            exams: number;
-        };
+        courseId: string | null;
+    })[]>;
+    findByInstitution(institutionId: string): Promise<({
         course: {
-            institution: {
-                id: string;
-                email: string | null;
-                name: string;
-                createdAt: Date;
-                updatedAt: Date;
-                description: string | null;
-                address: string | null;
-                phone: string | null;
-                website: string | null;
-                logo: string | null;
-            };
-        } & {
             id: string;
             name: string;
-            institutionId: string;
             createdAt: Date;
             updatedAt: Date;
-            description: string | null;
         };
+    } & {
+        institutionId: string | null;
         id: string;
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
-        courseId: string;
-    }[]>;
+        courseId: string | null;
+    })[]>;
+    findByCourse(courseId: string): Promise<({
+        course: {
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+    } & {
+        institutionId: string | null;
+        id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        courseId: string | null;
+    })[]>;
     findOne(id: string): Promise<{
         course: {
-            institution: {
-                id: string;
-                email: string | null;
-                name: string;
-                createdAt: Date;
-                updatedAt: Date;
-                description: string | null;
-                address: string | null;
-                phone: string | null;
-                website: string | null;
-                logo: string | null;
-            };
-        } & {
             id: string;
             name: string;
-            institutionId: string;
             createdAt: Date;
             updatedAt: Date;
-            description: string | null;
         };
     } & {
+        institutionId: string | null;
         id: string;
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
-        courseId: string;
+        courseId: string | null;
     }>;
-    update(id: string, updateSubjectDto: any): Promise<{
+    create(createSubjectDto: CreateSubjectDto): Promise<{
         course: {
-            institution: {
-                id: string;
-                email: string | null;
-                name: string;
-                createdAt: Date;
-                updatedAt: Date;
-                description: string | null;
-                address: string | null;
-                phone: string | null;
-                website: string | null;
-                logo: string | null;
-            };
-        } & {
             id: string;
             name: string;
-            institutionId: string;
             createdAt: Date;
             updatedAt: Date;
-            description: string | null;
         };
     } & {
+        institutionId: string | null;
         id: string;
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
-        courseId: string;
+        courseId: string | null;
+    }>;
+    update(id: string, updateSubjectDto: UpdateSubjectDto): Promise<{
+        course: {
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+    } & {
+        institutionId: string | null;
+        id: string;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        courseId: string | null;
     }>;
     remove(id: string): Promise<{
+        institutionId: string | null;
         id: string;
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
-        courseId: string;
+        courseId: string | null;
     }>;
 }

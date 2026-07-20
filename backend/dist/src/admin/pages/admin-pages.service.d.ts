@@ -1,0 +1,283 @@
+import { PrismaService } from '../../database/prisma.service';
+import { CreateInstitutionPageDto, UpdateInstitutionPageDto, PublishInstitutionPageDto } from './dto/institution-page.dto';
+export declare class AdminPagesService {
+    private prisma;
+    constructor(prisma: PrismaService);
+    createPage(dto: CreateInstitutionPageDto): Promise<{
+        institution: {
+            id: string;
+            name: string;
+            city: string | null;
+            country: string;
+            isActive: boolean;
+            isPaid: boolean;
+            paidAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+        layout: {
+            description: string | null;
+            id: string;
+            name: string;
+            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+            html: string;
+            css: string | null;
+            thumbnail: string | null;
+            config: import("@prisma/client/runtime/library").JsonValue | null;
+        };
+    } & {
+        content: string | null;
+        institutionId: string;
+        title: string;
+        slug: string;
+        description: string | null;
+        layoutId: string;
+        settings: import("@prisma/client/runtime/library").JsonValue | null;
+        showInMenu: boolean;
+        menuOrder: number;
+        seoTitle: string | null;
+        seoKeywords: string | null;
+        status: import(".prisma/client").$Enums.PublishStatus;
+        id: string;
+        isActive: boolean;
+        createdAt: Date;
+        updatedAt: Date;
+        publishedAt: Date | null;
+    }>;
+    updatePage(pageId: string, dto: UpdateInstitutionPageDto): Promise<{
+        institution: {
+            id: string;
+            name: string;
+            city: string | null;
+            country: string;
+            isActive: boolean;
+            isPaid: boolean;
+            paidAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+        layout: {
+            description: string | null;
+            id: string;
+            name: string;
+            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+            html: string;
+            css: string | null;
+            thumbnail: string | null;
+            config: import("@prisma/client/runtime/library").JsonValue | null;
+        };
+    } & {
+        content: string | null;
+        institutionId: string;
+        title: string;
+        slug: string;
+        description: string | null;
+        layoutId: string;
+        settings: import("@prisma/client/runtime/library").JsonValue | null;
+        showInMenu: boolean;
+        menuOrder: number;
+        seoTitle: string | null;
+        seoKeywords: string | null;
+        status: import(".prisma/client").$Enums.PublishStatus;
+        id: string;
+        isActive: boolean;
+        createdAt: Date;
+        updatedAt: Date;
+        publishedAt: Date | null;
+    }>;
+    publishPage(pageId: string, dto: PublishInstitutionPageDto): Promise<{
+        institution: {
+            id: string;
+            name: string;
+            city: string | null;
+            country: string;
+            isActive: boolean;
+            isPaid: boolean;
+            paidAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+        layout: {
+            description: string | null;
+            id: string;
+            name: string;
+            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+            html: string;
+            css: string | null;
+            thumbnail: string | null;
+            config: import("@prisma/client/runtime/library").JsonValue | null;
+        };
+    } & {
+        content: string | null;
+        institutionId: string;
+        title: string;
+        slug: string;
+        description: string | null;
+        layoutId: string;
+        settings: import("@prisma/client/runtime/library").JsonValue | null;
+        showInMenu: boolean;
+        menuOrder: number;
+        seoTitle: string | null;
+        seoKeywords: string | null;
+        status: import(".prisma/client").$Enums.PublishStatus;
+        id: string;
+        isActive: boolean;
+        createdAt: Date;
+        updatedAt: Date;
+        publishedAt: Date | null;
+    }>;
+    getPagesByInstitution(institutionId: string, onlyPublished?: boolean): Promise<({
+        institution: {
+            id: string;
+            name: string;
+            city: string | null;
+            country: string;
+            isActive: boolean;
+            isPaid: boolean;
+            paidAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+        layout: {
+            description: string | null;
+            id: string;
+            name: string;
+            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+            html: string;
+            css: string | null;
+            thumbnail: string | null;
+            config: import("@prisma/client/runtime/library").JsonValue | null;
+        };
+    } & {
+        content: string | null;
+        institutionId: string;
+        title: string;
+        slug: string;
+        description: string | null;
+        layoutId: string;
+        settings: import("@prisma/client/runtime/library").JsonValue | null;
+        showInMenu: boolean;
+        menuOrder: number;
+        seoTitle: string | null;
+        seoKeywords: string | null;
+        status: import(".prisma/client").$Enums.PublishStatus;
+        id: string;
+        isActive: boolean;
+        createdAt: Date;
+        updatedAt: Date;
+        publishedAt: Date | null;
+    })[]>;
+    getPageById(pageId: string): Promise<{
+        institution: {
+            id: string;
+            name: string;
+            city: string | null;
+            country: string;
+            isActive: boolean;
+            isPaid: boolean;
+            paidAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+        layout: {
+            description: string | null;
+            id: string;
+            name: string;
+            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+            html: string;
+            css: string | null;
+            thumbnail: string | null;
+            config: import("@prisma/client/runtime/library").JsonValue | null;
+        };
+    } & {
+        content: string | null;
+        institutionId: string;
+        title: string;
+        slug: string;
+        description: string | null;
+        layoutId: string;
+        settings: import("@prisma/client/runtime/library").JsonValue | null;
+        showInMenu: boolean;
+        menuOrder: number;
+        seoTitle: string | null;
+        seoKeywords: string | null;
+        status: import(".prisma/client").$Enums.PublishStatus;
+        id: string;
+        isActive: boolean;
+        createdAt: Date;
+        updatedAt: Date;
+        publishedAt: Date | null;
+    }>;
+    deletePage(pageId: string): Promise<{
+        content: string | null;
+        institutionId: string;
+        title: string;
+        slug: string;
+        description: string | null;
+        layoutId: string;
+        settings: import("@prisma/client/runtime/library").JsonValue | null;
+        showInMenu: boolean;
+        menuOrder: number;
+        seoTitle: string | null;
+        seoKeywords: string | null;
+        status: import(".prisma/client").$Enums.PublishStatus;
+        id: string;
+        isActive: boolean;
+        createdAt: Date;
+        updatedAt: Date;
+        publishedAt: Date | null;
+    }>;
+    getPageBySlug(slug: string, institutionId: string): Promise<{
+        institution: {
+            id: string;
+            name: string;
+            city: string | null;
+            country: string;
+            isActive: boolean;
+            isPaid: boolean;
+            paidAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+        layout: {
+            description: string | null;
+            id: string;
+            name: string;
+            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+            html: string;
+            css: string | null;
+            thumbnail: string | null;
+            config: import("@prisma/client/runtime/library").JsonValue | null;
+        };
+    } & {
+        content: string | null;
+        institutionId: string;
+        title: string;
+        slug: string;
+        description: string | null;
+        layoutId: string;
+        settings: import("@prisma/client/runtime/library").JsonValue | null;
+        showInMenu: boolean;
+        menuOrder: number;
+        seoTitle: string | null;
+        seoKeywords: string | null;
+        status: import(".prisma/client").$Enums.PublishStatus;
+        id: string;
+        isActive: boolean;
+        createdAt: Date;
+        updatedAt: Date;
+        publishedAt: Date | null;
+    }>;
+}
