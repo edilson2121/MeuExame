@@ -53,7 +53,7 @@ export class ExamsService implements IExamService {
   }
 
   async findOne(id: string): Promise<any> {
-    const exam = await this.prisma.exam.findUnique({
+    const exam: any = await this.prisma.exam.findUnique({
       where: { id },
       include: {
         author: {
@@ -182,7 +182,7 @@ export class ExamsService implements IExamService {
   }
 
   async addQuestion(examId: string, questionId: string, order: number, points: number): Promise<void> {
-    const exam = await this.prisma.exam.findUnique({ where: { id: examId } });
+    const exam: any = await this.prisma.exam.findUnique({ where: { id: examId } });
     if (!exam) {
       throw new NotFoundException('Exame não encontrado');
     }
@@ -213,7 +213,7 @@ export class ExamsService implements IExamService {
   }
 
   async removeQuestion(examId: string, questionId: string): Promise<void> {
-    const exam = await this.prisma.exam.findUnique({ where: { id: examId } });
+    const exam: any = await this.prisma.exam.findUnique({ where: { id: examId } });
     if (!exam) {
       throw new NotFoundException('Exame não encontrado');
     }
@@ -242,7 +242,7 @@ export class ExamsService implements IExamService {
   }
 
   async publishExam(id: string): Promise<Exam> {
-    const exam = await this.prisma.exam.findUnique({ where: { id } });
+    const exam: any = await this.prisma.exam.findUnique({ where: { id } });
     if (!exam) {
       throw new NotFoundException('Exame não encontrado');
     }
@@ -278,7 +278,7 @@ export class ExamsService implements IExamService {
   }
 
   async checkExamAccess(examId: string, userId: string): Promise<{ hasAccess: boolean; accessType?: string }> {
-    const exam = await this.prisma.exam.findUnique({
+    const exam: any = await this.prisma.exam.findUnique({
       where: { id: examId },
     });
 

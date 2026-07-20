@@ -98,6 +98,8 @@ model Exam {
   totalPoints Float        @default(0)
   examDate    DateTime?
   status      ExamStatus   @default(DRAFT)
+  price       Float?
+  accessType  String      @default("FREE")
   imageUrl    String?
   year        Int?
   author      User         @relation(fields: [authorId], references: [id])
