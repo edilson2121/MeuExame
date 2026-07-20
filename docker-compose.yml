@@ -19,19 +19,6 @@
     networks:
       - meuexame-network
 
-  redis:
-    image: redis:7-alpine
-    container_name: meuexame-redis
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - meuexame-network
-
   backend:
     build:
       context: ./backend
@@ -42,20 +29,21 @@
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://meuexame:meuexame123@postgres:5432/meuexame?schema=public
-      REDIS_URL: redis://redis:6379
       JWT_SECRET: meuexame-super-secret-key-2024
       JWT_EXPIRES_IN: 7d
       CORS_ORIGIN: http://localhost:3000
-      # DÉBITO PAY - PAGAMENTOS
-      DEBITO_SECRET_KEY: sk_live_ax5LxA0fcJh6Zmd72fnjFWTteBAMX9U4
-      DEBITO_WALLET_CODE: 15156
-      DEBITO_WALLET_CODE_EMOLA: 61526
-      DEBITO_MERCHANT_ID: 7dfc1d28-d241-4b48-88bf-1eb467fd4b6d
-      DEBITO_API_URL: https://gyqoaningqhurhvdugne.supabase.co/functions/v1
+      # M-Pesa Configuration
+      MPESA_SHORTCODE: ${MPESA_SHORTCODE:-174379}
+      MPESA_CONSUMER_KEY: ${MPESA_CONSUMER_KEY:-demo_key}
+      MPESA_CONSUMER_SECRET: ${MPESA_CONSUMER_SECRET:-demo_secret}
+      MPESA_ENV: ${MPESA_ENV:-sandbox}
+      MPESA_CALLBACK_URL: http://localhost:3001/api/wallet/webhooks/mpesa
+      # eMola Configuration
+      EMOLA_API_URL: ${EMOLA_API_URL:-https://api.emola.co.mz}
+      EMOLA_API_KEY: ${EMOLA_API_KEY:-demo_key}
+      EMOLA_CALLBACK_URL: http://localhost:3001/api/wallet/webhooks/emola
     depends_on:
       postgres:
-        condition: service_healthy
-      redis:
         condition: service_healthy
     networks:
       - meuexame-network
