@@ -3,537 +3,445 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext';
-import ProtectedRoute from '@/components/ProtectedRoute';
 import {
   User,
   Mail,
   Phone,
   Lock,
   Camera,
-  Check,
-  X,
+  LogOut,
   ChevronRight,
-  CreditCard,
-  History,
+  Check,
+  Loader2,
   Bell,
   Shield,
-  LogOut,
-  Edit3,
-  Save,
-  Eye,
-  EyeOff,
-  Loader2,
+  HelpCircle,
+  Info,
 } from 'lucide-react';
 
-function ProfileContent() {
+export default function PerfilPage() {
   const router = useRouter();
-  const { user, logout, updateUser } = useAuth();
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [activeTab, setActiveTab] = useState<'info' | 'security' | 'history'>('info');
+  const [activeTab, setActiveTab] = useState('perfil');
+  const [showSuccess, setShowSuccess] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
 
-  // Form states
-  const [name, setName] = useState('');
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [avatar, setAvatar] = useState<string | null>(null);
-
-  // Password states
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-
-  // Results history
-  const [results, setResults] = useState<any[]>([]);
-  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
   useEffect(() => {
-    const fetchData = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        router.push('/login');
-        return;
-      }
+    const userData = localStorage.getItem('user');
+    if (!userData) {
+      router.push('/login');
+      return;
+    }
+    
+    const parsedUser = JSON.parse(userData);
+    setUser(parsedUser);
+    setFormData({
+      name: parsedUser.name || '',
+      email: parsedUser.email || '',
+      phone: parsedUser.phone || '',
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    });
+    setLoading(false);
+  }, [router]);
 
-      try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    router.push('/login');
+  };
 
-        // Fetch profile
-        const profileRes = await fetch(`${apiUrl}/auth/profile`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (profileRes.ok) {
-          const profileData = await profileRes.json();
-          setName(profileData.name || '');
-          setUsername(profileData.username || '');
-          setEmail(profileData.email || '');
-          setPhone(profileData.phone || '');
-          setAvatar(profileData.avatar || null);
-        } else if (profileRes.status === 401) {
-          // Token expirado ou inválido
-          logout();
-          router.push('/login');
-          return;
-        }
-
-        // Fetch results
-        try {
-          const resultsRes = await fetch(`${apiUrl}/results/my`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          if (resultsRes.ok) {
-            const resultsData = await resultsRes.json();
-            setResults(Array.isArray(resultsData) ? resultsData.slice(0, 5) : []);
-          }
-        } catch (e) {
-          console.warn('Resultados não disponíveis');
-        }
-
-        // Fetch subscriptions
-        try {
-          const subRes = await fetch(`${apiUrl}/subscriptions/my`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          if (subRes.ok) {
-            const subData = await subRes.json();
-            setSubscriptions(Array.isArray(subData) ? subData : []);
-          }
-        } catch (e) {
-          console.warn('Assinaturas não disponíveis');
-        }
-      } catch (error) {
-        console.error('Erro ao carregar dados:', error);
-        // Não redireciona - mostra dados vazios em vez de quebrar a página
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [router, logout]);
-
-  const handleSaveProfile = async () => {
+  const handleProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
     setSaving(true);
+
     try {
       const token = localStorage.getItem('token');
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-
-      const res = await fetch(`${apiUrl}/auth/profile`, {
-        method: 'PUT',
+      const response = await fetch(`${apiUrl}/users/profile`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ name, username, phone }),
+        body: JSON.stringify({
+          name: formData.name,
+          phone: formData.phone,
+        }),
       });
 
-      if (res.ok) {
-        updateUser({ name, phone });
-        alert('Perfil atualizado com sucesso!');
-      } else {
-        alert('Erro ao atualizar perfil.');
+      if (response.ok) {
+        const updatedUser = { ...user, name: formData.name, phone: formData.phone };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        setUser(updatedUser);
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
       }
     } catch (error) {
-      console.error('Erro:', error);
-      alert('Erro ao atualizar perfil.');
+      console.error('Erro ao atualizar perfil:', error);
     } finally {
       setSaving(false);
     }
   };
 
-  const handleChangePassword = async () => {
-    if (newPassword !== confirmPassword) {
-      alert('As senhas não coincidem.');
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (formData.newPassword !== formData.confirmPassword) {
+      alert('As palavras-passe não coincidem');
       return;
     }
 
-    if (newPassword.length < 6) {
-      alert('A senha deve ter pelo menos 6 caracteres.');
+    if (formData.newPassword.length < 6) {
+      alert('A palavra-passe deve ter pelo menos 6 caracteres');
       return;
     }
 
     setSaving(true);
+
     try {
       const token = localStorage.getItem('token');
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-
-      const res = await fetch(`${apiUrl}/auth/change-password`, {
+      const response = await fetch(`${apiUrl}/auth/change-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ currentPassword, newPassword }),
+        body: JSON.stringify({
+          currentPassword: formData.currentPassword,
+          newPassword: formData.newPassword,
+        }),
       });
 
-      if (res.ok) {
-        alert('Senha alterada com sucesso!');
-        setCurrentPassword('');
-        setNewPassword('');
-        setConfirmPassword('');
+      if (response.ok) {
+        setFormData({
+          ...formData,
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: '',
+        });
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+        alert('Palavra-passe alterada com sucesso!');
       } else {
-        const data = await res.json();
-        alert(data.message || 'Erro ao alterar senha.');
+        alert('Erro ao alterar palavra-passe');
       }
     } catch (error) {
-      console.error('Erro:', error);
-      alert('Erro ao alterar senha.');
+      console.error('Erro ao alterar palavra-passe:', error);
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleLogout = () => {
-    logout();
-    router.push('/login');
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <Loader2 size={48} className="animate-spin text-green-600" />
+      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-green-600" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* WhatsApp-style Header */}
-      <header className="bg-[#006400] text-white sticky top-0 z-50 shadow-md">
-        <div className="max-w-2xl mx-auto px-4">
-          <div className="flex items-center h-16">
-            <Link href="/" className="text-white">
-              <ChevronRight className="rotate-180" size={24} />
-            </Link>
-            <h1 className="flex-1 text-center font-semibold text-lg">Meu Perfil</h1>
-            <div className="w-6" />
-          </div>
+    <div className="min-h-screen bg-[#FAFAFA]">
+      {/* Header estilo WhatsApp */}
+      <div className="bg-[#008069] text-white">
+        <div className="px-4 py-4 flex items-center gap-3">
+          <Link href="/home" className="p-2 -ml-2 rounded-full hover:bg-white/10">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </Link>
+          <h1 className="text-xl font-semibold">Perfil</h1>
         </div>
-      </header>
-
-      <main className="max-w-2xl mx-auto">
-        {/* Profile Header - WhatsApp Style */}
-        <div className="bg-white">
-          <div className="px-4 py-6 flex flex-col items-center border-b border-gray-100">
-            <div className="relative">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white text-3xl font-bold overflow-hidden">
-                {avatar ? (
-                  <img src={avatar} alt={name} className="w-full h-full object-cover" />
-                ) : (
-                  name.charAt(0).toUpperCase()
-                )}
-              </div>
-              <button className="absolute bottom-0 right-0 w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-green-700">
-                <Camera size={16} />
-              </button>
+        
+        {/* Avatar grande */}
+        <div className="flex flex-col items-center pb-6 pt-2">
+          <div className="relative">
+            <div className="w-24 h-24 bg-green-400 rounded-full flex items-center justify-center text-white text-3xl font-semibold">
+              {user?.name?.charAt(0)?.toUpperCase() || 'U'}
             </div>
-            <h2 className="mt-4 text-xl font-semibold text-gray-900">{name}</h2>
-            <p className="text-sm text-gray-500">@{username}</p>
-          </div>
-
-          {/* WhatsApp-style Tab Bar */}
-          <div className="flex border-b border-gray-200">
-            <button
-              onClick={() => setActiveTab('info')}
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${
-                activeTab === 'info'
-                  ? 'text-green-600 border-b-2 border-green-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Informações
-            </button>
-            <button
-              onClick={() => setActiveTab('security')}
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${
-                activeTab === 'security'
-                  ? 'text-green-600 border-b-2 border-green-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Segurança
-            </button>
-            <button
-              onClick={() => setActiveTab('history')}
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${
-                activeTab === 'history'
-                  ? 'text-green-600 border-b-2 border-green-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Histórico
+            <button className="absolute bottom-0 right-0 w-8 h-8 bg-white rounded-full flex items-center justify-center text-gray-600 shadow-lg">
+              <Camera className="w-4 h-4" />
             </button>
           </div>
+          <p className="mt-3 text-white/90 font-medium">{user?.name}</p>
+          <p className="text-white/70 text-sm">{user?.email}</p>
         </div>
+      </div>
 
-        {/* Content */}
-        <div className="bg-white mt-2">
-          {/* Info Tab */}
-          {activeTab === 'info' && (
-            <div className="divide-y divide-gray-100">
-              <div className="px-4 py-4">
-                <label className="block text-xs text-gray-500 mb-1 uppercase tracking-wide">
-                  Nome
-                </label>
+      {/* Tabs */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="flex">
+          <button
+            onClick={() => setActiveTab('perfil')}
+            className={`flex-1 py-3 text-sm font-medium text-center ${
+              activeTab === 'perfil'
+                ? 'text-green-600 border-b-2 border-green-600'
+                : 'text-gray-500'
+            }`}
+          >
+            Editar Perfil
+          </button>
+          <button
+            onClick={() => setActiveTab('seguranca')}
+            className={`flex-1 py-3 text-sm font-medium text-center ${
+              activeTab === 'seguranca'
+                ? 'text-green-600 border-b-2 border-green-600'
+                : 'text-gray-500'
+            }`}
+          >
+            Segurança
+          </button>
+          <button
+            onClick={() => setActiveTab('config')}
+            className={`flex-1 py-3 text-sm font-medium text-center ${
+              activeTab === 'config'
+                ? 'text-green-600 border-b-2 border-green-600'
+                : 'text-gray-500'
+            }`}
+          >
+            Configurações
+          </button>
+        </div>
+      </div>
+
+      {/* Success Message */}
+      {showSuccess && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2 z-50 animate-pulse">
+          <Check className="w-5 h-5" />
+          Alterações guardadas com sucesso!
+        </div>
+      )}
+
+      {/* Content */}
+      <div className="p-4">
+        {activeTab === 'perfil' && (
+          <form onSubmit={handleProfileUpdate} className="space-y-4">
+            {/* Nome */}
+            <div className="bg-white rounded-xl p-4 shadow-sm">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                  <User className="w-6 h-6 text-green-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-gray-500">Nome</p>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full text-gray-900 font-medium bg-transparent border-none outline-none"
+                    required
+                  />
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
+              </label>
+            </div>
+
+            {/* Email (só leitura) */}
+            <div className="bg-white rounded-xl p-4 shadow-sm">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Mail className="w-6 h-6 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-gray-500">Email</p>
+                  <p className="text-gray-900">{formData.email}</p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
+              </label>
+            </div>
+
+            {/* Telefone */}
+            <div className="bg-white rounded-xl p-4 shadow-sm">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                  <Phone className="w-6 h-6 text-purple-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-gray-500">Telefone</p>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full text-gray-900 font-medium bg-transparent border-none outline-none"
+                    placeholder="+258 XX XXX XXXX"
+                  />
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
+              </label>
+            </div>
+
+            <button
+              type="submit"
+              disabled={saving}
+              className="w-full py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <Check className="w-5 h-5" />
+                  Guardar Alterações
+                </>
+              )}
+            </button>
+          </form>
+        )}
+
+        {activeTab === 'seguranca' && (
+          <form onSubmit={handlePasswordChange} className="space-y-4">
+            <div className="bg-white rounded-xl p-4 shadow-sm space-y-4">
+              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                <Lock className="w-5 h-5 text-gray-600" />
+                Alterar Palavra-passe
+              </h3>
+
+              <div>
+                <label className="block text-sm text-gray-500 mb-1">Palavra-passe atual</label>
                 <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full text-gray-900 bg-transparent border-none focus:outline-none focus:bg-gray-50 rounded px-2 py-1"
+                  type="password"
+                  value={formData.currentPassword}
+                  onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  placeholder="••••••••"
+                  required
                 />
               </div>
 
-              <div className="px-4 py-4">
-                <label className="block text-xs text-gray-500 mb-1 uppercase tracking-wide">
-                  Nome de Utilizador
-                </label>
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-400">@</span>
-                  <input
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s/g, ''))}
-                    className="flex-1 text-gray-900 bg-transparent border-none focus:outline-none focus:bg-gray-50 rounded px-2 py-1"
-                  />
-                  <Edit3 size={16} className="text-gray-400" />
-                </div>
+              <div>
+                <label className="block text-sm text-gray-500 mb-1">Nova palavra-passe</label>
+                <input
+                  type="password"
+                  value={formData.newPassword}
+                  onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  placeholder="Mínimo 6 caracteres"
+                  required
+                />
               </div>
 
-              <div className="px-4 py-4">
-                <label className="flex items-center gap-3">
-                  <Mail size={20} className="text-gray-400" />
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-500">Email</p>
-                    <p className="text-gray-900">{email}</p>
-                  </div>
-                </label>
-              </div>
-
-              <div className="px-4 py-4">
-                <label className="flex items-center gap-3">
-                  <Phone size={20} className="text-gray-400" />
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-500">Telefone</p>
-                    <input
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="84XXXXXXX"
-                      className="w-full text-gray-900 bg-transparent border-none focus:outline-none focus:bg-gray-50 rounded px-2 py-1"
-                    />
-                  </div>
-                  <Edit3 size={16} className="text-gray-400" />
-                </label>
-              </div>
-
-              <div className="p-4">
-                <button
-                  onClick={handleSaveProfile}
-                  disabled={saving}
-                  className="w-full py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {saving ? (
-                    <Loader2 size={20} className="animate-spin" />
-                  ) : (
-                    <>
-                      <Save size={20} />
-                      Guardar Alterações
-                    </>
-                  )}
-                </button>
+              <div>
+                <label className="block text-sm text-gray-500 mb-1">Confirmar nova palavra-passe</label>
+                <input
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  placeholder="••••••••"
+                  required
+                />
               </div>
             </div>
-          )}
 
-          {/* Security Tab */}
-          {activeTab === 'security' && (
-            <div className="divide-y divide-gray-100">
-              <div className="px-4 py-4">
-                <label className="flex items-center gap-3 mb-4">
-                  <Lock size={20} className="text-gray-400" />
-                  <span className="text-gray-900 font-medium">Alterar Senha</span>
-                </label>
-
-                <div className="space-y-4 pl-9">
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">Senha Atual</label>
-                    <div className="relative">
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                        placeholder="••••••••"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-                      >
-                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">Nova Senha</label>
-                    <input
-                      type="password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                      placeholder="Mínimo 6 caracteres"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">Confirmar Nova Senha</label>
-                    <input
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                      placeholder="Repita a nova senha"
-                    />
-                  </div>
-
-                  <button
-                    onClick={handleChangePassword}
-                    disabled={saving || !currentPassword || !newPassword || !confirmPassword}
-                    className="w-full py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {saving ? (
-                      <Loader2 size={20} className="animate-spin" />
-                    ) : (
-                      <>
-                        <Lock size={20} />
-                        Alterar Senha
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div className="px-4 py-4">
-                <label className="flex items-center gap-3">
-                  <Shield size={20} className="text-gray-400" />
-                  <div className="flex-1">
-                    <p className="text-gray-900 font-medium">Autenticação em Dois Fatores</p>
-                    <p className="text-xs text-gray-500">Adicione uma camada extra de segurança</p>
-                  </div>
-                  <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">Em breve</span>
-                </label>
-              </div>
-            </div>
-          )}
-
-          {/* History Tab */}
-          {activeTab === 'history' && (
-            <div>
-              {/* Subscriptions */}
-              <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
-                <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                  <CreditCard size={16} />
-                  Minhas Assinaturas
-                </h3>
-              </div>
-
-              {subscriptions.length > 0 ? (
-                <div className="divide-y divide-gray-100">
-                  {subscriptions.map((sub: any) => (
-                    <div key={sub.id} className="px-4 py-3 flex items-center justify-between">
-                      <div>
-                        <p className="text-gray-900">{sub.plan?.name}</p>
-                        <p className="text-xs text-gray-500">
-                          Até {new Date(sub.endDate).toLocaleDateString('pt-MZ')}
-                        </p>
-                      </div>
-                      <span
-                        className={`px-2 py-1 text-xs rounded-full ${
-                          sub.status === 'ACTIVE'
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-gray-100 text-gray-600'
-                        }`}
-                      >
-                        {sub.status === 'ACTIVE' ? 'Ativa' : 'Expirada'}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+            <button
+              type="submit"
+              disabled={saving}
+              className="w-full py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  A alterar...
+                </>
               ) : (
-                <div className="px-4 py-8 text-center text-gray-500">
-                  <CreditCard size={32} className="mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Nenhuma assinatura ativa</p>
-                </div>
+                <>
+                  <Lock className="w-5 h-5" />
+                  Alterar Palavra-passe
+                </>
               )}
+            </button>
+          </form>
+        )}
 
-              {/* Results */}
-              <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 mt-2">
-                <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                  <History size={16} />
-                  Meus Resultados
-                </h3>
-              </div>
-
-              {results.length > 0 ? (
-                <div className="divide-y divide-gray-100">
-                  {results.map((result: any) => (
-                    <Link
-                      key={result.id}
-                      href={`/exames/${result.examId}/resultado`}
-                      className="px-4 py-3 flex items-center justify-between hover:bg-gray-50"
-                    >
-                      <div>
-                        <p className="text-gray-900">{result.exam?.title}</p>
-                        <p className="text-xs text-gray-500">
-                          {new Date(result.createdAt).toLocaleDateString('pt-MZ')}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p
-                          className={`text-lg font-bold ${
-                            result.score >= 70 ? 'text-green-600' : 'text-orange-600'
-                          }`}
-                        >
-                          {result.score}%
-                        </p>
-                      </div>
-                    </Link>
-                  ))}
+        {activeTab === 'config' && (
+          <div className="space-y-4">
+            {/* Notificações */}
+            <div className="bg-white rounded-xl shadow-sm">
+              <button className="w-full flex items-center gap-4 p-4 hover:bg-gray-50">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Bell className="w-5 h-5 text-blue-600" />
                 </div>
-              ) : (
-                <div className="px-4 py-8 text-center text-gray-500">
-                  <History size={32} className="mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Nenhum resultado ainda</p>
+                <div className="flex-1 text-left">
+                  <p className="font-medium text-gray-900">Notificações</p>
+                  <p className="text-sm text-gray-500">Alertas e lembretes</p>
                 </div>
-              )}
+                <ChevronRight className="w-5 h-5 text-gray-400" />
+              </button>
             </div>
-          )}
-        </div>
 
-        {/* Logout Button */}
-        <div className="mt-2 bg-white p-4">
-          <button
-            onClick={handleLogout}
-            className="w-full py-3 border border-red-200 text-red-600 rounded-lg font-medium hover:bg-red-50 flex items-center justify-center gap-2"
-          >
-            <LogOut size={20} />
-            Terminar Sessão
-          </button>
-        </div>
-      </main>
+            {/* Privacidade */}
+            <div className="bg-white rounded-xl shadow-sm">
+              <button className="w-full flex items-center gap-4 p-4 hover:bg-gray-50">
+                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-green-600" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-medium text-gray-900">Privacidade</p>
+                  <p className="text-sm text-gray-500">Quem pode ver seu perfil</p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+
+            {/* Ajuda */}
+            <div className="bg-white rounded-xl shadow-sm">
+              <button className="w-full flex items-center gap-4 p-4 hover:bg-gray-50">
+                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                  <HelpCircle className="w-5 h-5 text-orange-600" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-medium text-gray-900">Ajuda</p>
+                  <p className="text-sm text-gray-500">Suporte e FAQ</p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+
+            {/* Sobre */}
+            <div className="bg-white rounded-xl shadow-sm">
+              <button className="w-full flex items-center gap-4 p-4 hover:bg-gray-50">
+                <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                  <Info className="w-5 h-5 text-gray-600" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-medium text-gray-900">Sobre</p>
+                  <p className="text-sm text-gray-500">Versão 1.0.0</p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+
+            {/* Terminar sessão */}
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 py-3 bg-red-50 text-red-600 font-semibold rounded-xl hover:bg-red-100 transition-colors"
+            >
+              <LogOut className="w-5 h-5" />
+              Terminar Sessão
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Versão no rodapé */}
+      <div className="text-center py-4 text-xs text-gray-400">
+        MeuExame v1.0.0 • Moçambique
+      </div>
     </div>
-  );
-}
-
-export default function ProfilePage() {
-  return (
-    <ProtectedRoute requireAuth={true}>
-      <ProfileContent />
-    </ProtectedRoute>
   );
 }
