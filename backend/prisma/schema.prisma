@@ -8,6 +8,7 @@ datasource db {
 }
 
 model User {
+  hasFullAccess  Boolean     @default(false)
   id            String      @id @default(cuid())
   email         String      @unique
   password      String

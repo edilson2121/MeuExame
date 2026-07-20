@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Req } from '@nestjs/common';
 import { ExamsService } from '../services/exams.service';
 import { CreateExamDto } from '../dto/create-exam.dto';
 import { UpdateExamDto } from '../dto/update-exam.dto';
@@ -6,6 +6,16 @@ import { AuthGuard } from '../../../common/guards/auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { Role } from '@prisma/client';
+import { Request } from 'express';
+
+interface SubmitAnswerDto {
+  questionId: string;
+  selectedOption: number;
+}
+
+interface SubmitExamDto {
+  answers: SubmitAnswerDto[];
+}
 
 @Controller('exams')
 export class ExamsController {
@@ -24,8 +34,9 @@ export class ExamsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.examsService.findOne(id);
+  async findOne(@Param('id') id: string, @Req() req: Request) {
+    const userId = req.user?.id;
+    return this.examsService.findOne(id, userId);
   }
 
   @Get('subject/:subjectId')
@@ -74,5 +85,23 @@ export class ExamsController {
   @Roles(Role.ADMIN, Role.TEACHER)
   publish(@Param('id') id: string) {
     return this.examsService.publishExam(id);
+  }
+
+  @Post(':id/submit')
+  @UseGuards(AuthGuard)
+  submitExam(
+    @Param('id') id: string,
+    @Body() submitExamDto: SubmitExamDto,
+    @Req() req: Request,
+  ) {
+    const userId = req.user?.id;
+    return this.examsService.submitExam(id, userId, submitExamDto.answers);
+  }
+
+  @Get(':id/access')
+  @UseGuards(AuthGuard)
+  checkAccess(@Param('id') id: string, @Req() req: Request) {
+    const userId = req.user?.id;
+    return this.examsService.checkExamAccess(id, userId);
   }
 }

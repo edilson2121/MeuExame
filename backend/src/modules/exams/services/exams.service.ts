@@ -224,4 +224,178 @@ export class ExamsService implements IExamService {
       data: { status: ExamStatus.PUBLISHED },
     });
   }
+
+  async findOne(id: string, userId?: string): Promise<any> {
+    const exam = await this.prisma.exam.findUnique({
+      where: { id },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        subject: true,
+        examQuestions: {
+          include: {
+            question: true,
+          },
+          orderBy: {
+            order: 'asc',
+          },
+        },
+      },
+    });
+
+    if (!exam) {
+      throw new NotFoundException('Exame não encontrado');
+    }
+
+    // Transformar as questões para o formato esperado pelo frontend
+    const questions = exam.examQuestions.map((eq) => {
+      const question = eq.question;
+      let options: { id: number; text: string; isCorrect: boolean }[] = [];
+      
+      // Parse options if it's a JSON string
+      if (typeof question.options === 'string') {
+        try {
+          options = JSON.parse(question.options);
+        } catch (e) {
+          options = [];
+        }
+      } else if (Array.isArray(question.options)) {
+        options = question.options;
+      }
+
+      return {
+        id: question.id,
+        text: question.text,
+        type: question.type,
+        imageUrl: question.imageUrl,
+        options,
+        explanation: question.explanation,
+      };
+    });
+
+    // Verificar acesso
+    let hasAccess = true;
+    if (userId) {
+      // Verificar se o exame é pago
+      const access = await this.checkExamAccess(id, userId);
+      hasAccess = access.hasAccess;
+    }
+
+    return {
+      id: exam.id,
+      title: exam.title,
+      description: exam.description,
+      duration: exam.duration,
+      status: exam.status,
+      imageUrl: exam.imageUrl,
+      hasAccess,
+      subject: exam.subject,
+      author: exam.author,
+      questions,
+    };
+  }
+
+  async checkExamAccess(examId: string, userId: string): Promise<{ hasAccess: boolean; accessType?: string }> {
+    const exam = await this.prisma.exam.findUnique({
+      where: { id: examId },
+    });
+
+    if (!exam) {
+      throw new NotFoundException('Exame não encontrado');
+    }
+
+    // Se for um exame gratuito, tem acesso
+    if (!exam.price || exam.price === 0) {
+      return { hasAccess: true, accessType: 'FREE' };
+    }
+
+    // Verificar se tem acesso através de ExamAccess
+    const examAccess = await this.prisma.examAccess.findFirst({
+      where: {
+        examId,
+        userId,
+      },
+    });
+
+    if (examAccess) {
+      return { hasAccess: true, accessType: examAccess.type };
+    }
+
+    // Verificar se tem subscrição ativa
+    const subscription = await this.prisma.subscription.findFirst({
+      where: {
+        userId,
+        isActive: true,
+        endDate: {
+          gte: new Date(),
+        },
+      },
+    });
+
+    if (subscription) {
+      return { hasAccess: true, accessType: 'SUBSCRIPTION' };
+    }
+
+    // Verificar se o utilizador tem acesso total
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (user?.hasFullAccess) {
+      return { hasAccess: true, accessType: 'FULL_ACCESS' };
+    }
+
+    return { hasAccess: false };
+  }
+
+  async submitExam(
+    examId: string,
+    userId: string,
+    answers: { questionId: string; selectedOption: number }[],
+  ): Promise<{ score: number; total: number; percentage: number }> {
+    const exam = await this.findOne(examId);
+
+    // Verificar acesso
+    const access = await this.checkExamAccess(examId, userId);
+    if (!access.hasAccess) {
+      throw new BadRequestException('Não tem acesso a este exame');
+    }
+
+    let correct = 0;
+    let total = 0;
+
+    // Calcular pontuação
+    for (const answer of answers) {
+      const question = exam.questions.find((q) => q.id === answer.questionId);
+      if (!question) continue;
+
+      total++;
+      const correctOptionIndex = question.options.findIndex((o: any) => o.isCorrect);
+
+      if (correctOptionIndex === answer.selectedOption) {
+        correct++;
+      }
+    }
+
+    // Criar resultado
+    await this.prisma.result.create({
+      data: {
+        score: correct,
+        userId,
+        examId,
+        answers: answers as any,
+      },
+    });
+
+    return {
+      score: correct,
+      total,
+      percentage: total > 0 ? Math.round((correct / total) * 100) : 0,
+    };
+  }
 }
