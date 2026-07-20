@@ -2,16 +2,44 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { Menu, X, Mail, Phone, MapPin, Globe } from 'lucide-react';
+import { Menu, X, Mail, Phone, MapPin, Globe, Facebook, Instagram, Twitter, Youtube, Linkedin, MessageCircle } from 'lucide-react';
+
+const SOCIAL_ICONS: Record<string, any> = {
+  facebook: Facebook,
+  instagram: Instagram,
+  twitter: Twitter,
+  youtube: Youtube,
+  linkedin: Linkedin,
+  whatsapp: MessageCircle,
+};
+
+const SOCIAL_COLORS: Record<string, string> = {
+  facebook: 'hover:bg-[#1877F2] hover:text-white',
+  instagram: 'hover:bg-gradient-to-br hover:from-[#833AB4] hover:via-[#FD1D1D] hover:to-[#F77737] hover:text-white',
+  twitter: 'hover:bg-[#1DA1F2] hover:text-white',
+  youtube: 'hover:bg-[#FF0000] hover:text-white',
+  linkedin: 'hover:bg-[#0A66C2] hover:text-white',
+  whatsapp: 'hover:bg-[#25D366] hover:text-white',
+};
 
 export default function Footer() {
   const [isMobile, setIsMobile] = useState(false);
   const [isSectionsOpen, setIsSectionsOpen] = useState(false);
+  const [socialLinks, setSocialLinks] = useState<any[]>([]);
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener('resize', checkMobile);
+    
+    // Fetch social media links
+    fetch(`${apiUrl}/social-media`)
+      .then(res => res.ok ? res.json() : [])
+      .then(data => setSocialLinks(data))
+      .catch(() => setSocialLinks([]));
+
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
@@ -59,8 +87,42 @@ export default function Footer() {
             <p className="text-sm text-gray-400 mb-4">
               A plataforma líder de exames de admissão em Moçambique.
             </p>
+            
+            {/* Social Media Icons */}
             <div className="flex items-center gap-3">
-              <Globe size={18} className="text-gray-500" />
+              {socialLinks.length > 0 ? (
+                socialLinks.map((social) => {
+                  const IconComponent = SOCIAL_ICONS[social.platform] || Globe;
+                  return (
+                    <a
+                      key={social.id}
+                      href={social.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center transition-all ${SOCIAL_COLORS[social.platform] || ''}`}
+                      title={social.platform.charAt(0).toUpperCase() + social.platform.slice(1)}
+                    >
+                      <IconComponent size={18} />
+                    </a>
+                  );
+                })
+              ) : (
+                // Default social icons when no data
+                <>
+                  <a href="https://facebook.com/meuexame" target="_blank" rel="noopener noreferrer" className={`w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center transition-all ${SOCIAL_COLORS.facebook}`}>
+                    <Facebook size={18} />
+                  </a>
+                  <a href="https://instagram.com/meuexame" target="_blank" rel="noopener noreferrer" className={`w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center transition-all ${SOCIAL_COLORS.instagram}`}>
+                    <Instagram size={18} />
+                  </a>
+                  <a href="https://twitter.com/meuexame" target="_blank" rel="noopener noreferrer" className={`w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center transition-all ${SOCIAL_COLORS.twitter}`}>
+                    <Twitter size={18} />
+                  </a>
+                  <a href="https://wa.me/258XXXXXXXXX" target="_blank" rel="noopener noreferrer" className={`w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center transition-all ${SOCIAL_COLORS.whatsapp}`}>
+                    <MessageCircle size={18} />
+                  </a>
+                </>
+              )}
             </div>
           </div>
 

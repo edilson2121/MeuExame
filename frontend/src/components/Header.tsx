@@ -23,13 +23,43 @@ export default function Header({ showBackButton = false, backHref = '/', title }
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener('resize', checkMobile);
+    
+    // Fetch unread notifications count
+    if (user) {
+      fetchUnreadCount();
+      // Poll every 30 seconds
+      const interval = setInterval(fetchUnreadCount, 30000);
+      return () => {
+        window.removeEventListener('resize', checkMobile);
+        clearInterval(interval);
+      };
+    }
+    
     return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  }, [user]);
+
+  const fetchUnreadCount = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${apiUrl}/notifications/unread/count`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const count = await res.json();
+        setUnreadNotifications(count);
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -99,11 +129,15 @@ export default function Header({ showBackButton = false, backHref = '/', title }
               )}
 
               {/* Notifications - Desktop */}
-              {!isMobile && (
-                <button className="relative p-2.5 text-gray-500 hover:text-primary hover:bg-gray-100 rounded-xl transition-colors">
+              {!isMobile && user && (
+                <Link href="/notificacoes" className="relative p-2.5 text-gray-500 hover:text-primary hover:bg-gray-100 rounded-xl transition-colors">
                   <Bell size={20} />
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-                </button>
+                  {unreadNotifications > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1">
+                      {unreadNotifications > 99 ? '99+' : unreadNotifications}
+                    </span>
+                  )}
+                </Link>
               )}
 
               {/* User Menu */}
@@ -134,6 +168,12 @@ export default function Header({ showBackButton = false, backHref = '/', title }
                             <p className="text-sm text-gray-500">{user.email}</p>
                           </div>
                           <div className="py-2">
+                            <Link href="/notificacoes" className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 relative">
+                              <Bell size={18} /> Notificações
+                              {unreadNotifications > 0 && (
+                                <span className="absolute left-8 top-1/2 -translate-y-1/2 w-2 h-2 bg-red-500 rounded-full" />
+                              )}
+                            </Link>
                             <Link href="/perfil" className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50">
                               <User size={18} /> Meu Perfil
                             </Link>

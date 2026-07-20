@@ -30,6 +30,7 @@ model User {
   pages         Page[]
   examAccesses  ExamAccess[]
   walletTransactions WalletTransaction[]
+  notifications Notification[]
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
@@ -189,12 +190,69 @@ model Subject {
   studyContents  StudyContent[]
   exercises      Exercise[]
   exams          Exam[]
+  manuals        Manual[]
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   @@map("subjects")
   @@index([courseId])
   @@index([institutionId])
+}
+
+model Manual {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  fileUrl     String
+  fileName    String
+  fileSize    Int
+  fileType    String   @default("application/pdf")
+  subjectId   String
+  subject     Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("manuals")
+  @@index([subjectId])
+}
+
+model Notification {
+  id          String           @id @default(cuid())
+  title       String
+  message     String
+  type        NotificationType @default(GENERAL)
+  link        String?
+  isRead      Boolean          @default(false)
+  userId      String?
+  user        User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isGlobal    Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+
+  @@map("notifications")
+  @@index([userId])
+  @@index([isGlobal])
+}
+
+enum NotificationType {
+  GENERAL
+  EXAM
+  PAYMENT
+  SYSTEM
+  PROMOTION
+}
+
+model SocialMedia {
+  id        String   @id @default(cuid())
+  platform  String   // facebook, instagram, twitter, whatsapp, youtube, linkedin
+  url       String
+  icon      String?  // Icon name from lucide
+  isActive  Boolean  @default(true)
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("social_media")
 }
 
 model Question {
