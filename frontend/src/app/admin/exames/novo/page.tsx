@@ -1,795 +1,634 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import Link from 'next/link';
 import {
+  ArrowLeft,
   Save,
-  Upload,
+  Eye,
   Plus,
   Trash2,
-  Image,
-  X,
+  GripVertical,
+  Settings,
+  FileQuestion,
+  Clock,
+  Users,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  MoreVertical,
   Check,
-  ChevronLeft,
-  ChevronRight,
-  Eye,
-  EyeOff,
-  DollarSign,
-  Lock,
-  Unlock,
-  AlertCircle,
+  X,
+  Image,
+  AlertTriangle,
 } from 'lucide-react';
+
+// Tipos de questão
+type QuestionType = 'multiple_choice' | 'true_false' | 'short_answer';
 
 interface Question {
   id: string;
+  type: QuestionType;
   text: string;
-  type: 'MULTIPLE_CHOICE' | 'TRUE_FALSE';
-  statementImage: string | null;
   options: string[];
-  optionImages: (string | null)[];
-  correctOption: number;
-  explanation: string;
+  correctAnswer: number;
+  points: number;
+  explanation?: string;
 }
 
-interface ExamFormData {
+interface ExamData {
   title: string;
   description: string;
-  disciplineId: string;
+  institution: string;
+  course: string;
+  subject: string;
   duration: number;
-  accessType: 'FREE' | 'PAID';
   price: number;
+  passingScore: number;
+  questions: Question[];
+  settings: {
+    randomizeQuestions: boolean;
+    showResults: boolean;
+    allowReview: boolean;
+    maxAttempts: number;
+  };
 }
 
-export default function NovoExamePage() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [institutions, setInstitutions] = useState<any[]>([]);
-  const [disciplines, setDisciplines] = useState<any[]>([]);
-  const [selectedInstitution, setSelectedInstitution] = useState('');
-  const [currentStep, setCurrentStep] = useState(1);
-  const [uploadedImages, setUploadedImages] = useState<Record<string, string>>({});
+const institutions = ['UEM', 'UCM', 'UniLúrio', 'ISUTC', 'ISPG'];
+const courses = ['Engenharia', 'Medicina', 'Direito', 'Economia', 'Ciências'];
+const subjects = ['Matemática', 'Física', 'Química', 'Biologia', 'Português'];
 
-  const [formData, setFormData] = useState<ExamFormData>({
+export default function ExamEditorPage() {
+  const [exam, setExam] = useState<ExamData>({
     title: '',
     description: '',
-    disciplineId: '',
+    institution: '',
+    course: '',
+    subject: '',
     duration: 60,
-    accessType: 'FREE',
-    price: 0,
+    price: 299,
+    passingScore: 70,
+    questions: [
+      {
+        id: '1',
+        type: 'multiple_choice',
+        text: '',
+        options: ['', '', '', ''],
+        correctAnswer: 0,
+        points: 10,
+        explanation: '',
+      },
+    ],
+    settings: {
+      randomizeQuestions: false,
+      showResults: true,
+      allowReview: true,
+      maxAttempts: 3,
+    },
   });
 
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-
-  useEffect(() => {
-    const fetchInstitutions = async () => {
-      try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-        const token = localStorage.getItem('token');
-        const res = await fetch(`${apiUrl}/institutions`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        setInstitutions(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error('Erro ao carregar instituições:', error);
-        // Fallback
-        setInstitutions([
-          { id: '1', name: 'Universidade Eduardo Mondlane' },
-          { id: '2', name: 'Universidade Católica de Moçambique' },
-        ]);
-      }
-    };
-
-    fetchInstitutions();
-  }, []);
-
-  const fetchDisciplines = useCallback(async (institutionId: string) => {
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${apiUrl}/disciplines?institutionId=${institutionId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      setDisciplines(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error('Erro ao carregar disciplinas:', error);
-      setDisciplines([
-        { id: '1', name: 'Matemática' },
-        { id: '2', name: 'Física' },
-        { id: '3', name: 'Química' },
-      ]);
-    }
-  }, []);
-
-  const handleInstitutionChange = (institutionId: string) => {
-    setSelectedInstitution(institutionId);
-    setFormData((prev) => ({ ...prev, disciplineId: '' }));
-    if (institutionId) {
-      fetchDisciplines(institutionId);
-    }
-  };
+  const [activeQuestion, setActiveQuestion] = useState(0);
+  const [showSettings, setShowSettings] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const addQuestion = () => {
     const newQuestion: Question = {
-      id: `q-${Date.now()}`,
+      id: Date.now().toString(),
+      type: 'multiple_choice',
       text: '',
-      type: 'MULTIPLE_CHOICE',
-      statementImage: null,
       options: ['', '', '', ''],
-      optionImages: [null, null, null, null],
-      correctOption: 0,
+      correctAnswer: 0,
+      points: 10,
       explanation: '',
     };
-    setQuestions([...questions, newQuestion]);
-    setCurrentQuestionIndex(questions.length);
+    setExam({ ...exam, questions: [...exam.questions, newQuestion] });
+    setActiveQuestion(exam.questions.length);
+    setHasUnsavedChanges(true);
   };
 
   const updateQuestion = (index: number, updates: Partial<Question>) => {
-    const newQuestions = [...questions];
+    const newQuestions = [...exam.questions];
     newQuestions[index] = { ...newQuestions[index], ...updates };
-    setQuestions(newQuestions);
+    setExam({ ...exam, questions: newQuestions });
+    setHasUnsavedChanges(true);
   };
 
-  const removeQuestion = (index: number) => {
-    const newQuestions = questions.filter((_, i) => i !== index);
-    setQuestions(newQuestions);
-    if (currentQuestionIndex >= newQuestions.length) {
-      setCurrentQuestionIndex(Math.max(0, newQuestions.length - 1));
+  const deleteQuestion = (index: number) => {
+    if (exam.questions.length === 1) return;
+    const newQuestions = exam.questions.filter((_, i) => i !== index);
+    setExam({ ...exam, questions: newQuestions });
+    if (activeQuestion >= newQuestions.length) {
+      setActiveQuestion(newQuestions.length - 1);
     }
+    setHasUnsavedChanges(true);
   };
 
-  const updateOption = (questionIndex: number, optionIndex: number, value: string) => {
-    const newQuestions = [...questions];
-    const newOptions = [...newQuestions[questionIndex].options];
-    newOptions[optionIndex] = value;
-    newQuestions[questionIndex].options = newOptions;
-    setQuestions(newQuestions);
+  const duplicateQuestion = (index: number) => {
+    const question = exam.questions[index];
+    const newQuestion = { ...question, id: Date.now().toString() };
+    const newQuestions = [...exam.questions];
+    newQuestions.splice(index + 1, 0, newQuestion);
+    setExam({ ...exam, questions: newQuestions });
+    setActiveQuestion(index + 1);
+    setHasUnsavedChanges(true);
   };
 
-  const handleImageUpload = async (file: File, type: 'statement' | 'option', questionIndex: number, optionIndex?: number) => {
-    const formDataUpload = new FormData();
-    formDataUpload.append('file', file);
-
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${apiUrl}/uploads/image`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formDataUpload,
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const imageUrl = data.url;
-
-        if (type === 'statement') {
-          updateQuestion(questionIndex, { statementImage: imageUrl });
-        } else if (optionIndex !== undefined) {
-          const newQuestions = [...questions];
-          const newOptionImages = [...newQuestions[questionIndex].optionImages];
-          newOptionImages[optionIndex] = imageUrl;
-          newQuestions[questionIndex].optionImages = newOptionImages;
-          setQuestions(newQuestions);
-        }
-
-        setUploadedImages((prev) => ({ ...prev, [file.name]: imageUrl }));
-      }
-    } catch (error) {
-      console.error('Erro ao fazer upload da imagem:', error);
-      // Simular URL para demo
-      const fakeUrl = `/uploads/${file.name}`;
-      if (type === 'statement') {
-        updateQuestion(questionIndex, { statementImage: fakeUrl });
-      } else if (optionIndex !== undefined) {
-        const newQuestions = [...questions];
-        const newOptionImages = [...newQuestions[questionIndex].optionImages];
-        newOptionImages[optionIndex] = fakeUrl;
-        newQuestions[questionIndex].optionImages = newOptionImages;
-        setQuestions(newQuestions);
-      }
+  const moveQuestion = (index: number, direction: 'up' | 'down') => {
+    if (
+      (direction === 'up' && index === 0) ||
+      (direction === 'down' && index === exam.questions.length - 1)
+    ) {
+      return;
     }
+    const newQuestions = [...exam.questions];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    [newQuestions[index], newQuestions[targetIndex]] = [newQuestions[targetIndex], newQuestions[index]];
+    setExam({ ...exam, questions: newQuestions });
+    setActiveQuestion(targetIndex);
+    setHasUnsavedChanges(true);
   };
 
-  const handleSubmit = async () => {
-    setLoading(true);
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-      const token = localStorage.getItem('token');
-
-      // Criar exame
-      const examRes = await fetch(`${apiUrl}/exams`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          totalQuestions: questions.length,
-        }),
-      });
-
-      if (!examRes.ok) throw new Error('Erro ao criar exame');
-
-      const examData = await examRes.json();
-
-      // Criar questões
-      for (let i = 0; i < questions.length; i++) {
-        const q = questions[i];
-        await fetch(`${apiUrl}/exams/${examData.id}/questions`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            text: q.text,
-            type: q.type,
-            statementImage: q.statementImage,
-            options: q.options,
-            optionImages: q.optionImages,
-            correctOption: q.correctOption,
-            explanation: q.explanation,
-            order: i,
-          }),
-        });
-      }
-
-      router.push('/admin/exames');
-    } catch (error) {
-      console.error('Erro ao guardar exame:', error);
-      alert('Erro ao guardar o exame. Tente novamente.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const canProceedToStep2 = formData.title && formData.disciplineId;
-  const canProceedToStep3 = questions.length > 0 && questions.every((q) => q.text && q.options.every((o) => o));
-
-  const currentQuestion = questions[currentQuestionIndex];
+  const currentQuestion = exam.questions[activeQuestion];
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="mb-6">
-        <Link
-          href="/admin/exames"
-          className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4"
-        >
-          <ChevronLeft size={16} className="mr-1" />
-          Voltar para Exames
-        </Link>
-        <h1 className="text-2xl font-bold text-gray-900">Criar Novo Exame</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Preencha os dados do exame e adicione as questões
-        </p>
-      </div>
-
-      {/* Progress Steps */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                currentStep >= 1 ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-500'
-              }`}
-            >
-              {currentStep > 1 ? <Check size={20} /> : '1'}
-            </div>
-            <p className="text-sm mt-2 font-medium">Dados Básicos</p>
-          </div>
-          <div className="flex-1 border-t-2 border-gray-200 mx-4 mt-5" />
-          <div className="flex-1">
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                currentStep >= 2 ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-500'
-              }`}
-            >
-              {currentStep > 2 ? <Check size={20} /> : '2'}
-            </div>
-            <p className="text-sm mt-2 font-medium">Questões</p>
-          </div>
-          <div className="flex-1 border-t-2 border-gray-200 mx-4 mt-5" />
-          <div className="flex-1">
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                currentStep >= 3 ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-500'
-              }`}
-            >
-              3
-            </div>
-            <p className="text-sm mt-2 font-medium">Revisão</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Step 1: Basic Data */}
-      {currentStep === 1 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-6">Dados do Exame</h2>
-
-          <div className="space-y-6">
-            {/* Institution */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Instituição *
-              </label>
-              <select
-                value={selectedInstitution}
-                onChange={(e) => handleInstitutionChange(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-              >
-                <option value="">Selecione uma instituição</option>
-                {institutions.map((inst) => (
-                  <option key={inst.id} value={inst.id}>
-                    {inst.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Discipline */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Disciplina *
-              </label>
-              <select
-                value={formData.disciplineId}
-                onChange={(e) => setFormData({ ...formData, disciplineId: e.target.value })}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                disabled={!selectedInstitution}
-              >
-                <option value="">Selecione uma disciplina</option>
-                {disciplines.map((disc) => (
-                  <option key={disc.id} value={disc.id}>
-                    {disc.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Title */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Título do Exame *
-              </label>
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="Ex: Matemática - Exame de Admissão 2024"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-              />
-            </div>
-
-            {/* Description */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Descrição
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Descrição opcional do exame..."
-                rows={3}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-              />
-            </div>
-
-            {/* Duration */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Duração (minutos)
-              </label>
-              <input
-                type="number"
-                value={formData.duration}
-                onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 60 })}
-                min={1}
-                max={300}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-              />
-            </div>
-
-            {/* Access Type */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tipo de Acesso
-              </label>
-              <div className="flex gap-4">
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, accessType: 'FREE' })}
-                  className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 transition-colors ${
-                    formData.accessType === 'FREE'
-                      ? 'border-green-600 bg-green-50 text-green-700'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <Unlock size={24} />
-                  <div className="text-left">
-                    <p className="font-medium">Grátis</p>
-                    <p className="text-xs text-gray-500">Acesso livre para todos</p>
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, accessType: 'PAID' })}
-                  className={`flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 transition-colors ${
-                    formData.accessType === 'PAID'
-                      ? 'border-red-600 bg-red-50 text-red-700'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <Lock size={24} />
-                  <div className="text-left">
-                    <p className="font-medium">Pago</p>
-                    <p className="text-xs text-gray-500">Requer pagamento</p>
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            {/* Price (if PAID) */}
-            {formData.accessType === 'PAID' && (
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link href="/admin/exames" className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                <ArrowLeft size={20} className="text-gray-600" />
+              </Link>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Preço (MZN)
-                </label>
-                <div className="relative">
-                  <DollarSign size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="number"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                    min={0}
-                    step={0.01}
-                    placeholder="0.00"
-                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  />
+                <div className="flex items-center gap-2">
+                  <h1 className="text-lg font-bold text-gray-900">Criar Novo Exame</h1>
+                  {hasUnsavedChanges && (
+                    <span className="flex items-center gap-1 px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">
+                      <AlertTriangle size={12} />
+                      Não guardado
+                    </span>
+                  )}
                 </div>
+                <p className="text-sm text-gray-500">
+                  {exam.title || 'Sem título'} • {exam.questions.length} questões
+                </p>
               </div>
-            )}
-          </div>
-
-          <div className="mt-8 flex justify-end">
-            <button
-              onClick={() => setCurrentStep(2)}
-              disabled={!canProceedToStep2}
-              className="px-6 py-2.5 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              Próximo: Questões
-              <ChevronRight size={20} />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Step 2: Questions */}
-      {currentStep === 2 && (
-        <div className="space-y-6">
-          {/* Questions List */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Questões ({questions.length})
-              </h2>
+            </div>
+            
+            <div className="flex items-center gap-3">
               <button
-                onClick={addQuestion}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 flex items-center gap-2"
+                onClick={() => setShowSettings(!showSettings)}
+                className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-sm font-medium transition-colors ${
+                  showSettings
+                    ? 'bg-green-50 border-green-200 text-green-700'
+                    : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                }`}
               >
-                <Plus size={20} />
-                Adicionar Questão
+                <Settings size={16} />
+                Configurações
+              </button>
+              <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                <Eye size={16} />
+                Pré-visualizar
+              </button>
+              <button className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 transition-colors">
+                <Save size={16} />
+                Guardar
               </button>
             </div>
+          </div>
+        </div>
+      </header>
 
-            {questions.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <AlertCircle size={48} className="mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-medium">Nenhuma questão adicionada</p>
-                <p className="text-sm mt-1">Clique em "Adicionar Questão" para começar</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {questions.map((q, index) => (
-                  <div
-                    key={q.id}
-                    className={`p-4 rounded-lg border-2 cursor-pointer transition-colors ${
-                      currentQuestionIndex === index
-                        ? 'border-green-500 bg-green-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                    onClick={() => setCurrentQuestionIndex(index)}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-3">
-                        <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-sm font-medium">
-                          #{index + 1}
-                        </span>
-                        <p className="text-sm text-gray-700 line-clamp-2">
-                          {q.text || 'Questão sem texto'}
-                        </p>
-                      </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeQuestion(index);
-                        }}
-                        className="p-1 text-red-500 hover:bg-red-50 rounded"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+      <div className="flex">
+        {/* Sidebar - Lista de Questões */}
+        <aside className="w-80 bg-white border-r border-gray-200 min-h-[calc(100vh-73px)] sticky top-[73px]">
+          <div className="p-4 border-b border-gray-100">
+            <h2 className="text-sm font-semibold text-gray-900 mb-3">Questões</h2>
+            <button
+              onClick={addQuestion}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-50 text-green-600 rounded-xl text-sm font-medium hover:bg-green-100 transition-colors"
+            >
+              <Plus size={16} />
+              Adicionar Questão
+            </button>
+          </div>
+          
+          <div className="p-2 space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto">
+            {exam.questions.map((q, index) => (
+              <div
+                key={q.id}
+                onClick={() => setActiveQuestion(index)}
+                className={`p-3 rounded-xl cursor-pointer transition-all group ${
+                  activeQuestion === index
+                    ? 'bg-green-50 border-2 border-green-500'
+                    : 'bg-gray-50 hover:bg-gray-100 border-2 border-transparent'
+                }`}
+              >
+                <div className="flex items-start gap-2">
+                  <div className="mt-1 text-gray-400 cursor-grab">
+                    <GripVertical size={14} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-medium text-gray-500">#{index + 1}</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                        q.type === 'multiple_choice' ? 'bg-blue-100 text-blue-700' :
+                        q.type === 'true_false' ? 'bg-purple-100 text-purple-700' :
+                        'bg-orange-100 text-orange-700'
+                      }`}>
+                        {q.type === 'multiple_choice' ? 'Múltipla escolha' :
+                         q.type === 'true_false' ? 'V/F' : 'Resposta curta'}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-700 line-clamp-2">
+                      {q.text || 'Pergunta não definida'}
+                    </p>
+                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                      <span className="flex items-center gap-1">
+                        <FileQuestion size={12} />
+                        {q.points} pts
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Check size={12} />
+                        {q.options.filter(o => o).length} opções
+                      </span>
                     </div>
                   </div>
-                ))}
+                  <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); duplicateQuestion(index); }}
+                      className="p-1 hover:bg-gray-200 rounded"
+                    >
+                      <Copy size={12} className="text-gray-500" />
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); deleteQuestion(index); }}
+                      className="p-1 hover:bg-red-100 rounded"
+                    >
+                      <Trash2 size={12} className="text-red-500" />
+                    </button>
+                  </div>
+                </div>
               </div>
-            )}
+            ))}
           </div>
+          
+          {/* Resumo */}
+          <div className="p-4 border-t border-gray-100 bg-gray-50">
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <p className="text-gray-500">Total Pontos</p>
+                <p className="font-bold text-gray-900">
+                  {exam.questions.reduce((sum, q) => sum + q.points, 0)} pts
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-500">Questões</p>
+                <p className="font-bold text-gray-900">{exam.questions.length}</p>
+              </div>
+            </div>
+          </div>
+        </aside>
 
-          {/* Current Question Editor */}
-          {currentQuestion && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">
-                Questão {currentQuestionIndex + 1}
-              </h3>
-
-              <div className="space-y-6">
-                {/* Question Type */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tipo de Questão
-                  </label>
-                  <div className="flex gap-4">
-                    <button
-                      type="button"
-                      onClick={() => updateQuestion(currentQuestionIndex, { type: 'MULTIPLE_CHOICE', options: ['', '', '', ''] })}
-                      className={`px-4 py-2 rounded-lg border-2 transition-colors ${
-                        currentQuestion.type === 'MULTIPLE_CHOICE'
-                          ? 'border-green-600 bg-green-50 text-green-700'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
+        {/* Main Content */}
+        <main className="flex-1 p-6">
+          {currentQuestion ? (
+            <div className="max-w-3xl mx-auto">
+              {/* Informações do Exame */}
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Informações do Exame</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Título do Exame</label>
+                    <input
+                      type="text"
+                      value={exam.title}
+                      onChange={(e) => { setExam({ ...exam, title: e.target.value }); setHasUnsavedChanges(true); }}
+                      placeholder="Ex: Matemática UEM 2024"
+                      className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Instituição</label>
+                    <select
+                      value={exam.institution}
+                      onChange={(e) => { setExam({ ...exam, institution: e.target.value }); setHasUnsavedChanges(true); }}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
                     >
-                      Múltipla Escolha
+                      <option value="">Selecionar...</option>
+                      {institutions.map(i => <option key={i} value={i}>{i}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Disciplina</label>
+                    <select
+                      value={exam.subject}
+                      onChange={(e) => { setExam({ ...exam, subject: e.target.value }); setHasUnsavedChanges(true); }}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+                    >
+                      <option value="">Selecionar...</option>
+                      {subjects.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Duração (minutos)</label>
+                    <input
+                      type="number"
+                      value={exam.duration}
+                      onChange={(e) => { setExam({ ...exam, duration: parseInt(e.target.value) || 60 }); setHasUnsavedChanges(true); }}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Preço (MZN)</label>
+                    <input
+                      type="number"
+                      value={exam.price}
+                      onChange={(e) => { setExam({ ...exam, price: parseInt(e.target.value) || 0 }); setHasUnsavedChanges(true); }}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Editor de Questão */}
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-gray-900">
+                    Questão {activeQuestion + 1}
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => moveQuestion(activeQuestion, 'up')}
+                      disabled={activeQuestion === 0}
+                      className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50"
+                    >
+                      <ChevronUp size={18} className="text-gray-500" />
                     </button>
                     <button
-                      type="button"
-                      onClick={() => updateQuestion(currentQuestionIndex, { type: 'TRUE_FALSE', options: ['Verdadeiro', 'Falso'] })}
-                      className={`px-4 py-2 rounded-lg border-2 transition-colors ${
-                        currentQuestion.type === 'TRUE_FALSE'
-                          ? 'border-green-600 bg-green-50 text-green-700'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
+                      onClick={() => moveQuestion(activeQuestion, 'down')}
+                      disabled={activeQuestion === exam.questions.length - 1}
+                      className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50"
                     >
-                      Verdadeiro / Falso
+                      <ChevronDown size={18} className="text-gray-500" />
                     </button>
                   </div>
                 </div>
 
-                {/* Question Text */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Texto da Questão *
-                  </label>
-                  <textarea
-                    value={currentQuestion.text}
-                    onChange={(e) => updateQuestion(currentQuestionIndex, { text: e.target.value })}
-                    placeholder="Digite o enunciado da questão..."
-                    rows={3}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  />
-                </div>
-
-                {/* Statement Image */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Imagem do Enunciado (opcional)
-                  </label>
-                  <div className="flex items-start gap-4">
-                    {currentQuestion.statementImage ? (
-                      <div className="relative">
-                        <img
-                          src={currentQuestion.statementImage}
-                          alt="Enunciado"
-                          className="w-32 h-32 object-cover rounded-lg border"
-                        />
-                        <button
-                          onClick={() => updateQuestion(currentQuestionIndex, { statementImage: null })}
-                          className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full"
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                    ) : (
-                      <label className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-green-500 hover:bg-green-50">
-                        <Image size={24} className="text-gray-400" />
-                        <span className="text-xs text-gray-500 mt-1">Upload</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleImageUpload(file, 'statement', currentQuestionIndex);
-                          }}
-                        />
-                      </label>
-                    )}
-                  </div>
-                </div>
-
-                {/* Options */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Opções de Resposta *
-                  </label>
-                  <div className="space-y-3">
-                    {currentQuestion.options.map((option, optionIndex) => (
-                      <div key={optionIndex} className="flex items-center gap-3">
-                        <button
-                          onClick={() => updateQuestion(currentQuestionIndex, { correctOption: optionIndex })}
-                          className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors ${
-                            currentQuestion.correctOption === optionIndex
-                              ? 'border-green-600 bg-green-600 text-white'
-                              : 'border-gray-300 hover:border-gray-400'
-                          }`}
-                        >
-                          {currentQuestion.correctOption === optionIndex && <Check size={16} />}
-                        </button>
-                        <input
-                          type="text"
-                          value={option}
-                          onChange={(e) => updateOption(currentQuestionIndex, optionIndex, e.target.value)}
-                          placeholder={`Opção ${optionIndex + 1}`}
-                          className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                        />
-                        {currentQuestion.optionImages?.[optionIndex] ? (
-                          <div className="relative">
-                            <img
-                              src={currentQuestion.optionImages[optionIndex]}
-                              alt={`Opção ${optionIndex + 1}`}
-                              className="w-12 h-12 object-cover rounded border"
-                            />
-                          </div>
-                        ) : (
-                          <label className="p-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-                            <Image size={20} className="text-gray-500" />
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) handleImageUpload(file, 'option', currentQuestionIndex, optionIndex);
-                              }}
-                            />
-                          </label>
-                        )}
-                      </div>
+                {/* Tipo de Questão */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Questão</label>
+                  <div className="flex gap-2">
+                    {[
+                      { value: 'multiple_choice', label: 'Múltipla Escolha' },
+                      { value: 'true_false', label: 'Verdadeiro/Falso' },
+                      { value: 'short_answer', label: 'Resposta Curta' },
+                    ].map((type) => (
+                      <button
+                        key={type.value}
+                        onClick={() => updateQuestion(activeQuestion, { type: type.value as QuestionType })}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                          currentQuestion.type === type.value
+                            ? 'bg-green-600 text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        {type.label}
+                      </button>
                     ))}
                   </div>
-                  <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
-                    <Check size={12} className="text-green-600" />
-                    Clique no botão ao lado da opção para marcá-la como correta
-                  </p>
                 </div>
 
-                {/* Explanation */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Explicação (opcional)
-                  </label>
+                {/* Pergunta */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Pergunta</label>
                   <textarea
-                    value={currentQuestion.explanation}
-                    onChange={(e) => updateQuestion(currentQuestionIndex, { explanation: e.target.value })}
-                    placeholder="Explique a resposta correta..."
-                    rows={2}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    value={currentQuestion.text}
+                    onChange={(e) => updateQuestion(activeQuestion, { text: e.target.value })}
+                    placeholder="Digite a pergunta aqui..."
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
                   />
                 </div>
+
+                {/* Opções (para múltipla escolha) */}
+                {currentQuestion.type === 'multiple_choice' && (
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Opções de Resposta</label>
+                    <div className="space-y-2">
+                      {currentQuestion.options.map((option, index) => (
+                        <div key={index} className="flex items-center gap-3">
+                          <button
+                            onClick={() => updateQuestion(activeQuestion, { correctAnswer: index })}
+                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
+                              currentQuestion.correctAnswer === index
+                                ? 'bg-green-600 border-green-600'
+                                : 'border-gray-300 hover:border-green-500'
+                            }`}
+                          >
+                            {currentQuestion.correctAnswer === index && (
+                              <Check size={14} className="text-white" />
+                            )}
+                          </button>
+                          <input
+                            type="text"
+                            value={option}
+                            onChange={(e) => {
+                              const newOptions = [...currentQuestion.options];
+                              newOptions[index] = e.target.value;
+                              updateQuestion(activeQuestion, { options: newOptions });
+                            }}
+                            placeholder={`Opção ${index + 1}`}
+                            className="flex-1 px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+                          />
+                          <button className="p-2 hover:bg-red-50 rounded-lg">
+                            <X size={16} className="text-gray-400" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => {
+                        const newOptions = [...currentQuestion.options, ''];
+                        updateQuestion(activeQuestion, { options: newOptions });
+                      }}
+                      disabled={currentQuestion.options.length >= 6}
+                      className="mt-2 flex items-center gap-2 px-3 py-1.5 text-sm text-green-600 hover:bg-green-50 rounded-lg disabled:opacity-50"
+                    >
+                      <Plus size={14} />
+                      Adicionar Opção
+                    </button>
+                  </div>
+                )}
+
+                {/* True/False */}
+                {currentQuestion.type === 'true_false' && (
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Resposta Correta</label>
+                    <div className="flex gap-4">
+                      {['Verdadeiro', 'Falso'].map((option, index) => (
+                        <button
+                          key={option}
+                          onClick={() => updateQuestion(activeQuestion, { correctAnswer: index })}
+                          className={`flex-1 py-3 rounded-xl text-sm font-medium transition-colors ${
+                            currentQuestion.correctAnswer === index
+                              ? 'bg-green-600 text-white'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Pontos e Explicação */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Pontos</label>
+                    <input
+                      type="number"
+                      value={currentQuestion.points}
+                      onChange={(e) => updateQuestion(activeQuestion, { points: parseInt(e.target.value) || 1 })}
+                      min={1}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Explicação (opcional)</label>
+                    <input
+                      type="text"
+                      value={currentQuestion.explanation || ''}
+                      onChange={(e) => updateQuestion(activeQuestion, { explanation: e.target.value })}
+                      placeholder="Por que esta resposta..."
+                      className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                </div>
               </div>
+
+              {/* Botões de Ação */}
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => deleteQuestion(activeQuestion)}
+                  disabled={exam.questions.length === 1}
+                  className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl disabled:opacity-50"
+                >
+                  <Trash2 size={16} />
+                  Eliminar Questão
+                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setActiveQuestion(Math.max(0, activeQuestion - 1))}
+                    disabled={activeQuestion === 0}
+                    className="px-4 py-2 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    Anterior
+                  </button>
+                  <button
+                    onClick={() => setActiveQuestion(Math.min(exam.questions.length - 1, activeQuestion + 1))}
+                    disabled={activeQuestion === exam.questions.length - 1}
+                    className="px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-50"
+                  >
+                    Próxima Questão
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <FileQuestion size={48} className="mx-auto text-gray-300 mb-4" />
+              <p className="text-gray-500">Selecione uma questão para editar</p>
             </div>
           )}
+        </main>
 
-          <div className="flex justify-between">
-            <button
-              onClick={() => setCurrentStep(1)}
-              className="px-6 py-2.5 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 flex items-center gap-2"
-            >
-              <ChevronLeft size={20} />
-              Voltar
-            </button>
-            <button
-              onClick={() => setCurrentStep(3)}
-              disabled={!canProceedToStep3}
-              className="px-6 py-2.5 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              Próximo: Revisão
-              <ChevronRight size={20} />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Step 3: Review */}
-      {currentStep === 3 && (
-        <div className="space-y-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-6">Revisão do Exame</h2>
-
+        {/* Settings Panel */}
+        {showSettings && (
+          <aside className="w-80 bg-white border-l border-gray-200 min-h-[calc(100vh-73px)] sticky top-[73px] p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Configurações do Exame</h3>
+            
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500">Título</p>
-                  <p className="font-medium">{formData.title}</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Aleatorizar Questões</p>
+                  <p className="text-xs text-gray-500">Misturar ordem das questões</p>
                 </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500">Disciplina</p>
-                  <p className="font-medium">
-                    {disciplines.find((d) => d.id === formData.disciplineId)?.name || '-'}
-                  </p>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500">Duração</p>
-                  <p className="font-medium">{formData.duration} minutos</p>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-500">Tipo de Acesso</p>
-                  <p className={`font-medium ${formData.accessType === 'PAID' ? 'text-red-600' : 'text-green-600'}`}>
-                    {formData.accessType === 'FREE' ? 'Grátis' : `Pago - ${formData.price} MZN`}
-                  </p>
-                </div>
+                <button
+                  onClick={() => setExam({ ...exam, settings: { ...exam.settings, randomizeQuestions: !exam.settings.randomizeQuestions } })}
+                  className={`w-12 h-6 rounded-full transition-colors ${
+                    exam.settings.randomizeQuestions ? 'bg-green-600' : 'bg-gray-200'
+                  }`}
+                >
+                  <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                    exam.settings.randomizeQuestions ? 'translate-x-6' : 'translate-x-0.5'
+                  }`} />
+                </button>
               </div>
 
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-500 mb-2">Questões ({questions.length})</p>
-                <div className="space-y-2">
-                  {questions.map((q, i) => (
-                    <div key={q.id} className="flex items-start gap-2 text-sm">
-                      <span className="font-medium">#{i + 1}</span>
-                      <span className="line-clamp-1">{q.text || 'Sem texto'}</span>
-                      {q.statementImage && (
-                        <Image size={14} className="text-gray-400 flex-shrink-0" />
-                      )}
-                    </div>
-                  ))}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Mostrar Resultados</p>
+                  <p className="text-xs text-gray-500">Exibir nota após conclusão</p>
                 </div>
+                <button
+                  onClick={() => setExam({ ...exam, settings: { ...exam.settings, showResults: !exam.settings.showResults } })}
+                  className={`w-12 h-6 rounded-full transition-colors ${
+                    exam.settings.showResults ? 'bg-green-600' : 'bg-gray-200'
+                  }`}
+                >
+                  <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                    exam.settings.showResults ? 'translate-x-6' : 'translate-x-0.5'
+                  }`} />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Permitir Revisão</p>
+                  <p className="text-xs text-gray-500">Revisar respostas após teste</p>
+                </div>
+                <button
+                  onClick={() => setExam({ ...exam, settings: { ...exam.settings, allowReview: !exam.settings.allowReview } })}
+                  className={`w-12 h-6 rounded-full transition-colors ${
+                    exam.settings.allowReview ? 'bg-green-600' : 'bg-gray-200'
+                  }`}
+                >
+                  <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                    exam.settings.allowReview ? 'translate-x-6' : 'translate-x-0.5'
+                  }`} />
+                </button>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Máximo de Tentativas</label>
+                <input
+                  type="number"
+                  value={exam.settings.maxAttempts}
+                  onChange={(e) => setExam({ ...exam, settings: { ...exam.settings, maxAttempts: parseInt(e.target.value) || 1 } })}
+                  min={1}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nota de Passagem (%)</label>
+                <input
+                  type="number"
+                  value={exam.passingScore}
+                  onChange={(e) => setExam({ ...exam, passingScore: parseInt(e.target.value) || 70 })}
+                  min={0}
+                  max={100}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
               </div>
             </div>
-          </div>
-
-          <div className="flex justify-between">
-            <button
-              onClick={() => setCurrentStep(2)}
-              className="px-6 py-2.5 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 flex items-center gap-2"
-            >
-              <ChevronLeft size={20} />
-              Voltar
-            </button>
-            <button
-              onClick={handleSubmit}
-              disabled={loading}
-              className="px-6 py-2.5 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Guardando...
-                </>
-              ) : (
-                <>
-                  <Save size={20} />
-                  Guardar Exame
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      )}
+          </aside>
+        )}
+      </div>
     </div>
   );
 }
