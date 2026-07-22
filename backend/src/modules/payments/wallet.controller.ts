@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, UseGuards, Request, Headers } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, UseGuards, Request, Headers, HttpCode } from '@nestjs/common';
 import { WalletService, PaymentMethod } from './wallet-service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 
@@ -7,10 +7,12 @@ export class WalletController {
   constructor(private readonly walletService: WalletService) {}
 
   /**
-   * Initiate payment with wallet method
+   * INICIAR PAGAMENTO via DébitO Pay
+   * POST /api/wallet/initiate
    */
   @Post('initiate')
   @UseGuards(JwtAuthGuard)
+  @HttpCode(200)
   async initiatePayment(
     @Request() req,
     @Body() body: { examId: string; method: PaymentMethod; phone: string; amount: number }
@@ -18,19 +20,12 @@ export class WalletController {
     const { examId, method, phone, amount } = body;
     const userId = req.user.id;
 
-    const result = await this.walletService.initiatePayment(
-      userId,
-      examId,
-      method,
-      phone,
-      amount
-    );
-
-    return result;
+    return this.walletService.initiatePayment(userId, examId, method, phone, amount);
   }
 
   /**
-   * Get transaction status by reference
+   * VERIFICAR STATUS DA TRANSAÇÃO
+   * GET /api/wallet/status/:reference
    */
   @Get('status/:reference')
   async getTransactionStatus(@Param('reference') reference: string) {
@@ -38,7 +33,8 @@ export class WalletController {
   }
 
   /**
-   * Get user transactions
+   * OBTER TRANSAÇÕES DO USUÁRIO
+   * GET /api/wallet/transactions
    */
   @Get('transactions')
   @UseGuards(JwtAuthGuard)
@@ -47,7 +43,8 @@ export class WalletController {
   }
 
   /**
-   * Check exam access
+   * VERIFICAR ACESSO AO EXAME
+   * GET /api/wallet/access/:examId
    */
   @Get('access/:examId')
   @UseGuards(JwtAuthGuard)
@@ -57,38 +54,35 @@ export class WalletController {
   }
 
   /**
-   * M-Pesa Webhook Callback
+   * WEBHOOK da DébitO Pay (M-Pesa e e-Mola)
+   * POST /api/wallet/webhooks/debito
+   * 
+   * A DébitO Pay envia notificações para esta URL
+   * quando o pagamento é confirmado ou recusado.
+   */
+  @Post('webhooks/debito')
+  @HttpCode(200)
+  async handleDebitoWebhook(@Body() body: any) {
+    return this.walletService.handleWebhook(body);
+  }
+
+  /**
+   * WEBHOOK M-Pesa (alternativo)
+   * POST /api/wallet/webhooks/mpesa
    */
   @Post('webhooks/mpesa')
-  async handleMpesaWebhook(
-    @Body() body: any,
-    @Headers('x-mpesa-signature') signature: string
-  ) {
-    // In production, verify signature
-    return this.walletService.handleMpesaCallback(body);
+  @HttpCode(200)
+  async handleMpesaWebhook(@Body() body: any) {
+    return this.walletService.handleWebhook(body);
   }
 
   /**
-   * eMola Webhook Callback
+   * WEBHOOK e-Mola (alternativo)
+   * POST /api/wallet/webhooks/emola
    */
   @Post('webhooks/emola')
-  async handleEmolaWebhook(
-    @Body() body: any,
-    @Headers('x-emola-signature') signature: string
-  ) {
-    // In production, verify signature
-    return this.walletService.handleEmolaCallback(body);
-  }
-
-  /**
-   * DebitPay Webhook Callback
-   */
-  @Post('webhooks/debitpay')
-  async handleDebitPayWebhook(
-    @Body() body: any,
-    @Headers('x-debitpay-signature') signature: string
-  ) {
-    // In production, verify signature
-    return this.walletService.handleDebitPayCallback(body);
+  @HttpCode(200)
+  async handleEmolaWebhook(@Body() body: any) {
+    return this.walletService.handleWebhook(body);
   }
 }

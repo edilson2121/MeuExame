@@ -25,6 +25,7 @@ export declare class AuthController {
             name: string;
             createdAt: Date;
             updatedAt: Date;
+            hasFullAccess: boolean;
             email: string;
             avatar: string | null;
             phone: string | null;
@@ -53,6 +54,7 @@ export declare class AuthController {
             name: string;
             createdAt: Date;
             updatedAt: Date;
+            hasFullAccess: boolean;
             email: string;
             avatar: string | null;
             phone: string | null;
@@ -68,6 +70,7 @@ export declare class AuthController {
             name: string;
             createdAt: Date;
             updatedAt: Date;
+            hasFullAccess: boolean;
             email: string;
             avatar: string | null;
             phone: string | null;

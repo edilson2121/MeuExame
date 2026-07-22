@@ -31,8 +31,9 @@ let ExamsController = class ExamsController {
     findAll() {
         return this.examsService.findAll();
     }
-    findOne(id) {
-        return this.examsService.findOne(id);
+    async findOne(id, req) {
+        const userId = req.user?.id;
+        return this.examsService.findOneWithAccess(id, userId);
     }
     findBySubject(subjectId) {
         return this.examsService.findBySubject(subjectId);
@@ -55,6 +56,14 @@ let ExamsController = class ExamsController {
     publish(id) {
         return this.examsService.publishExam(id);
     }
+    submitExam(id, submitExamDto, req) {
+        const userId = req.user?.id;
+        return this.examsService.submitExam(id, userId, submitExamDto.answers);
+    }
+    checkAccess(id, req) {
+        const userId = req.user?.id;
+        return this.examsService.checkExamAccess(id, userId);
+    }
 };
 exports.ExamsController = ExamsController;
 __decorate([
@@ -75,9 +84,10 @@ __decorate([
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
 ], ExamsController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Get)('subject/:subjectId'),
@@ -141,6 +151,25 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], ExamsController.prototype, "publish", null);
+__decorate([
+    (0, common_1.Post)(':id/submit'),
+    (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", void 0)
+], ExamsController.prototype, "submitExam", null);
+__decorate([
+    (0, common_1.Get)(':id/access'),
+    (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], ExamsController.prototype, "checkAccess", null);
 exports.ExamsController = ExamsController = __decorate([
     (0, common_1.Controller)('exams'),
     __metadata("design:paramtypes", [exams_service_1.ExamsService])

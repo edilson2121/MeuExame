@@ -29,6 +29,7 @@ export declare class ExercisesService {
             name: string;
             createdAt: Date;
             updatedAt: Date;
+            hasFullAccess: boolean;
             email: string;
             password: string;
             avatar: string | null;
@@ -74,6 +75,7 @@ export declare class ExercisesService {
             name: string;
             createdAt: Date;
             updatedAt: Date;
+            hasFullAccess: boolean;
             email: string;
             password: string;
             avatar: string | null;

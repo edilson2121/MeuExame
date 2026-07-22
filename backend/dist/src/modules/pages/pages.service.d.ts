@@ -26,6 +26,7 @@ export declare class PagesService {
             name: string;
             createdAt: Date;
             updatedAt: Date;
+            hasFullAccess: boolean;
             email: string;
             password: string;
             avatar: string | null;

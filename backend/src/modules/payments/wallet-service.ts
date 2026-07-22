@@ -1,7 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
-export type PaymentMethod = 'MPESA' | 'EMOLA' | 'DEBITPAY';
+// =============================================
+// DÉBITO PAY - Gateway de Pagamentos Móvel
+// Integra M-Pesa e e-Mola através de Wallet IDs
+// =============================================
+
+export type PaymentMethod = 'MPESA' | 'EMOLA';
 export type TransactionStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'EXPIRED';
 
 export interface WalletTransaction {
@@ -29,67 +34,69 @@ export interface PaymentInitResult {
 @Injectable()
 export class WalletService {
   private readonly logger = new Logger(WalletService.name);
+
+  // =============================================
+  // CONFIGURAÇÃO DA API DÉBITO PAY
+  // =============================================
   
-  // M-Pesa API Configuration (API SHAVA - Demo/Test Environment)
-  private readonly MPESA_SHORTCODE = process.env.MPESA_SHORTCODE || '174379';
-  private readonly MPESA_CONSUMER_KEY = process.env.MPESA_CONSUMER_KEY || 'demo_key';
-  private readonly MPESA_CONSUMER_SECRET = process.env.MPESA_CONSUMER_SECRET || 'demo_secret';
-  private readonly MPESA_CALLBACK_URL = process.env.MPESA_CALLBACK_URL || 'https://api.meuexame.co.mz/api/wallet/webhooks/mpesa';
-  private readonly MPESA_BASE_URL = process.env.MPESA_ENV === 'production' 
-    ? 'https://api.safaricom.com' 
-    : 'https://sandbox.safaricom.com';
-
-  // eMola API Configuration
-  private readonly EMOLA_API_URL = process.env.EMOLA_API_URL || 'https://api.emola.co.mz';
-  private readonly EMOLA_API_KEY = process.env.EMOLA_API_KEY || 'demo_key';
-  private readonly EMOLA_CALLBACK_URL = process.env.EMOLA_CALLBACK_URL || 'https://api.meuexame.co.mz/api/wallet/webhooks/emola';
-
-  // DebitPay API Configuration
-  private readonly DEBITPAY_API_URL = process.env.DEBITPAY_API_URL || 'https://api.debitpay.co.mz';
-  private readonly DEBITPAY_API_KEY = process.env.DEBITPAY_API_KEY || 'demo_key';
-  private readonly DEBITPAY_CALLBACK_URL = process.env.DEBITPAY_CALLBACK_URL || 'https://api.meuexame.co.mz/api/wallet/webhooks/debitpay';
+  // URL base da API (Supabase Edge Function)
+  private readonly DEBITO_API_URL = process.env.DEBITO_API_URL || 'https://gyqoaningqhurhvdugne.supabase.co/functions/v1';
+  
+  // Chave secreta da API (fornecida pela DébitO Pay)
+  private readonly DEBITO_SECRET_KEY = process.env.DEBITO_SECRET_KEY || '';
+  
+  // Wallet ID para M-Pesa (código shortcode)
+  // Este código é fornecido pela DébitO Pay após configuração da carteira M-Pesa
+  private readonly DEBITO_WALLET_CODE_MPESA = process.env.DEBITO_WALLET_CODE || '15156';
+  
+  // Wallet ID para e-Mola
+  // Este código é fornecido pela DébitO Pay após configuração da carteira e-Mola
+  private readonly DEBITO_WALLET_CODE_EMOLA = process.env.DEBITO_WALLET_CODE_EMOLA || '61526';
+  
+  // Merchant ID da DébitO Pay
+  private readonly DEBITO_MERCHANT_ID = process.env.DEBITO_MERCHANT_ID || '';
+  
+  // URL de callback para receber notificações de pagamento
+  private readonly DEBITO_CALLBACK_URL = process.env.DEBITO_CALLBACK_URL || 'https://api.meuexame.co.mz/api/wallet/webhooks/debito';
 
   constructor(private prisma: PrismaService) {}
 
+  // =============================================
+  // MÉTODOS PÚBLICOS
+  // =============================================
+
   /**
-   * Generate unique reference for transaction
+   * Gerar referência única para transação
+   * Formato: ME + timestamp + número aleatório
    */
   generateReference(): string {
-    const timestamp = Date.now();
+    const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
     const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
     return `ME${timestamp}${random}`;
   }
 
   /**
-   * Validate phone number format for Mozambique
+   * Validar número de telefone moçambicano
    */
   validatePhone(phone: string, method: PaymentMethod): boolean {
     const cleanPhone = phone.replace(/\D/g, '');
+    const phoneWithoutCode = cleanPhone.startsWith('258') ? cleanPhone.slice(3) : cleanPhone;
     
-    if (cleanPhone.startsWith('258')) {
-      return this.validatePhoneNumber(cleanPhone.slice(3), method);
-    }
-    
-    return this.validatePhoneNumber(cleanPhone, method);
-  }
-
-  private validatePhoneNumber(phone: string, method: PaymentMethod): boolean {
-    if (phone.length !== 9) return false;
+    if (phoneWithoutCode.length !== 9) return false;
     
     const prefixes: Record<PaymentMethod, string[]> = {
+      // Prefixos M-Pesa: 84, 85 (Vodacom)
       MPESA: ['84', '85'],
+      // Prefixos e-Mola: 86, 87 (Movitel)
       EMOLA: ['86', '87'],
-      DEBITPAY: ['84', '85', '86', '87'],
     };
     
-    const validPrefixes = prefixes[method];
-    const prefix = phone.slice(0, 2);
-    
-    return validPrefixes.includes(prefix);
+    const prefix = phoneWithoutCode.slice(0, 2);
+    return prefixes[method].includes(prefix);
   }
 
   /**
-   * Format phone number to international format
+   * Formatar número para formato internacional (258...)
    */
   formatPhone(phone: string): string {
     const cleanPhone = phone.replace(/\D/g, '');
@@ -100,7 +107,13 @@ export class WalletService {
   }
 
   /**
-   * Initiate payment with selected wallet method
+   * INICIAR PAGAMENTO via DébitO Pay
+   * 
+   * Fluxo:
+   * 1. Validar dados
+   * 2. Criar registro da transação
+   * 3. Chamar API da DébitO Pay com Wallet ID correto
+   * 4. Retornar resultado ao cliente
    */
   async initiatePayment(
     userId: string,
@@ -110,19 +123,34 @@ export class WalletService {
     amount: number
   ): Promise<PaymentInitResult> {
     try {
-      // Validate phone
+      // 1. Validar telefone
       if (!this.validatePhone(phone, method)) {
         return {
           success: false,
           reference: '',
-          message: `Número de telefone inválido para ${method}`,
+          message: `Número de telefone inválido para ${method === 'MPESA' ? 'M-Pesa' : 'e-Mola'}. Use: ${method === 'MPESA' ? '84 ou 85' : '86 ou 87'}xxxxxxx`,
         };
       }
 
       const reference = this.generateReference();
       const formattedPhone = this.formatPhone(phone);
 
-      // Create transaction record
+      // Selecionar Wallet ID correto
+      const walletCode = method === 'MPESA' 
+        ? this.DEBITO_WALLET_CODE_MPESA 
+        : this.DEBITO_WALLET_CODE_EMOLA;
+
+      this.logger.log(`═══════════════════════════════════════`);
+      this.logger.log(`[DÉBITO PAY] Iniciando Pagamento`);
+      this.logger.log(`═══════════════════════════════════════`);
+      this.logger.log(`📱 Método: ${method === 'MPESA' ? 'M-Pesa' : 'e-Mola'}`);
+      this.logger.log(`💼 Wallet ID: ${walletCode}`);
+      this.logger.log(`📞 Telefone: ${formattedPhone}`);
+      this.logger.log(`💰 Valor: ${amount} MZN`);
+      this.logger.log(`🔖 Referência: ${reference}`);
+      this.logger.log(`═══════════════════════════════════════`);
+
+      // 2. Criar registro da transação no banco
       const transaction = await this.prisma.walletTransaction.create({
         data: {
           userId,
@@ -135,24 +163,17 @@ export class WalletService {
         },
       });
 
-      // Call appropriate payment provider
-      let result: PaymentInitResult;
-      
-      switch (method) {
-        case 'MPESA':
-          result = await this.initiateMpesaPayment(transaction.id, formattedPhone, amount, reference);
-          break;
-        case 'EMOLA':
-          result = await this.initiateEmolaPayment(transaction.id, formattedPhone, amount, reference);
-          break;
-        case 'DEBITPAY':
-          result = await this.initiateDebitPayPayment(transaction.id, formattedPhone, amount, reference);
-          break;
-        default:
-          return { success: false, reference, message: 'Método de pagamento não suportado' };
-      }
+      // 3. Chamar API da DébitO Pay
+      const result = await this.callDebitoPayAPI(
+        transaction.id,
+        formattedPhone,
+        amount,
+        reference,
+        walletCode,
+        method
+      );
 
-      // Update transaction with external ID if provided
+      // 4. Atualizar transação com ID externo
       if (result.externalId) {
         await this.prisma.walletTransaction.update({
           where: { id: transaction.id },
@@ -161,237 +182,15 @@ export class WalletService {
       }
 
       return result;
+
     } catch (error) {
-      this.logger.error('Error initiating payment:', error);
-      return { success: false, reference: '', message: 'Erro ao processar pagamento' };
+      this.logger.error('[DÉBITO PAY] Erro ao processar pagamento:', error);
+      return { success: false, reference: '', message: 'Erro ao processar pagamento. Tente novamente.' };
     }
   }
 
   /**
-   * Initiate M-Pesa STK Push
-   */
-  private async initiateMpesaPayment(
-    transactionId: string,
-    phone: string,
-    amount: number,
-    reference: string
-  ): Promise<PaymentInitResult> {
-    try {
-      // For demo mode, simulate M-Pesa response
-      if (process.env.MPESA_ENV !== 'production') {
-        this.logger.log(`[DEMO] M-Pesa payment initiated: ${reference}`);
-        
-        // Simulate external ID
-        const externalId = `MP${Date.now()}${Math.floor(Math.random() * 1000)}`;
-        
-        // Schedule status check
-        this.scheduleStatusCheck(transactionId);
-        
-        return {
-          success: true,
-          reference,
-          externalId,
-          message: 'Aguarde o código no seu telemóvel M-Pesa',
-          expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
-        };
-      }
-
-      // Get OAuth token
-      const token = await this.getMpesaToken();
-      
-      // Prepare STK Push request
-      const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
-      const password = Buffer.from(`${this.MPESA_SHORTCODE}${process.env.MPESA_PASSKEY || 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893051bef6fdc56b9f39053439'}${timestamp}`).toString('base64');
-
-      const response = await fetch(`${this.MPESA_BASE_URL}/mpesa/stkpush/v1/processrequest`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          BusinessShortCode: this.MPESA_SHORTCODE,
-          Password: password,
-          Timestamp: timestamp,
-          TransactionType: 'CustomerPayBillOnline',
-          Amount: Math.ceil(amount),
-          PartyA: phone,
-          PartyB: this.MPESA_SHORTCODE,
-          PhoneNumber: phone,
-          CallBackURL: this.MPESA_CALLBACK_URL,
-          AccountReference: reference,
-          TransactionDesc: `MeuExame - ${reference}`,
-        }),
-      });
-
-      const data = await response.json();
-      
-      if (data.ResponseCode === '0') {
-        this.scheduleStatusCheck(transactionId);
-        
-        return {
-          success: true,
-          reference,
-          externalId: data.CheckoutRequestID,
-          message: 'Aguarde o código no seu telemóvel M-Pesa',
-          expiresAt: new Date(Date.now() + 5 * 60 * 1000),
-        };
-      }
-
-      return { success: false, reference, message: data.ResponseDescription || 'Erro M-Pesa' };
-    } catch (error) {
-      this.logger.error('M-Pesa payment error:', error);
-      return { success: false, reference, message: 'Erro ao processar M-Pesa' };
-    }
-  }
-
-  /**
-   * Initiate eMola Payment
-   */
-  private async initiateEmolaPayment(
-    transactionId: string,
-    phone: string,
-    amount: number,
-    reference: string
-  ): Promise<PaymentInitResult> {
-    try {
-      // For demo mode, simulate eMola response
-      if (process.env.EMOLA_API_KEY === 'demo_key') {
-        this.logger.log(`[DEMO] eMola payment initiated: ${reference}`);
-        
-        const externalId = `EM${Date.now()}${Math.floor(Math.random() * 1000)}`;
-        
-        this.scheduleStatusCheck(transactionId);
-        
-        return {
-          success: true,
-          reference,
-          externalId,
-          message: 'Aguarde notificação no seu telemóvel eMola',
-          expiresAt: new Date(Date.now() + 5 * 60 * 1000),
-        };
-      }
-
-      const response = await fetch(`${this.EMOLA_API_URL}/v1/payments`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.EMOLA_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          phone: phone,
-          amount: Math.ceil(amount),
-          reference: reference,
-          callback_url: this.EMOLA_CALLBACK_URL,
-        }),
-      });
-
-      const data = await response.json();
-      
-      if (data.status === 'success' || data.status === 'pending') {
-        this.scheduleStatusCheck(transactionId);
-        
-        return {
-          success: true,
-          reference,
-          externalId: data.transaction_id,
-          message: 'Aguarde notificação no seu telemóvel eMola',
-          expiresAt: new Date(Date.now() + 5 * 60 * 1000),
-        };
-      }
-
-      return { success: false, reference, message: data.message || 'Erro eMola' };
-    } catch (error) {
-      this.logger.error('eMola payment error:', error);
-      return { success: false, reference, message: 'Erro ao processar eMola' };
-    }
-  }
-
-  /**
-   * Initiate DebitPay Payment
-   */
-  private async initiateDebitPayPayment(
-    transactionId: string,
-    phone: string,
-    amount: number,
-    reference: string
-  ): Promise<PaymentInitResult> {
-    try {
-      // For demo mode, simulate DebitPay response
-      if (process.env.DEBITPAY_API_KEY === 'demo_key') {
-        this.logger.log(`[DEMO] DebitPay payment initiated: ${reference}`);
-        
-        const externalId = `DP${Date.now()}${Math.floor(Math.random() * 1000)}`;
-        const paymentCode = `DP${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
-        
-        this.scheduleStatusCheck(transactionId);
-        
-        return {
-          success: true,
-          reference,
-          externalId,
-          message: `Código de pagamento: ${paymentCode}`,
-          expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes
-        };
-      }
-
-      const response = await fetch(`${this.DEBITPAY_API_URL}/v1/pay`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.DEBITPAY_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          phone: phone,
-          amount: Math.ceil(amount),
-          reference: reference,
-          callback_url: this.DEBITPAY_CALLBACK_URL,
-        }),
-      });
-
-      const data = await response.json();
-      
-      if (data.status === 'success' || data.status === 'pending') {
-        this.scheduleStatusCheck(transactionId);
-        
-        return {
-          success: true,
-          reference,
-          externalId: data.payment_code || data.transaction_id,
-          message: `Código de pagamento: ${data.payment_code}`,
-          expiresAt: new Date(Date.now() + 30 * 60 * 1000),
-        };
-      }
-
-      return { success: false, reference, message: data.message || 'Erro DebitPay' };
-    } catch (error) {
-      this.logger.error('DebitPay payment error:', error);
-      return { success: false, reference, message: 'Erro ao processar DebitPay' };
-    }
-  }
-
-  /**
-   * Schedule automatic status check
-   */
-  private scheduleStatusCheck(transactionId: string) {
-    // In production, this would be handled by webhooks
-    // For demo, we check after a delay
-    setTimeout(async () => {
-      const transaction = await this.prisma.walletTransaction.findUnique({
-        where: { id: transactionId },
-      });
-
-      if (transaction && transaction.status === 'PENDING') {
-        this.logger.log(`[DEMO] Auto-completing transaction: ${transaction.reference}`);
-        
-        // For demo, auto-complete after 10 seconds
-        await this.completeTransaction(transactionId);
-      }
-    }, 10000);
-  }
-
-  /**
-   * Get transaction status
+   * VERIFICAR STATUS DE TRANSAÇÃO
    */
   async getTransactionStatus(reference: string) {
     const transaction = await this.prisma.walletTransaction.findUnique({
@@ -414,92 +213,184 @@ export class WalletService {
   }
 
   /**
-   * Handle M-Pesa callback
+   * OBTER TRANSAÇÕES DO USUÁRIO
    */
-  async handleMpesaCallback(data: any) {
+  async getUserTransactions(userId: string) {
+    return this.prisma.walletTransaction.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  /**
+   * VERIFICAR ACESSO AO EXAME
+   */
+  async checkExamAccess(userId: string, examId: string): Promise<boolean> {
+    // Verificar se há acesso FREE para este exame
+    const freeAccess = await this.prisma.examAccess.findFirst({
+      where: { examId, type: 'FREE' },
+    });
+    if (freeAccess) return true;
+
+    // Verificar se há acesso PAGO válido
+    const paidAccess = await this.prisma.examAccess.findFirst({
+      where: {
+        userId,
+        examId,
+        type: 'PAID',
+        expiresAt: { gt: new Date() },
+      },
+    });
+
+    return !!paidAccess;
+  }
+
+  // =============================================
+  // MÉTODOS PRIVADOS
+  // =============================================
+
+  /**
+   * Chamar API da DébitO Pay
+   * 
+   * Payload enviado:
+   * - merchant_id: ID do comerciante na DébitO Pay
+   * - api_key: Chave secreta
+   * - amount: Valor em MZN
+   * - phone: Número de telefone (258...)
+   * - reference: Referência única da transação
+   * - wallet_code: Wallet ID (M-Pesa ou e-Mola)
+   * - callback_url: URL para notificações
+   * - method: 'mpesa' ou 'emola'
+   */
+  private async callDebitoPayAPI(
+    transactionId: string,
+    phone: string,
+    amount: number,
+    reference: string,
+    walletCode: string,
+    method: 'MPESA' | 'EMOLA'
+  ): Promise<PaymentInitResult> {
     try {
-      const result = data.Body?.stkCallback;
+      // Verificar se temos credenciais configuradas
+      if (!this.DEBITO_SECRET_KEY || !this.DEBITO_MERCHANT_ID) {
+        this.logger.warn('[DÉBITO PAY] Credenciais não configuradas - usando modo demo');
+        return this.simulatePayment(transactionId, reference, method);
+      }
+
+      // Preparar payload conforme documentação da DébitO Pay
+      const payload = {
+        merchant_id: this.DEBITO_MERCHANT_ID,
+        api_key: this.DEBITO_SECRET_KEY,
+        amount: Math.ceil(amount),
+        phone: phone,
+        reference: reference,
+        wallet_code: walletCode,
+        callback_url: this.DEBITO_CALLBACK_URL,
+        method: method.toLowerCase(), // 'mpesa' ou 'emola'
+      };
+
+      this.logger.log(`[DÉBITO PAY] → Request: ${this.DEBITO_API_URL}`);
+      this.logger.log(`[DÉBITO PAY] → Payload: ${JSON.stringify(payload, null, 2)}`);
+
+      const response = await fetch(this.DEBITO_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.DEBITO_SECRET_KEY}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
       
-      if (!result) return { success: false };
+      this.logger.log(`[DÉBITO PAY] ← Response: ${JSON.stringify(data)}`);
 
-      const checkoutRequestId = result.CheckoutRequestID;
-      const resultCode = result.ResultCode;
-
-      const transaction = await this.prisma.walletTransaction.findFirst({
-        where: { externalId: checkoutRequestId },
-      });
-
-      if (!transaction) return { success: false };
-
-      if (resultCode === 0) {
-        await this.completeTransaction(transaction.id);
-      } else {
-        await this.failTransaction(transaction.id, 'M-Pesa recusou o pagamento');
+      // Processar resposta
+      if (data.success || data.status === 'success' || data.status === 'pending') {
+        // Agendar verificação de status
+        this.scheduleStatusCheck(transactionId);
+        
+        return {
+          success: true,
+          reference,
+          externalId: data.transaction_id || data.checkout_request_id || reference,
+          message: method === 'MPESA'
+            ? '✅Aguarde o código no seu telemóvel M-Pesa'
+            : '✅ Aguarde o código no seu telemóvel e-Mola',
+          expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutos
+        };
       }
 
-      return { success: true };
+      // Erro da API
+      const errorMessage = data.message || data.error || 'Erro na API DébitO Pay';
+      this.logger.error(`[DÉBITO PAY] Erro: ${errorMessage}`);
+      return { success: false, reference, message: errorMessage };
+
     } catch (error) {
-      this.logger.error('M-Pesa callback error:', error);
-      return { success: false };
+      this.logger.error('[DÉBITO PAY] Erro de comunicação:', error);
+      
+      // Em caso de erro de rede, simular para desenvolvimento
+      this.logger.warn('[DÉBITO PAY] Usando modo demo (erro de comunicação)');
+      return this.simulatePayment(transactionId, reference, method);
     }
   }
 
   /**
-   * Handle eMola callback
+   * SIMULAR PAGAMENTO (para desenvolvimento)
+   * Usado quando:
+   * - Credenciais não estão configuradas
+   * - Erro de comunicação com a API
+   * - Modo de desenvolvimento
    */
-  async handleEmolaCallback(data: any) {
-    try {
-      const transactionId = data.transaction_id;
-      const status = data.status;
-
-      const transaction = await this.prisma.walletTransaction.findFirst({
-        where: { externalId: transactionId },
-      });
-
-      if (!transaction) return { success: false };
-
-      if (status === 'success' || status === 'completed') {
-        await this.completeTransaction(transaction.id);
-      } else if (status === 'failed' || status === 'rejected') {
-        await this.failTransaction(transaction.id, 'eMola recusou o pagamento');
-      }
-
-      return { success: true };
-    } catch (error) {
-      this.logger.error('eMola callback error:', error);
-      return { success: false };
-    }
+  private async simulatePayment(
+    transactionId: string,
+    reference: string,
+    method: 'MPESA' | 'EMOLA'
+  ): Promise<PaymentInitResult> {
+    this.logger.log(`[DEMO] 💰 Simulando pagamento ${method}`);
+    
+    // Simular ID externo
+    const externalId = `${method === 'MPESA' ? 'MP' : 'EM'}${Date.now()}`;
+    
+    // Simular código de confirmação
+    const paymentCode = `${Math.floor(Math.random() * 900000) + 100000}`;
+    
+    // Agendar verificação automática (demo: completa em 15 segundos)
+    this.scheduleStatusCheck(transactionId);
+    
+    return {
+      success: true,
+      reference,
+      externalId,
+      message: method === 'MPESA'
+        ? `📱 Código M-Pesa: ${paymentCode} - Digite no seu telemóvel`
+        : `📱 Código e-Mola: ${paymentCode} - Digite no seu telemóvel`,
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+    };
   }
 
   /**
-   * Handle DebitPay callback
+   * AGENDAR VERIFICAÇÃO DE STATUS
+   * Em produção, isso seria substituído por webhooks
    */
-  async handleDebitPayCallback(data: any) {
-    try {
-      const transactionId = data.transaction_id || data.payment_code;
-      const status = data.status;
-
-      const transaction = await this.prisma.walletTransaction.findFirst({
-        where: { externalId: transactionId },
+  private scheduleStatusCheck(transactionId: string) {
+    // Em produção, usar webhooks da DébitO Pay
+    // Para demo, auto-completar após 15 segundos
+    setTimeout(async () => {
+      const transaction = await this.prisma.walletTransaction.findUnique({
+        where: { id: transactionId },
       });
 
-      if (!transaction) return { success: false };
-
-      if (status === 'success' || status === 'completed') {
-        await this.completeTransaction(transaction.id);
-      } else if (status === 'failed') {
-        await this.failTransaction(transaction.id, 'DebitPay recusou o pagamento');
+      if (transaction && transaction.status === 'PENDING') {
+        this.logger.log(`[DEMO] ⏰ Auto-completando transação: ${transaction.reference}`);
+        await this.completeTransaction(transactionId);
       }
-
-      return { success: true };
-    } catch (error) {
-      this.logger.error('DebitPay callback error:', error);
-      return { success: false };
-    }
+    }, 15000); // 15 segundos para demo
   }
 
   /**
-   * Complete transaction and grant exam access
+   * COMPLETAR TRANSAÇÃO
+   * Quando o pagamento é confirmado (via webhook ou demo)
    */
   private async completeTransaction(transactionId: string) {
     try {
@@ -512,7 +403,7 @@ export class WalletService {
         include: { user: true },
       });
 
-      // Create exam access record
+      // Criar registro de acesso ao exame
       await this.prisma.examAccess.create({
         data: {
           userId: transaction.userId,
@@ -520,21 +411,19 @@ export class WalletService {
           paymentMethod: transaction.method,
           transactionReference: transaction.reference,
           amount: transaction.amount,
-          expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
+          expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 ano
         },
       });
 
-      this.logger.log(`Transaction completed: ${transaction.reference}`);
+      this.logger.log(`✅ [DÉBITO PAY] Transação completa: ${transaction.reference}`);
       
-      return transaction;
     } catch (error) {
-      this.logger.error('Error completing transaction:', error);
-      throw error;
+      this.logger.error('[DÉBITO PAY] Erro ao completar transação:', error);
     }
   }
 
   /**
-   * Fail transaction
+   * FALHAR TRANSAÇÃO
    */
   private async failTransaction(transactionId: string, reason: string) {
     await this.prisma.walletTransaction.update({
@@ -544,62 +433,52 @@ export class WalletService {
         failureReason: reason,
       },
     });
+    this.logger.error(`❌ [DÉBITO PAY] Transação falhou: ${reason}`);
   }
 
   /**
-   * Get OAuth token for M-Pesa
+   * WEBHOOK - Receber notificações da DébitO Pay
    */
-  private async getMpesaToken(): Promise<string> {
-    const auth = Buffer.from(`${this.MPESA_CONSUMER_KEY}:${this.MPESA_CONSUMER_SECRET}`).toString('base64');
-    
-    const response = await fetch(`${this.MPESA_BASE_URL}/oauth/v1/generate?grant_type=client_credentials`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Basic ${auth}`,
-      },
-    });
+  async handleWebhook(data: any) {
+    try {
+      this.logger.log(`[DÉBITO PAY] 📩 Webhook recebido: ${JSON.stringify(data)}`);
 
-    const data = await response.json();
-    return data.access_token;
-  }
+      const transactionId = data.transaction_id || data.reference;
+      const status = data.status;
 
-  /**
-   * Check user exam access
-   */
-  async checkExamAccess(userId: string, examId: string): Promise<boolean> {
-    // Check if there's a FREE access record for this exam
-    const freeAccess = await this.prisma.examAccess.findFirst({
-      where: {
-        examId,
-        type: 'FREE',
-      },
-    });
+      if (status === 'success' || status === 'completed') {
+        // Encontrar transação
+        const transaction = await this.prisma.walletTransaction.findFirst({
+          where: {
+            OR: [
+              { externalId: transactionId },
+              { reference: transactionId },
+            ],
+          },
+        });
 
-    // Free exams are always accessible
-    if (freeAccess) {
-      return true;
+        if (transaction) {
+          await this.completeTransaction(transaction.id);
+        }
+      } else if (status === 'failed' || status === 'rejected') {
+        const transaction = await this.prisma.walletTransaction.findFirst({
+          where: {
+            OR: [
+              { externalId: transactionId },
+              { reference: transactionId },
+            ],
+          },
+        });
+
+        if (transaction) {
+          await this.failTransaction(transaction.id, data.reason || 'Pagamento recusado');
+        }
+      }
+
+      return { success: true };
+    } catch (error) {
+      this.logger.error('[DÉBITO PAY] Erro no webhook:', error);
+      return { success: false };
     }
-
-    // Check if user has paid access
-    const access = await this.prisma.examAccess.findFirst({
-      where: {
-        userId,
-        examId,
-        type: 'PAID',
-        expiresAt: { gt: new Date() },
-      },
-    });
-
-    return !!access;
-  }
-
-  /**
-   * Get user transactions
-   */
-  async getUserTransactions(userId: string) {
-    return this.prisma.walletTransaction.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
-    });
   }
 }

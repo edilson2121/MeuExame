@@ -85,7 +85,33 @@ let ExamsService = class ExamsService {
         if (!exam) {
             throw new common_1.NotFoundException('Exame não encontrado');
         }
-        return exam;
+        const questions = exam.examQuestions.map((eq) => {
+            const question = eq.question;
+            let options = [];
+            if (typeof question.options === 'string') {
+                try {
+                    options = JSON.parse(question.options);
+                }
+                catch (e) {
+                    options = [];
+                }
+            }
+            else if (Array.isArray(question.options)) {
+                options = question.options;
+            }
+            return {
+                id: question.id,
+                text: question.text,
+                type: question.type,
+                imageUrl: question.imageUrl,
+                options,
+                explanation: question.explanation,
+            };
+        });
+        return {
+            ...exam,
+            questions,
+        };
     }
     async update(id, updateExamDto) {
         const exam = await this.findOne(id);
@@ -152,7 +178,10 @@ let ExamsService = class ExamsService {
         });
     }
     async addQuestion(examId, questionId, order, points) {
-        const exam = await this.findOne(examId);
+        const exam = await this.prisma.exam.findUnique({ where: { id: examId } });
+        if (!exam) {
+            throw new common_1.NotFoundException('Exame não encontrado');
+        }
         if (exam.status === client_1.ExamStatus.PUBLISHED) {
             throw new common_1.BadRequestException('Não é possível adicionar questões a um exame publicado');
         }
@@ -174,7 +203,10 @@ let ExamsService = class ExamsService {
         });
     }
     async removeQuestion(examId, questionId) {
-        const exam = await this.findOne(examId);
+        const exam = await this.prisma.exam.findUnique({ where: { id: examId } });
+        if (!exam) {
+            throw new common_1.NotFoundException('Exame não encontrado');
+        }
         if (exam.status === client_1.ExamStatus.PUBLISHED) {
             throw new common_1.BadRequestException('Não é possível remover questões de um exame publicado');
         }
@@ -194,7 +226,10 @@ let ExamsService = class ExamsService {
         });
     }
     async publishExam(id) {
-        const exam = await this.findOne(id);
+        const exam = await this.prisma.exam.findUnique({ where: { id } });
+        if (!exam) {
+            throw new common_1.NotFoundException('Exame não encontrado');
+        }
         const examQuestions = await this.prisma.examQuestion.findMany({
             where: { examId: id },
         });
@@ -205,6 +240,89 @@ let ExamsService = class ExamsService {
             where: { id },
             data: { status: client_1.ExamStatus.PUBLISHED },
         });
+    }
+    async findOneWithAccess(id, userId) {
+        const exam = await this.findOne(id);
+        let hasAccess = true;
+        if (userId) {
+            const access = await this.checkExamAccess(id, userId);
+            hasAccess = access.hasAccess;
+        }
+        return {
+            ...exam,
+            hasAccess,
+        };
+    }
+    async checkExamAccess(examId, userId) {
+        const exam = await this.prisma.exam.findUnique({
+            where: { id: examId },
+        });
+        if (!exam) {
+            throw new common_1.NotFoundException('Exame não encontrado');
+        }
+        if (!exam.price || exam.price === 0) {
+            return { hasAccess: true, accessType: 'FREE' };
+        }
+        const examAccess = await this.prisma.examAccess.findFirst({
+            where: {
+                examId,
+                userId,
+            },
+        });
+        if (examAccess) {
+            return { hasAccess: true, accessType: examAccess.type };
+        }
+        const subscription = await this.prisma.subscription.findFirst({
+            where: {
+                userId,
+                isActive: true,
+                endDate: {
+                    gte: new Date(),
+                },
+            },
+        });
+        if (subscription) {
+            return { hasAccess: true, accessType: 'SUBSCRIPTION' };
+        }
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+        if (user?.hasFullAccess) {
+            return { hasAccess: true, accessType: 'FULL_ACCESS' };
+        }
+        return { hasAccess: false };
+    }
+    async submitExam(examId, userId, answers) {
+        const access = await this.checkExamAccess(examId, userId);
+        if (!access.hasAccess) {
+            throw new common_1.BadRequestException('Não tem acesso a este exame');
+        }
+        const exam = await this.findOne(examId);
+        let correct = 0;
+        let total = 0;
+        for (const answer of answers) {
+            const question = exam.questions.find((q) => q.id === answer.questionId);
+            if (!question)
+                continue;
+            total++;
+            const correctOptionIndex = question.options.findIndex((o) => o.isCorrect);
+            if (correctOptionIndex === answer.selectedOption) {
+                correct++;
+            }
+        }
+        await this.prisma.result.create({
+            data: {
+                score: correct,
+                userId,
+                examId,
+                answers: answers,
+            },
+        });
+        return {
+            score: correct,
+            total,
+            percentage: total > 0 ? Math.round((correct / total) * 100) : 0,
+        };
     }
 };
 exports.ExamsService = ExamsService;

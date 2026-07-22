@@ -25,6 +25,7 @@ export declare class ExamsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        price: number | null;
         duration: number | null;
         year: number | null;
         subjectId: string | null;
@@ -32,6 +33,7 @@ export declare class ExamsController {
         imageUrl: string | null;
         totalPoints: number;
         examDate: Date | null;
+        accessType: string;
     }>;
     findAll(): Promise<({
         subject: {
@@ -54,6 +56,7 @@ export declare class ExamsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        price: number | null;
         duration: number | null;
         year: number | null;
         subjectId: string | null;
@@ -61,6 +64,7 @@ export declare class ExamsController {
         imageUrl: string | null;
         totalPoints: number;
         examDate: Date | null;
+        accessType: string;
     })[]>;
     findBySubject(subjectId: string): Promise<({
         subject: {
@@ -83,6 +87,7 @@ export declare class ExamsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        price: number | null;
         duration: number | null;
         year: number | null;
         subjectId: string | null;
@@ -90,6 +95,7 @@ export declare class ExamsController {
         imageUrl: string | null;
         totalPoints: number;
         examDate: Date | null;
+        accessType: string;
     })[]>;
     findByInstitution(institutionId: string): Promise<({
         subject: {
@@ -112,6 +118,7 @@ export declare class ExamsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        price: number | null;
         duration: number | null;
         year: number | null;
         subjectId: string | null;
@@ -119,6 +126,7 @@ export declare class ExamsController {
         imageUrl: string | null;
         totalPoints: number;
         examDate: Date | null;
+        accessType: string;
     })[]>;
     findOne(id: string): Promise<{
         subject: {
@@ -141,6 +149,7 @@ export declare class ExamsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        price: number | null;
         duration: number | null;
         year: number | null;
         subjectId: string | null;
@@ -148,6 +157,7 @@ export declare class ExamsController {
         imageUrl: string | null;
         totalPoints: number;
         examDate: Date | null;
+        accessType: string;
     }>;
     validateAnswers(id: string, body: {
         answers: any;
@@ -178,6 +188,7 @@ export declare class ExamsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        price: number | null;
         duration: number | null;
         year: number | null;
         subjectId: string | null;
@@ -185,6 +196,7 @@ export declare class ExamsController {
         imageUrl: string | null;
         totalPoints: number;
         examDate: Date | null;
+        accessType: string;
     }>;
     remove(id: string): Promise<{
         title: string;
@@ -193,6 +205,7 @@ export declare class ExamsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        price: number | null;
         duration: number | null;
         year: number | null;
         subjectId: string | null;
@@ -200,5 +213,6 @@ export declare class ExamsController {
         imageUrl: string | null;
         totalPoints: number;
         examDate: Date | null;
+        accessType: string;
     }>;
 }

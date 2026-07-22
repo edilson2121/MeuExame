@@ -6,7 +6,7 @@ export declare class ExamsService implements IExamService {
     constructor(prisma: PrismaService);
     create(createExamDto: any): Promise<Exam>;
     findAll(): Promise<Exam[]>;
-    findOne(id: string): Promise<Exam>;
+    findOne(id: string): Promise<any>;
     update(id: string, updateExamDto: any): Promise<Exam>;
     remove(id: string): Promise<Exam>;
     findBySubject(subjectId: string): Promise<Exam[]>;
@@ -14,4 +14,17 @@ export declare class ExamsService implements IExamService {
     addQuestion(examId: string, questionId: string, order: number, points: number): Promise<void>;
     removeQuestion(examId: string, questionId: string): Promise<void>;
     publishExam(id: string): Promise<Exam>;
+    findOneWithAccess(id: string, userId?: string): Promise<any>;
+    checkExamAccess(examId: string, userId: string): Promise<{
+        hasAccess: boolean;
+        accessType?: string;
+    }>;
+    submitExam(examId: string, userId: string, answers: {
+        questionId: string;
+        selectedOption: number;
+    }[]): Promise<{
+        score: number;
+        total: number;
+        percentage: number;
+    }>;
 }

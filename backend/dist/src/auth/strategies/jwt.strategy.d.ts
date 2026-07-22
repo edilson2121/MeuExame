@@ -12,6 +12,7 @@ export declare class JwtStrategy extends JwtStrategy_base {
         name: string;
         createdAt: Date;
         updatedAt: Date;
+        hasFullAccess: boolean;
         email: string;
         password: string;
         avatar: string | null;
