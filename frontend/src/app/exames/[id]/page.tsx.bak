@@ -5,29 +5,28 @@ import Link from 'next/link';
 import {
   ArrowLeft,
   Clock,
-  FileQuestion,
   Users,
-  Star,
+  FileQuestion,
   CheckCircle,
-  CreditCard,
-  Lock,
+  Star,
+  Share2,
+  Bookmark,
   Play,
+  CreditCard,
+  Shield,
+  Lock,
+  ChevronRight,
+  Check,
   BookOpen,
   Award,
-  ChevronRight,
-  Shield,
-  AlertCircle,
+  TrendingUp,
 } from 'lucide-react';
-
-// ============================================
-// TIPOS
-// ============================================
 
 interface Exam {
   id: string;
   title: string;
   institution: string;
-  institutionCity: string;
+  course: string;
   subject: string;
   description: string;
   duration: number;
@@ -38,21 +37,29 @@ interface Exam {
   price: number;
   oldPrice?: number;
   passingScore: number;
+  attempts: number;
+  isPaid: boolean;
+  isPublished: boolean;
   features: string[];
-  curriculum: { title: string; lessons: number; completed?: boolean }[];
+  instructor: {
+    name: string;
+    avatar: string;
+    bio: string;
+  };
+  curriculum: {
+    title: string;
+    lessons: number;
+    completed: boolean;
+  }[];
 }
 
-// ============================================
-// DADOS DE EXEMPLO
-// ============================================
-
 const exam: Exam = {
-  id: 'exam-1',
+  id: '1',
   title: 'Matemática UEM 2024',
   institution: 'Universidade Eduardo Mondlane',
-  institutionCity: 'Maputo',
+  course: 'Ciências Exatas',
   subject: 'Matemática',
-  description: 'Exame completo de matemática cobrindo os temas mais importantes para admissão universitaria. Questões de álgebra, geometria, trigonometria e cálculo.',
+  description: 'Exame abrangente de matemática cobrindo álgebra, geometria, trigonometria e cálculo. Perfeito para estudantes que desejam testar seus conhecimentos e preparação para os exames finais.',
   duration: 90,
   questions: 50,
   students: 1245,
@@ -61,13 +68,22 @@ const exam: Exam = {
   price: 299,
   oldPrice: 499,
   passingScore: 70,
+  attempts: 3,
+  isPaid: true,
+  isPublished: true,
   features: [
     '50 questões de múltipla escolha',
     'Tempo limite de 90 minutos',
     '3 tentativas permitidas',
     'Certificado de conclusão',
     'Resolução detalhada após término',
+    'Suporte a M-Pesa e e-Mola',
   ],
+  instructor: {
+    name: 'Prof. António Matsinhe',
+    avatar: 'AM',
+    bio: 'Doutor em Matemática pela UEM com 15 anos de experiência em ensino superior.',
+  },
   curriculum: [
     { title: 'Álgebra Linear', lessons: 12, completed: true },
     { title: 'Cálculo Diferencial', lessons: 15, completed: true },
@@ -76,24 +92,24 @@ const exam: Exam = {
   ],
 };
 
-// ============================================
-// COMPONENTE PRINCIPAL
-// ============================================
-
 export default function ExamDetailsPage() {
   const [selectedMethod, setSelectedMethod] = useState<'mpesa' | 'emola'>('mpesa');
-  const [showPayment, setShowPayment] = useState(false);
-  const [phone, setPhone] = useState('');
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [phone, setPhone] = useState('');
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
     if (!phone) {
       alert('Por favor, insira o seu número de telefone');
       return;
     }
+    
     setIsProcessing(true);
+    
+    // Simular processamento de pagamento
     setTimeout(() => {
       setIsProcessing(false);
+      setShowPaymentModal(false);
       alert('Pagamento iniciado! Aguarde a confirmação no seu telemóvel.');
     }, 2000);
   };
@@ -108,14 +124,21 @@ export default function ExamDetailsPage() {
               <Link href="/exames" className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
                 <ArrowLeft size={20} className="text-gray-600" />
               </Link>
-              <Link href="/exames" className="flex items-center gap-3">
-                <div className="bg-gradient-to-br from-green-600 to-green-500 text-white px-3 py-1.5 rounded-xl font-bold text-lg">
+              <div className="flex items-center gap-3">
+                <div className="bg-gradient-to-br from-[#10A63D] to-[#0e9135] text-white px-3 py-1.5 rounded-xl font-bold text-lg">
                   ME
                 </div>
-              </Link>
+                <span className="text-sm text-gray-500">MeuExame</span>
+              </div>
             </div>
             <div className="flex items-center gap-3">
-              <Link href="/login" className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900">
+              <button className="p-2 hover:bg-gray-100 rounded-xl">
+                <Bookmark size={20} className="text-gray-500" />
+              </button>
+              <button className="p-2 hover:bg-gray-100 rounded-xl">
+                <Share2 size={20} className="text-gray-500" />
+              </button>
+              <Link href="/login" className="px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 transition-colors">
                 Entrar
               </Link>
             </div>
@@ -126,20 +149,16 @@ export default function ExamDetailsPage() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column */}
+          {/* Left Column - Main Info */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Exam Info */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-100">
+            {/* Exam Header */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">
-                      Verificado
-                    </span>
-                    <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full">
-                      Pago
-                    </span>
-                  </div>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 mb-2">
+                    <CheckCircle size={12} className="mr-1" />
+                    Verificado
+                  </span>
                   <h1 className="text-2xl font-bold text-gray-900">{exam.title}</h1>
                   <p className="text-gray-500 mt-1">{exam.institution} • {exam.subject}</p>
                 </div>
@@ -152,114 +171,141 @@ export default function ExamDetailsPage() {
               </div>
 
               {/* Quick Stats */}
-              <div className="grid grid-cols-4 gap-4 py-4 border-y border-gray-100">
+              <div className="grid grid-cols-4 gap-4 py-4 border-t border-b border-gray-100">
                 <div className="text-center">
-                  <Clock size={18} className="mx-auto text-gray-400 mb-1" />
-                  <p className="font-semibold text-gray-900">{exam.duration} min</p>
-                  <p className="text-xs text-gray-500">Duração</p>
+                  <div className="flex items-center justify-center gap-1 text-gray-500 mb-1">
+                    <Clock size={16} />
+                    <span className="text-sm">{exam.duration} min</span>
+                  </div>
+                  <p className="text-xs text-gray-400">Duração</p>
                 </div>
                 <div className="text-center">
-                  <FileQuestion size={18} className="mx-auto text-gray-400 mb-1" />
-                  <p className="font-semibold text-gray-900">{exam.questions}</p>
-                  <p className="text-xs text-gray-500">Questões</p>
+                  <div className="flex items-center justify-center gap-1 text-gray-500 mb-1">
+                    <FileQuestion size={16} />
+                    <span className="text-sm">{exam.questions}</span>
+                  </div>
+                  <p className="text-xs text-gray-400">Questões</p>
                 </div>
                 <div className="text-center">
-                  <Users size={18} className="mx-auto text-gray-400 mb-1" />
-                  <p className="font-semibold text-gray-900">{exam.students.toLocaleString()}</p>
-                  <p className="text-xs text-gray-500">Estudantes</p>
+                  <div className="flex items-center justify-center gap-1 text-gray-500 mb-1">
+                    <Users size={16} />
+                    <span className="text-sm">{exam.students.toLocaleString()}</span>
+                  </div>
+                  <p className="text-xs text-gray-400">Estudantes</p>
                 </div>
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-1 text-yellow-500 mb-1">
-                    <Star size={18} fill="#F59E0B" />
-                    <span className="font-semibold text-gray-900">{exam.rating}</span>
+                    <Star size={16} fill="#F59E0B" />
+                    <span className="text-sm">{exam.rating}</span>
                   </div>
-                  <p className="text-xs text-gray-500">({exam.reviews} reviews)</p>
+                  <p className="text-xs text-gray-400">({exam.reviews} reviews)</p>
                 </div>
               </div>
 
               {/* Description */}
               <div className="mt-6">
-                <h3 className="font-semibold text-gray-900 mb-2">Descrição</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Descrição</h3>
                 <p className="text-gray-600 leading-relaxed">{exam.description}</p>
               </div>
 
               {/* What You'll Learn */}
               <div className="mt-6">
-                <h3 className="font-semibold text-gray-900 mb-3">O que você vai aprender</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">O que você vai aprender</h3>
+                <div className="grid grid-cols-2 gap-3">
                   {exam.features.map((feature, index) => (
                     <div key={index} className="flex items-start gap-2">
-                      <CheckCircle size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
+                      <CheckCircle size={18} className="text-green-600 mt-0.5 flex-shrink-0" />
                       <span className="text-sm text-gray-600">{feature}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Curriculum */}
+              {/* Instructor */}
               <div className="mt-6 pt-6 border-t border-gray-100">
-                <h3 className="font-semibold text-gray-900 mb-4">Conteúdo</h3>
-                <div className="space-y-2">
-                  {exam.curriculum.map((item, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                          item.completed ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-500'
-                        }`}>
-                          {item.completed ? <CheckCircle size={16} /> : <BookOpen size={16} />}
-                        </div>
-                        <span className="text-sm text-gray-900">{item.title}</span>
-                      </div>
-                      <span className="text-xs text-gray-500">{item.lessons} tópicos</span>
-                    </div>
-                  ))}
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Instrutor</h3>
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-green-600 to-green-500 flex items-center justify-center text-white font-bold text-lg">
+                    {exam.instructor.avatar}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900">{exam.instructor.name}</p>
+                    <p className="text-sm text-gray-500">{exam.instructor.bio}</p>
+                  </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Curriculum */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Curriculum</h3>
+              <div className="space-y-3">
+                {exam.curriculum.map((item, index) => (
+                  <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                        item.completed ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-500'
+                      }`}>
+                        {item.completed ? <Check size={16} /> : <BookOpen size={16} />}
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">{item.title}</p>
+                        <p className="text-xs text-gray-500">{item.lessons} aulas</p>
+                      </div>
+                    </div>
+                    {item.completed && (
+                      <span className="text-xs text-green-600 font-medium">Concluído</span>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
           {/* Right Column - Purchase Card */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 sticky top-24">
-              {/* Preview */}
-              <div className="aspect-video rounded-xl bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center mb-6">
-                <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
-                  <Play size={32} fill="white" className="text-white ml-1" />
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 sticky top-24">
+              {/* Exam Preview Image */}
+              <div className="relative rounded-xl overflow-hidden mb-6 bg-gradient-to-br from-green-600 to-green-800 aspect-video flex items-center justify-center">
+                <div className="text-center text-white">
+                  <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-3">
+                    <Play size={32} fill="white" />
+                  </div>
+                  <p className="text-sm font-medium">Prévia do Exame</p>
                 </div>
               </div>
 
-              {/* Rating */}
-              <div className="flex items-center justify-center gap-2 mb-4">
-                <div className="flex items-center gap-1 text-yellow-500">
+              <div className="text-center mb-6">
+                <div className="flex items-center justify-center gap-1 text-yellow-500 mb-2">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={16} fill={i < 4 ? '#F59E0B' : 'none'} stroke="#F59E0B" />
+                    <Star key={i} size={18} fill={i < 4 ? '#F59E0B' : 'none'} stroke="#F59E0B" />
                   ))}
+                  <span className="ml-2 text-gray-600 font-medium">{exam.rating}/5</span>
                 </div>
-                <span className="text-gray-600 font-medium">{exam.rating}/5</span>
-                <span className="text-gray-400">({exam.reviews})</span>
+                <p className="text-sm text-gray-500">{exam.reviews} avaliações de estudantes</p>
               </div>
 
               {/* Features */}
-              <div className="space-y-2 mb-6">
-                <div className="flex items-center gap-2 text-sm">
-                  <Clock size={16} className="text-gray-400" />
+              <div className="space-y-3 mb-6">
+                <div className="flex items-center gap-3 text-sm">
+                  <Clock size={18} className="text-gray-400" />
                   <span className="text-gray-600">{exam.duration} minutos</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <FileQuestion size={16} className="text-gray-400" />
+                <div className="flex items-center gap-3 text-sm">
+                  <FileQuestion size={18} className="text-gray-400" />
                   <span className="text-gray-600">{exam.questions} questões</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Award size={16} className="text-gray-400" />
+                <div className="flex items-center gap-3 text-sm">
+                  <TrendingUp size={18} className="text-gray-400" />
                   <span className="text-gray-600">Nota de passagem: {exam.passingScore}%</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle size={16} className="text-gray-400" />
-                  <span className="text-gray-600">Certificado incluso</span>
+                <div className="flex items-center gap-3 text-sm">
+                  <Award size={18} className="text-gray-400" />
+                  <span className="text-gray-600">Certificado de conclusão</span>
                 </div>
               </div>
 
-              {/* Price */}
+              {/* Price and CTA */}
               <div className="pt-6 border-t border-gray-100">
                 <div className="flex items-end justify-between mb-4">
                   <div>
@@ -272,7 +318,7 @@ export default function ExamDetailsPage() {
                 </div>
 
                 <button
-                  onClick={() => setShowPayment(true)}
+                  onClick={() => setShowPaymentModal(true)}
                   className="w-full py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
                 >
                   <CreditCard size={18} />
@@ -280,8 +326,8 @@ export default function ExamDetailsPage() {
                 </button>
 
                 <div className="flex items-center justify-center gap-2 mt-4 text-xs text-gray-500">
-                  <Shield size={12} className="text-green-600" />
-                  <span>Pagamento seguro</span>
+                  <Lock size={12} />
+                  <span>Pagamento seguro via M-Pesa ou e-Mola</span>
                 </div>
               </div>
             </div>
@@ -290,12 +336,15 @@ export default function ExamDetailsPage() {
       </main>
 
       {/* Payment Modal */}
-      {showPayment && (
+      {showPaymentModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-gray-900">Finalizar Pagamento</h3>
-              <button onClick={() => setShowPayment(false)} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500">
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
                 ✕
               </button>
             </div>
@@ -306,13 +355,17 @@ export default function ExamDetailsPage() {
                 <span className="text-gray-600">{exam.title}</span>
                 <span className="font-semibold">{exam.price} MZN</span>
               </div>
+              <div className="flex justify-between text-sm text-gray-500">
+                <span>Taxa de serviço</span>
+                <span>0 MZN</span>
+              </div>
               <div className="border-t border-gray-200 mt-3 pt-3 flex justify-between">
                 <span className="font-semibold text-gray-900">Total</span>
                 <span className="font-bold text-green-600 text-lg">{exam.price} MZN</span>
               </div>
             </div>
 
-            {/* Phone */}
+            {/* Phone Number */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Número de Téléfone
@@ -342,7 +395,7 @@ export default function ExamDetailsPage() {
                   className={`p-4 rounded-xl border-2 transition-colors ${
                     selectedMethod === 'mpesa'
                       ? 'border-green-600 bg-green-50'
-                      : 'border-gray-200'
+                      : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
                   <div className="text-center">
@@ -357,7 +410,7 @@ export default function ExamDetailsPage() {
                   className={`p-4 rounded-xl border-2 transition-colors ${
                     selectedMethod === 'emola'
                       ? 'border-green-600 bg-green-50'
-                      : 'border-gray-200'
+                      : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
                   <div className="text-center">
@@ -370,13 +423,13 @@ export default function ExamDetailsPage() {
               </div>
             </div>
 
-            {/* Security */}
+            {/* Security Note */}
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
               <Shield size={16} className="text-green-600" />
               <span>Pagamento seguro. Os seus dados estão protegidos.</span>
             </div>
 
-            {/* Submit */}
+            {/* Submit Button */}
             <button
               onClick={handlePayment}
               disabled={isProcessing}
@@ -396,7 +449,7 @@ export default function ExamDetailsPage() {
             </button>
 
             <p className="text-xs text-center text-gray-500 mt-4">
-              Ao confirmar, você concorda com os Termos de Uso.
+              Ao confirmar, você concorda com os nossos Termos de Uso e Política de Privacidade.
             </p>
           </div>
         </div>
