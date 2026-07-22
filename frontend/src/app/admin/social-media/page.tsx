@@ -12,11 +12,6 @@ import {
   ExternalLink,
   Eye,
   EyeOff,
-  Facebook,
-  Instagram,
-  Twitter,
-  Youtube,
-  Linkedin,
   MessageCircle
 } from 'lucide-react';
 
@@ -31,42 +26,36 @@ const SOCIAL_PLATFORMS = [
   { 
     id: 'facebook' as const, 
     name: 'Facebook', 
-    icon: Facebook,
     color: '#1877F2',
     placeholder: 'https://facebook.com/meuexame'
   },
   { 
     id: 'instagram' as const, 
     name: 'Instagram', 
-    icon: Instagram,
     color: '#E4405F',
     placeholder: 'https://instagram.com/meuexame'
   },
   { 
     id: 'twitter' as const, 
     name: 'X (Twitter)', 
-    icon: Twitter,
     color: '#1DA1F2',
     placeholder: 'https://x.com/meuexame'
   },
   { 
     id: 'youtube' as const, 
     name: 'YouTube', 
-    icon: Youtube,
     color: '#FF0000',
     placeholder: 'https://youtube.com/@meuexame'
   },
   { 
     id: 'linkedin' as const, 
     name: 'LinkedIn', 
-    icon: Linkedin,
     color: '#0A66C2',
     placeholder: 'https://linkedin.com/company/meuexame'
   },
   { 
     id: 'whatsapp' as const, 
     name: 'WhatsApp', 
-    icon: MessageCircle,
     color: '#25D366',
     placeholder: 'https://wa.me/258XXXXXXXXX'
   },
@@ -241,19 +230,18 @@ export default function SocialMediaPage() {
               <div className="flex items-center gap-3">
                 {SOCIAL_PLATFORMS.map((platform) => {
                   const link = getLinkByPlatform(platform.id);
-                  const Icon = platform.icon;
                   return (
                     <button
                       key={platform.id}
                       disabled={!link?.isActive}
-                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                      className={`w-10 h-10 rounded-full flex items-center justify-center transition-all text-sm font-bold ${
                         link?.isActive
                           ? 'bg-gray-800 hover:opacity-80'
                           : 'bg-gray-800/50 opacity-50'
                       }`}
                       style={{ color: link?.isActive ? platform.color : '#666' }}
                     >
-                      <Icon className="w-5 h-5" />
+                      {platform.name.charAt(0)}
                     </button>
                   );
                 })}
@@ -277,7 +265,6 @@ export default function SocialMediaPage() {
             <div className="p-6 space-y-6">
               {SOCIAL_PLATFORMS.map((platform) => {
                 const link = getLinkByPlatform(platform.id);
-                const Icon = platform.icon;
                 
                 return (
                   <div 
@@ -291,10 +278,10 @@ export default function SocialMediaPage() {
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
                         <div 
-                          className="w-10 h-10 rounded-lg flex items-center justify-center"
-                          style={{ backgroundColor: `${platform.color}20` }}
+                          className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold"
+                          style={{ backgroundColor: `${platform.color}20`, color: platform.color }}
                         >
-                          <Icon className="w-5 h-5" style={{ color: platform.color }} />
+                          {platform.name.charAt(0)}
                         </div>
                         <div>
                           <p className="text-white font-medium">{platform.name}</p>

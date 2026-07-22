@@ -4,8 +4,18 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+interface Plan {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  duration: string;
+  type: string;
+  isActive: boolean;
+}
+
 export default function AdminPlanosPage() {
-  const [plans, setPlans] = useState([]);
+  const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
