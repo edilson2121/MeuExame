@@ -14,8 +14,10 @@ services:
       - ./docker/nginx/ssl:/etc/nginx/ssl:ro
       - ./uploads:/app/uploads:ro
     depends_on:
-      - frontend
-      - backend
+      frontend:
+        condition: service_started
+      backend:
+        condition: service_started
     networks:
       - meuexame-network
     restart: unless-stopped
@@ -46,21 +48,15 @@ services:
     networks:
       - meuexame-network
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 512M
 
   # Redis - Cache
   redis:
     image: redis:7-alpine
     container_name: meuexame-redis
-    command: redis-server /usr/local/etc/redis/redis.conf
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
-      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -69,10 +65,6 @@ services:
     networks:
       - meuexame-network
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 256M
 
   # Backend - API NestJS
   backend:
@@ -87,20 +79,21 @@ services:
       PORT: 3001
       DATABASE_URL: postgresql://${POSTGRES_USER:-meuexame}:${POSTGRES_PASSWORD:-meuexame123}@postgres:5432/${POSTGRES_DB:-meuexame}?schema=public
       REDIS_URL: redis://redis:6379
-      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      JWT_SECRET: ${JWT_SECRET:-meuexame-super-secret-key-2024}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
-      CORS_ORIGIN: ${CORS_ORIGIN:-https://meuexame.com}
-      # Email (opcional)
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+      UPLOAD_DIR: /app/uploads
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
-      # M-Pesa / Débitado Pay
       DEBITO_SECRET_KEY: ${DEBITO_SECRET_KEY:-}
       DEBITO_WALLET_CODE: ${DEBITO_WALLET_CODE:-}
       DEBITO_WALLET_CODE_EMOLA: ${DEBITO_WALLET_CODE_EMOLA:-}
       DEBITO_MERCHANT_ID: ${DEBITO_MERCHANT_ID:-}
       DEBITO_API_URL: ${DEBITO_API_URL:-}
+    volumes:
+      - uploads:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -110,14 +103,10 @@ services:
       - meuexame-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3001/health"]
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3001/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 1G
 
   # Frontend - Next.js
   frontend:
@@ -127,8 +116,8 @@ services:
     container_name: meuexame-frontend
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: ${API_URL:-http://backend:3001/api}
-      NEXT_PUBLIC_APP_URL: ${APP_URL:-https://meuexame.com}
+      NEXT_PUBLIC_API_URL: /api
+      NEXT_PUBLIC_APP_URL: ${APP_URL:-http://localhost}
     depends_on:
       - backend
     networks:
@@ -139,10 +128,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 1G
 
 networks:
   meuexame-network:
@@ -151,3 +136,4 @@ networks:
 volumes:
   postgres_data:
   redis_data:
+  uploads:

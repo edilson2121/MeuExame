@@ -25,6 +25,7 @@ import { SubscriptionsModule } from './modules/subscriptions/subscriptions.modul
 import { UploadsModule } from './uploads/uploads.module';
 import { UsersModule } from './users/users.module';
 import { WalletModule } from './wallets/wallet.module';
+import { HealthModule } from './common/health/health.module';
 
 
 @Module({
@@ -53,6 +54,7 @@ import { WalletModule } from './wallets/wallet.module';
     UploadsModule,
     StatsModule,
     WalletModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
