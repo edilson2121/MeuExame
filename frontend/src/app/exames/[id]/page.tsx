@@ -1,519 +1,459 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useState } from 'react';
 import Link from 'next/link';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import {
-  ChevronLeft,
-  ChevronRight,
+  ArrowLeft,
   Clock,
+  Users,
   FileQuestion,
   CheckCircle,
-  XCircle,
-  Loader2,
-  AlertCircle,
+  Star,
+  Share2,
+  Bookmark,
   Play,
-  Eye,
+  CreditCard,
+  Shield,
+  Lock,
+  ChevronRight,
+  Check,
+  BookOpen,
+  Award,
+  TrendingUp,
 } from 'lucide-react';
-
-interface Question {
-  id: string;
-  text: string;
-  type: 'MULTIPLE_CHOICE' | 'TRUE_FALSE';
-  statementImage: string | null;
-  options: string[];
-  optionImages: (string | null)[];
-}
 
 interface Exam {
   id: string;
   title: string;
-  description: string | null;
-  duration: number | null;
-  totalQuestions: number;
-  accessType: 'FREE' | 'PAID';
-  discipline: { name: string };
-  institution: { name: string };
-  questions?: Question[];
+  institution: string;
+  course: string;
+  subject: string;
+  description: string;
+  duration: number;
+  questions: number;
+  students: number;
+  rating: number;
+  reviews: number;
+  price: number;
+  oldPrice?: number;
+  passingScore: number;
+  attempts: number;
+  isPaid: boolean;
+  isPublished: boolean;
+  features: string[];
+  instructor: {
+    name: string;
+    avatar: string;
+    bio: string;
+  };
+  curriculum: {
+    title: string;
+    lessons: number;
+    completed: boolean;
+  }[];
 }
 
-interface Result {
-  id: string;
-  score: number;
-  totalQuestions: number;
-  completedAt: string;
-}
+const exam: Exam = {
+  id: '1',
+  title: 'Matemática UEM 2024',
+  institution: 'Universidade Eduardo Mondlane',
+  course: 'Ciências Exatas',
+  subject: 'Matemática',
+  description: 'Exame abrangente de matemática cobrindo álgebra, geometria, trigonometria e cálculo. Perfeito para estudantes que desejam testar seus conhecimentos e preparação para os exames finais.',
+  duration: 90,
+  questions: 50,
+  students: 1245,
+  rating: 4.8,
+  reviews: 234,
+  price: 299,
+  oldPrice: 499,
+  passingScore: 70,
+  attempts: 3,
+  isPaid: true,
+  isPublished: true,
+  features: [
+    '50 questões de múltipla escolha',
+    'Tempo limite de 90 minutos',
+    '3 tentativas permitidas',
+    'Certificado de conclusão',
+    'Resolução detalhada após término',
+    'Suporte a M-Pesa e e-Mola',
+  ],
+  instructor: {
+    name: 'Prof. António Matsinhe',
+    avatar: 'AM',
+    bio: 'Doutor em Matemática pela UEM com 15 anos de experiência em ensino superior.',
+  },
+  curriculum: [
+    { title: 'Álgebra Linear', lessons: 12, completed: true },
+    { title: 'Cálculo Diferencial', lessons: 15, completed: true },
+    { title: 'Geometria Analítica', lessons: 10, completed: false },
+    { title: 'Trigonometria', lessons: 8, completed: false },
+  ],
+};
 
-function ExamTakingContent() {
-  const params = useParams();
-  const router = useRouter();
-  const examId = params.id as string;
-  
-  const [exam, setExam] = useState<Exam | null>(null);
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, number>>({});
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [examStarted, setExamStarted] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(0);
-  const [showResults, setShowResults] = useState(false);
-  const [result, setResult] = useState<Result | null>(null);
-  
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+export default function ExamDetailsPage() {
+  const [selectedMethod, setSelectedMethod] = useState<'mpesa' | 'emola'>('mpesa');
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [phone, setPhone] = useState('');
 
-  const fetchExam = useCallback(async () => {
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-      const token = localStorage.getItem('token');
-      const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
-
-      const res = await fetch(`${apiUrl}/exams/${examId}`, { headers });
-      if (res.ok) {
-        const data = await res.json();
-        setExam(data);
-        
-        if (data.duration) {
-          setTimeLeft(data.duration * 60);
-        }
-      }
-
-      // Fetch questions
-      const questionsRes = await fetch(`${apiUrl}/exams/${examId}/questions`, { headers });
-      if (questionsRes.ok) {
-        const questionsData = await questionsRes.json();
-        setQuestions(Array.isArray(questionsData) ? questionsData : []);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar exame:', error);
-      // Fallback
-      setExam({
-        id: examId,
-        title: 'Matemática - Exame 2023',
-        description: 'Exame de admissão Matemática 2023',
-        duration: 60,
-        totalQuestions: 5,
-        accessType: 'FREE',
-        discipline: { name: 'Matemática' },
-        institution: { name: 'UEM' },
-      });
-      setQuestions([
-        { id: '1', text: 'Quanto é 2 + 2?', type: 'MULTIPLE_CHOICE', statementImage: null, options: ['3', '4', '5', '6'], optionImages: [null, null, null, null] },
-        { id: '2', text: 'Quanto é 5 x 5?', type: 'MULTIPLE_CHOICE', statementImage: null, options: ['20', '25', '30', '35'], optionImages: [null, null, null, null] },
-        { id: '3', text: 'Quanto é 10 - 3?', type: 'MULTIPLE_CHOICE', statementImage: null, options: ['5', '6', '7', '8'], optionImages: [null, null, null, null] },
-        { id: '4', text: 'Quanto é 8 ÷ 2?', type: 'MULTIPLE_CHOICE', statementImage: null, options: ['2', '3', '4', '5'], optionImages: [null, null, null, null] },
-        { id: '5', text: 'Quanto é 3²?', type: 'MULTIPLE_CHOICE', statementImage: null, options: ['6', '8', '9', '12'], optionImages: [null, null, null, null] },
-      ]);
-      setTimeLeft(60 * 60);
-    } finally {
-      setLoading(false);
-    }
-  }, [examId]);
-
-  useEffect(() => {
-    fetchExam();
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, [fetchExam]);
-
-  useEffect(() => {
-    if (examStarted && timeLeft > 0) {
-      timerRef.current = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            clearInterval(timerRef.current!);
-            handleSubmit();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, [examStarted]);
-
-  const startExam = () => {
-    setExamStarted(true);
-  };
-
-  const selectAnswer = (questionId: string, optionIndex: number) => {
-    setAnswers({ ...answers, [questionId]: optionIndex });
-  };
-
-  const handleSubmit = async () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
+  const handlePayment = async () => {
+    if (!phone) {
+      alert('Por favor, insira o seu número de telefone');
+      return;
     }
     
-    setSubmitting(true);
+    setIsProcessing(true);
     
-    try {
-      // Calculate score locally
-      let correct = 0;
-      questions.forEach((q) => {
-        if (answers[q.id] === 0) correct++; // Assuming first option is correct for demo
-      });
-      
-      const score = Math.round((correct / questions.length) * 100);
-      
-      // Send to API
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-      const token = localStorage.getItem('token');
-      
-      await fetch(`${apiUrl}/results`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          examId,
-          answers,
-          score,
-          timeSpent: exam!.duration! * 60 - timeLeft,
-        }),
-      });
-
-      setResult({
-        id: 'demo',
-        score,
-        totalQuestions: questions.length,
-        completedAt: new Date().toISOString(),
-      });
-      setShowResults(true);
-    } catch (error) {
-      console.error('Erro ao submeter:', error);
-      // Show local results anyway
-      let correct = 0;
-      questions.forEach((q) => {
-        if (answers[q.id] === 0) correct++;
-      });
-      const score = Math.round((correct / questions.length) * 100);
-      setResult({
-        id: 'demo',
-        score,
-        totalQuestions: questions.length,
-        completedAt: new Date().toISOString(),
-      });
-      setShowResults(true);
-    } finally {
-      setSubmitting(false);
-    }
+    // Simular processamento de pagamento
+    setTimeout(() => {
+      setIsProcessing(false);
+      setShowPaymentModal(false);
+      alert('Pagamento iniciado! Aguarde a confirmação no seu telemóvel.');
+    }, 2000);
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const answeredCount = Object.keys(answers).length;
-  const currentQ = questions[currentQuestion];
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 size={48} className="animate-spin text-green-600" />
-      </div>
-    );
-  }
-
-  if (!exam) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <AlertCircle size={48} className="mx-auto text-red-500" />
-          <p className="mt-4 text-gray-600">Exame não encontrado</p>
-          <Link href="/instituicoes" className="text-green-600 hover:underline mt-2 inline-block">
-            Voltar às instituições
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  // Results Screen
-  if (showResults && result) {
-    const passed = result.score >= 50;
-    
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <main className="max-w-2xl mx-auto px-4 py-8">
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div className={`p-8 text-center ${passed ? 'bg-green-600' : 'bg-red-600'}`}>
-              {passed ? (
-                <CheckCircle size={64} className="mx-auto text-white" />
-              ) : (
-                <XCircle size={64} className="mx-auto text-white" />
-              )}
-              <h1 className="text-2xl font-bold text-white mt-4">
-                {passed ? 'Parabéns!' : 'Não passou'}
-              </h1>
-              <p className="text-white/80 mt-2">Você completou o exame</p>
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-4">
+              <Link href="/exames" className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                <ArrowLeft size={20} className="text-gray-600" />
+              </Link>
+              <div className="flex items-center gap-3">
+                <div className="bg-gradient-to-br from-[#10A63D] to-[#0e9135] text-white px-3 py-1.5 rounded-xl font-bold text-lg">
+                  ME
+                </div>
+                <span className="text-sm text-gray-500">MeuExame</span>
+              </div>
             </div>
-            
-            <div className="p-8">
-              <div className="text-center mb-8">
-                <p className="text-6xl font-bold text-gray-900">{result.score}%</p>
-                <p className="text-gray-500 mt-2">
-                  {Math.round((result.score / 100) * result.totalQuestions)} de {result.totalQuestions} respostas corretas
-                </p>
+            <div className="flex items-center gap-3">
+              <button className="p-2 hover:bg-gray-100 rounded-xl">
+                <Bookmark size={20} className="text-gray-500" />
+              </button>
+              <button className="p-2 hover:bg-gray-100 rounded-xl">
+                <Share2 size={20} className="text-gray-500" />
+              </button>
+              <Link href="/login" className="px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 transition-colors">
+                Entrar
+              </Link>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Main Info */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Exam Header */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 mb-2">
+                    <CheckCircle size={12} className="mr-1" />
+                    Verificado
+                  </span>
+                  <h1 className="text-2xl font-bold text-gray-900">{exam.title}</h1>
+                  <p className="text-gray-500 mt-1">{exam.institution} • {exam.subject}</p>
+                </div>
+                {exam.oldPrice && (
+                  <div className="text-right">
+                    <span className="text-gray-400 line-through text-sm">{exam.oldPrice} MZN</span>
+                    <p className="text-3xl font-bold text-green-600">{exam.price} MZN</p>
+                  </div>
+                )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-8">
-                <div className="bg-gray-50 rounded-xl p-4 text-center">
-                  <p className="text-sm text-gray-500">Tempo gasto</p>
-                  <p className="text-xl font-bold text-gray-900">
-                    {formatTime(exam.duration! * 60 - timeLeft)}
-                  </p>
+              {/* Quick Stats */}
+              <div className="grid grid-cols-4 gap-4 py-4 border-t border-b border-gray-100">
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-1 text-gray-500 mb-1">
+                    <Clock size={16} />
+                    <span className="text-sm">{exam.duration} min</span>
+                  </div>
+                  <p className="text-xs text-gray-400">Duração</p>
                 </div>
-                <div className="bg-gray-50 rounded-xl p-4 text-center">
-                  <p className="text-sm text-gray-500">Questões</p>
-                  <p className="text-xl font-bold text-gray-900">{result.totalQuestions}</p>
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-1 text-gray-500 mb-1">
+                    <FileQuestion size={16} />
+                    <span className="text-sm">{exam.questions}</span>
+                  </div>
+                  <p className="text-xs text-gray-400">Questões</p>
+                </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-1 text-gray-500 mb-1">
+                    <Users size={16} />
+                    <span className="text-sm">{exam.students.toLocaleString()}</span>
+                  </div>
+                  <p className="text-xs text-gray-400">Estudantes</p>
+                </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-1 text-yellow-500 mb-1">
+                    <Star size={16} fill="#F59E0B" />
+                    <span className="text-sm">{exam.rating}</span>
+                  </div>
+                  <p className="text-xs text-gray-400">({exam.reviews} reviews)</p>
                 </div>
               </div>
 
+              {/* Description */}
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Descrição</h3>
+                <p className="text-gray-600 leading-relaxed">{exam.description}</p>
+              </div>
+
+              {/* What You'll Learn */}
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">O que você vai aprender</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {exam.features.map((feature, index) => (
+                    <div key={index} className="flex items-start gap-2">
+                      <CheckCircle size={18} className="text-green-600 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm text-gray-600">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Instructor */}
+              <div className="mt-6 pt-6 border-t border-gray-100">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Instrutor</h3>
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-green-600 to-green-500 flex items-center justify-center text-white font-bold text-lg">
+                    {exam.instructor.avatar}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900">{exam.instructor.name}</p>
+                    <p className="text-sm text-gray-500">{exam.instructor.bio}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Curriculum */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Curriculum</h3>
               <div className="space-y-3">
-                <Link
-                  href="/instituicoes"
-                  className="block w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-medium text-center hover:bg-gray-200 transition-colors"
-                >
-                  Voltar às instituições
-                </Link>
+                {exam.curriculum.map((item, index) => (
+                  <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                        item.completed ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-500'
+                      }`}>
+                        {item.completed ? <Check size={16} /> : <BookOpen size={16} />}
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">{item.title}</p>
+                        <p className="text-xs text-gray-500">{item.lessons} aulas</p>
+                      </div>
+                    </div>
+                    {item.completed && (
+                      <span className="text-xs text-green-600 font-medium">Concluído</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column - Purchase Card */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 sticky top-24">
+              {/* Exam Preview Image */}
+              <div className="relative rounded-xl overflow-hidden mb-6 bg-gradient-to-br from-green-600 to-green-800 aspect-video flex items-center justify-center">
+                <div className="text-center text-white">
+                  <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-3">
+                    <Play size={32} fill="white" />
+                  </div>
+                  <p className="text-sm font-medium">Prévia do Exame</p>
+                </div>
+              </div>
+
+              <div className="text-center mb-6">
+                <div className="flex items-center justify-center gap-1 text-yellow-500 mb-2">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} size={18} fill={i < 4 ? '#F59E0B' : 'none'} stroke="#F59E0B" />
+                  ))}
+                  <span className="ml-2 text-gray-600 font-medium">{exam.rating}/5</span>
+                </div>
+                <p className="text-sm text-gray-500">{exam.reviews} avaliações de estudantes</p>
+              </div>
+
+              {/* Features */}
+              <div className="space-y-3 mb-6">
+                <div className="flex items-center gap-3 text-sm">
+                  <Clock size={18} className="text-gray-400" />
+                  <span className="text-gray-600">{exam.duration} minutos</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <FileQuestion size={18} className="text-gray-400" />
+                  <span className="text-gray-600">{exam.questions} questões</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <TrendingUp size={18} className="text-gray-400" />
+                  <span className="text-gray-600">Nota de passagem: {exam.passingScore}%</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <Award size={18} className="text-gray-400" />
+                  <span className="text-gray-600">Certificado de conclusão</span>
+                </div>
+              </div>
+
+              {/* Price and CTA */}
+              <div className="pt-6 border-t border-gray-100">
+                <div className="flex items-end justify-between mb-4">
+                  <div>
+                    <p className="text-sm text-gray-500">Preço</p>
+                    <p className="text-3xl font-bold text-gray-900">{exam.price} MZN</p>
+                  </div>
+                  {exam.oldPrice && (
+                    <span className="text-sm text-gray-400 line-through">{exam.oldPrice} MZN</span>
+                  )}
+                </div>
+
                 <button
-                  onClick={() => {
-                    setShowResults(false);
-                    setAnswers({});
-                    setCurrentQuestion(0);
-                    setTimeLeft(exam.duration! * 60);
-                    setExamStarted(false);
-                  }}
-                  className="block w-full py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors"
+                  onClick={() => setShowPaymentModal(true)}
+                  className="w-full py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
                 >
-                  Tentar novamente
+                  <CreditCard size={18} />
+                  Comprar Agora
+                </button>
+
+                <div className="flex items-center justify-center gap-2 mt-4 text-xs text-gray-500">
+                  <Lock size={12} />
+                  <span>Pagamento seguro via M-Pesa ou e-Mola</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Payment Modal */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-900">Finalizar Pagamento</h3>
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Order Summary */}
+            <div className="bg-gray-50 rounded-xl p-4 mb-6">
+              <div className="flex justify-between mb-2">
+                <span className="text-gray-600">{exam.title}</span>
+                <span className="font-semibold">{exam.price} MZN</span>
+              </div>
+              <div className="flex justify-between text-sm text-gray-500">
+                <span>Taxa de serviço</span>
+                <span>0 MZN</span>
+              </div>
+              <div className="border-t border-gray-200 mt-3 pt-3 flex justify-between">
+                <span className="font-semibold text-gray-900">Total</span>
+                <span className="font-bold text-green-600 text-lg">{exam.price} MZN</span>
+              </div>
+            </div>
+
+            {/* Phone Number */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Número de Téléfone
+              </label>
+              <div className="flex">
+                <span className="inline-flex items-center px-4 bg-gray-100 border border-r-0 border-gray-200 rounded-l-xl text-gray-500">
+                  +258
+                </span>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="84/85/86xxxxxxx"
+                  className="flex-1 px-4 py-3 border border-gray-200 rounded-r-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+            </div>
+
+            {/* Payment Method */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Método de Pagamento
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setSelectedMethod('mpesa')}
+                  className={`p-4 rounded-xl border-2 transition-colors ${
+                    selectedMethod === 'mpesa'
+                      ? 'border-green-600 bg-green-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <span className="text-white font-bold text-sm">M-Pesa</span>
+                    </div>
+                    <p className="text-sm font-medium text-gray-900">M-Pesa</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setSelectedMethod('emola')}
+                  className={`p-4 rounded-xl border-2 transition-colors ${
+                    selectedMethod === 'emola'
+                      ? 'border-green-600 bg-green-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <span className="text-white font-bold text-sm">eMola</span>
+                    </div>
+                    <p className="text-sm font-medium text-gray-900">e-Mola</p>
+                  </div>
                 </button>
               </div>
             </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
 
-  // Start Screen
-  if (!examStarted) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <main className="max-w-2xl mx-auto px-4 py-8">
-          <Link
-            href={`/disciplinas/${exam.discipline?.name}`}
-            className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-6"
-          >
-            <ChevronLeft size={16} className="mr-1" />
-            Voltar
-          </Link>
-
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="h-32 bg-gradient-to-r from-green-600 to-green-700 flex items-center justify-center">
-              <FileQuestion size={48} className="text-white" />
+            {/* Security Note */}
+            <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+              <Shield size={16} className="text-green-600" />
+              <span>Pagamento seguro. Os seus dados estão protegidos.</span>
             </div>
-            
-            <div className="p-6">
-              <h1 className="text-2xl font-bold text-gray-900">{exam.title}</h1>
-              <p className="text-gray-500 mt-2">{exam.discipline?.name} - {exam.institution?.name}</p>
-              
-              {exam.description && (
-                <p className="text-gray-600 mt-4">{exam.description}</p>
-              )}
 
-              <div className="grid grid-cols-2 gap-4 mt-6">
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <div className="flex items-center gap-2 text-gray-500">
-                    <FileQuestion size={20} />
-                    <span className="text-sm">Questões</span>
-                  </div>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">{exam.totalQuestions}</p>
-                </div>
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <div className="flex items-center gap-2 text-gray-500">
-                    <Clock size={20} />
-                    <span className="text-sm">Duração</span>
-                  </div>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">{exam.duration} min</p>
-                </div>
-              </div>
-
-              <div className="mt-6 p-4 bg-yellow-50 rounded-xl border border-yellow-200">
-                <p className="text-sm text-yellow-800">
-                  <strong>Importante:</strong> O exame começará quando você clicar em "Iniciar". 
-                  O tempo começará a contar e você não poderá pausar.
-                </p>
-              </div>
-
-              <button
-                onClick={startExam}
-                className="w-full mt-6 py-4 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 flex items-center justify-center gap-2"
-              >
-                <Play size={24} />
-                Iniciar Exame
-              </button>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  // Exam Taking Screen
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Top Bar */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div>
-            <h1 className="font-semibold text-gray-900">{exam.title}</h1>
-            <p className="text-sm text-gray-500">
-              Questão {currentQuestion + 1} de {questions.length}
-            </p>
-          </div>
-          <div className={`px-4 py-2 rounded-lg font-mono font-bold ${timeLeft < 300 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}`}>
-            <Clock size={16} className="inline mr-2" />
-            {formatTime(timeLeft)}
-          </div>
-        </div>
-      </div>
-
-      <main className="max-w-4xl mx-auto px-4 py-8">
-        {/* Question */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-          <div className="flex items-start gap-3 mb-4">
-            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
-              #{currentQuestion + 1}
-            </span>
-          </div>
-          
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            {currentQ?.text}
-          </h2>
-
-          {currentQ?.statementImage && (
-            <img
-              src={currentQ.statementImage}
-              alt="Enunciado"
-              className="max-w-full rounded-lg mb-4"
-            />
-          )}
-
-          <div className="space-y-3">
-            {currentQ?.options.map((option, index) => (
-              <button
-                key={index}
-                onClick={() => selectAnswer(currentQ.id, index)}
-                className={`w-full p-4 rounded-xl border-2 text-left transition-all flex items-center gap-3 ${
-                  answers[currentQ.id] === index
-                    ? 'border-green-500 bg-green-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <span className={`w-8 h-8 rounded-full border-2 flex items-center justify-center font-medium ${
-                  answers[currentQ.id] === index
-                    ? 'border-green-500 bg-green-500 text-white'
-                    : 'border-gray-300 text-gray-500'
-                }`}>
-                  {String.fromCharCode(65 + index)}
-                </span>
-                <span className="flex-1">{option}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => setCurrentQuestion(Math.max(0, currentQuestion - 1))}
-            disabled={currentQuestion === 0}
-            className="px-5 py-2.5 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            <ChevronLeft size={20} />
-            Anterior
-          </button>
-
-          {currentQuestion === questions.length - 1 ? (
+            {/* Submit Button */}
             <button
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="px-6 py-2.5 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
+              onClick={handlePayment}
+              disabled={isProcessing}
+              className="w-full py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {submitting ? (
+              {isProcessing ? (
                 <>
-                  <Loader2 size={20} className="animate-spin" />
-                  Submetendo...
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Processando...
                 </>
               ) : (
                 <>
-                  <CheckCircle size={20} />
-                  Submeter
+                  <Lock size={18} />
+                  Pagar {exam.price} MZN
                 </>
               )}
             </button>
-          ) : (
-            <button
-              onClick={() => setCurrentQuestion(currentQuestion + 1)}
-              className="px-5 py-2.5 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 flex items-center gap-2"
-            >
-              Próxima
-              <ChevronRight size={20} />
-            </button>
-          )}
-        </div>
 
-        {/* Question Navigator */}
-        <div className="mt-8 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <p className="text-sm font-medium text-gray-700 mb-3">Questões</p>
-          <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
-            {questions.map((q, index) => (
-              <button
-                key={q.id}
-                onClick={() => setCurrentQuestion(index)}
-                className={`aspect-square rounded-lg font-medium flex items-center justify-center transition-colors ${
-                  currentQuestion === index
-                    ? 'bg-green-600 text-white'
-                    : answers[q.id] !== undefined
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {index + 1}
-              </button>
-            ))}
+            <p className="text-xs text-center text-gray-500 mt-4">
+              Ao confirmar, você concorda com os nossos Termos de Uso e Política de Privacidade.
+            </p>
           </div>
-          <p className="text-xs text-gray-500 mt-3">
-            {answeredCount} de {questions.length} respondidas
-          </p>
         </div>
-      </main>
+      )}
     </div>
-  );
-}
-
-export default function ExamTakingPage() {
-  return (
-    <ProtectedRoute requireAuth={true}>
-      <ExamTakingContent />
-    </ProtectedRoute>
   );
 }
