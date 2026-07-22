@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Build outputs
+backend/dist/
+frontend/.next/
+frontend/out/
+frontend/build/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+!.env.production.example
+
+# Uploads
+uploads/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.docker/
+
+# SSL certificates (generated locally)
+docker/nginx/ssl/*.pem
+!docker/nginx/ssl/README.md
+
+# Test coverage
+coverage/
+*.lcov
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
