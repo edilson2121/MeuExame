@@ -13,27 +13,18 @@ const admin_module_1 = require("./admin/admin.module");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
 const auth_module_1 = require("./auth/auth.module");
-const contents_module_1 = require("./contents/contents.module");
-const courses_module_1 = require("./courses/courses.module");
-const dynamic_pages_module_1 = require("./dynamic-pages/dynamic-pages.module");
-const exams_module_1 = require("./exams/exams.module");
-const exercises_module_1 = require("./exercises/exercises.module");
 const institutions_module_1 = require("./institutions/institutions.module");
-const pages_module_1 = require("./pages/pages.module");
+const subjects_module_1 = require("./subjects/subjects.module");
+const exams_module_1 = require("./exams/exams.module");
+const questions_module_1 = require("./questions/questions.module");
 const payments_module_1 = require("./payments/payments.module");
+const pages_module_1 = require("./pages/pages.module");
 const plans_module_1 = require("./plans/plans.module");
 const prisma_module_1 = require("./prisma/prisma.module");
 const public_pages_module_1 = require("./public-pages/public-pages.module");
-const questions_module_1 = require("./questions/questions.module");
 const results_module_1 = require("./results/results.module");
-const simulations_module_1 = require("./modules/simulations/simulations.module");
-const stats_module_1 = require("./stats/stats.module");
-const study_contents_module_1 = require("./modules/study-contents/study-contents.module");
-const subjects_module_1 = require("./subjects/subjects.module");
-const subscriptions_module_1 = require("./modules/subscriptions/subscriptions.module");
 const uploads_module_1 = require("./uploads/uploads.module");
 const users_module_1 = require("./users/users.module");
-const wallet_module_1 = require("./wallets/wallet.module");
 const health_module_1 = require("./common/health/health.module");
 let AppModule = class AppModule {
 };
@@ -46,25 +37,16 @@ exports.AppModule = AppModule = __decorate([
             auth_module_1.AuthModule,
             users_module_1.UsersModule,
             institutions_module_1.InstitutionsModule,
-            courses_module_1.CoursesModule,
             subjects_module_1.SubjectsModule,
-            contents_module_1.ContentsModule,
-            exercises_module_1.ExercisesModule,
-            questions_module_1.QuestionsModule,
             exams_module_1.ExamsModule,
-            results_module_1.ResultsModule,
-            simulations_module_1.SimulationsModule,
-            study_contents_module_1.StudyContentsModule,
+            questions_module_1.QuestionsModule,
+            payments_module_1.PaymentsModule,
             pages_module_1.PagesModule,
             public_pages_module_1.PublicPagesModule,
             admin_module_1.AdminModule,
             plans_module_1.PlansModule,
-            payments_module_1.PaymentsModule,
-            subscriptions_module_1.SubscriptionsModule,
-            dynamic_pages_module_1.DynamicPagesModule,
+            results_module_1.ResultsModule,
             uploads_module_1.UploadsModule,
-            stats_module_1.StatsModule,
-            wallet_module_1.WalletModule,
             health_module_1.HealthModule,
         ],
         controllers: [app_controller_1.AppController],

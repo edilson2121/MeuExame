@@ -1,6 +1,6 @@
-# 📚 MeuExame - Plataforma de Gerenciamento Educacional
+# 📚 MeuExame - Plataforma de Exames
 
-Sistema profissional de gerenciamento de conteúdo educacional com foco em Moçambique. Desenvolvido com tecnologias modernas (NestJS, Next.js, PostgreSQL, Docker).
+Plataforma de exames e preparação para universidades de Moçambique.
 
 ## 🎯 O Que É?
 

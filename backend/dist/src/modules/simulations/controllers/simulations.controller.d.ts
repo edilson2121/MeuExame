@@ -12,10 +12,10 @@ export declare class SimulationsController {
         userId: string;
         duration: number | null;
         examId: string;
+        score: number | null;
+        answers: import("@prisma/client/runtime/library").JsonValue | null;
         startedAt: Date;
         completedAt: Date | null;
-        answers: import("@prisma/client/runtime/library").JsonValue | null;
-        score: number | null;
     }>;
     findAll(): Promise<{
         status: import(".prisma/client").$Enums.SimulationStatus;
@@ -25,10 +25,10 @@ export declare class SimulationsController {
         userId: string;
         duration: number | null;
         examId: string;
+        score: number | null;
+        answers: import("@prisma/client/runtime/library").JsonValue | null;
         startedAt: Date;
         completedAt: Date | null;
-        answers: import("@prisma/client/runtime/library").JsonValue | null;
-        score: number | null;
     }[]>;
     findOne(id: string): Promise<{
         status: import(".prisma/client").$Enums.SimulationStatus;
@@ -38,10 +38,10 @@ export declare class SimulationsController {
         userId: string;
         duration: number | null;
         examId: string;
+        score: number | null;
+        answers: import("@prisma/client/runtime/library").JsonValue | null;
         startedAt: Date;
         completedAt: Date | null;
-        answers: import("@prisma/client/runtime/library").JsonValue | null;
-        score: number | null;
     }>;
     findByUser(userId: string): Promise<{
         status: import(".prisma/client").$Enums.SimulationStatus;
@@ -51,10 +51,10 @@ export declare class SimulationsController {
         userId: string;
         duration: number | null;
         examId: string;
+        score: number | null;
+        answers: import("@prisma/client/runtime/library").JsonValue | null;
         startedAt: Date;
         completedAt: Date | null;
-        answers: import("@prisma/client/runtime/library").JsonValue | null;
-        score: number | null;
     }[]>;
     findByExam(examId: string): Promise<{
         status: import(".prisma/client").$Enums.SimulationStatus;
@@ -64,10 +64,10 @@ export declare class SimulationsController {
         userId: string;
         duration: number | null;
         examId: string;
+        score: number | null;
+        answers: import("@prisma/client/runtime/library").JsonValue | null;
         startedAt: Date;
         completedAt: Date | null;
-        answers: import("@prisma/client/runtime/library").JsonValue | null;
-        score: number | null;
     }[]>;
     startSimulation(examId: string, body: {
         userId: string;
@@ -79,10 +79,10 @@ export declare class SimulationsController {
         userId: string;
         duration: number | null;
         examId: string;
+        score: number | null;
+        answers: import("@prisma/client/runtime/library").JsonValue | null;
         startedAt: Date;
         completedAt: Date | null;
-        answers: import("@prisma/client/runtime/library").JsonValue | null;
-        score: number | null;
     }>;
     completeSimulation(id: string, body: {
         answers: any;
@@ -94,10 +94,10 @@ export declare class SimulationsController {
         userId: string;
         duration: number | null;
         examId: string;
+        score: number | null;
+        answers: import("@prisma/client/runtime/library").JsonValue | null;
         startedAt: Date;
         completedAt: Date | null;
-        answers: import("@prisma/client/runtime/library").JsonValue | null;
-        score: number | null;
     }>;
     update(id: string, updateSimulationDto: UpdateSimulationDto): Promise<{
         status: import(".prisma/client").$Enums.SimulationStatus;
@@ -107,10 +107,10 @@ export declare class SimulationsController {
         userId: string;
         duration: number | null;
         examId: string;
+        score: number | null;
+        answers: import("@prisma/client/runtime/library").JsonValue | null;
         startedAt: Date;
         completedAt: Date | null;
-        answers: import("@prisma/client/runtime/library").JsonValue | null;
-        score: number | null;
     }>;
     remove(id: string): Promise<{
         status: import(".prisma/client").$Enums.SimulationStatus;
@@ -120,9 +120,9 @@ export declare class SimulationsController {
         userId: string;
         duration: number | null;
         examId: string;
+        score: number | null;
+        answers: import("@prisma/client/runtime/library").JsonValue | null;
         startedAt: Date;
         completedAt: Date | null;
-        answers: import("@prisma/client/runtime/library").JsonValue | null;
-        score: number | null;
     }>;
 }

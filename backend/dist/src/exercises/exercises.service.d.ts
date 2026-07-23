@@ -23,6 +23,19 @@ export declare class ExercisesService {
             updatedAt: Date;
             courseId: string | null;
         };
+        questions: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            type: import(".prisma/client").$Enums.QuestionType;
+            imageUrl: string | null;
+            points: number;
+            text: string;
+            options: import("@prisma/client/runtime/library").JsonValue | null;
+            correctAnswer: string | null;
+            explanation: string | null;
+            exerciseId: string | null;
+        }[];
         author: {
             institutionId: string | null;
             id: string;
@@ -37,19 +50,6 @@ export declare class ExercisesService {
             bio: string | null;
             role: import(".prisma/client").$Enums.Role;
         };
-        questions: {
-            id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            type: import(".prisma/client").$Enums.QuestionType;
-            imageUrl: string | null;
-            points: number;
-            text: string;
-            options: import("@prisma/client/runtime/library").JsonValue | null;
-            correctAnswer: string | null;
-            explanation: string | null;
-            exerciseId: string | null;
-        }[];
     } & {
         title: string;
         description: string | null;
@@ -69,6 +69,19 @@ export declare class ExercisesService {
             updatedAt: Date;
             courseId: string | null;
         };
+        questions: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            type: import(".prisma/client").$Enums.QuestionType;
+            imageUrl: string | null;
+            points: number;
+            text: string;
+            options: import("@prisma/client/runtime/library").JsonValue | null;
+            correctAnswer: string | null;
+            explanation: string | null;
+            exerciseId: string | null;
+        }[];
         author: {
             institutionId: string | null;
             id: string;
@@ -83,19 +96,6 @@ export declare class ExercisesService {
             bio: string | null;
             role: import(".prisma/client").$Enums.Role;
         };
-        questions: {
-            id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            type: import(".prisma/client").$Enums.QuestionType;
-            imageUrl: string | null;
-            points: number;
-            text: string;
-            options: import("@prisma/client/runtime/library").JsonValue | null;
-            correctAnswer: string | null;
-            explanation: string | null;
-            exerciseId: string | null;
-        }[];
     } & {
         title: string;
         description: string | null;
