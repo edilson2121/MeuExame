@@ -23,7 +23,7 @@ export default function LoginPage() {
         const user = JSON.parse(userData);
         // Redirect admin users to admin area
         if (user.role === 'ADMIN') {
-          router.push('/admin');
+          router.push('/admin/login');
           return;
         }
       } catch (e) {
@@ -45,7 +45,7 @@ export default function LoginPage() {
       localStorage.setItem('user', decodeURIComponent(userParam));
       const user = JSON.parse(decodeURIComponent(userParam));
       if (user.role === 'ADMIN') {
-        router.push('/admin');
+        router.push('/admin/login');
       } else {
         router.push('/home');
       }

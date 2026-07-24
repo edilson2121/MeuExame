@@ -30,8 +30,8 @@ export default function ProtectedRoute({
     }
 
     if (requireAdmin && !isAdmin) {
-      // User is logged in but not admin - redirect to home
-      router.push('/');
+      // User is logged in but not admin - redirect to admin login
+      router.push('/admin/login');
       return;
     }
 
@@ -68,8 +68,8 @@ export default function ProtectedRoute({
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">Acesso Negado</h2>
           <p className="text-gray-600 mb-6">Apenas administradores podem aceder a esta área.</p>
-          <a href="/" className="inline-block px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-            Voltar ao Início
+          <a href="/admin/login" className="inline-block px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+            Login Admin
           </a>
         </div>
       </div>
