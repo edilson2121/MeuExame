@@ -10,11 +10,15 @@ import {
   FileQuestion,
   CreditCard,
   TrendingUp,
+  TrendingDown,
   LogOut,
   ChevronRight,
   Plus,
   CheckCircle,
   Clock,
+  DollarSign,
+  Activity,
+  Eye,
 } from 'lucide-react';
 
 // Dados de exemplo
@@ -23,7 +27,24 @@ const stats = {
   institutions: 12,
   exams: 48,
   revenue: 245600,
+  growth: 12.5,
 };
+
+const revenueData = [
+  { month: 'Jan', value: 45000 },
+  { month: 'Feb', value: 52000 },
+  { month: 'Mar', value: 48000 },
+  { month: 'Apr', value: 61000 },
+  { month: 'May', value: 55000 },
+  { month: 'Jun', value: 67000 },
+];
+
+const examAccessData = [
+  { name: 'Matemática', value: 1245 },
+  { name: 'Física', value: 890 },
+  { name: 'Química', value: 654 },
+  { name: 'Português', value: 432 },
+];
 
 const menuItems = [
   { title: 'Dashboard', icon: <TrendingUp size={20} />, href: '/admin/dashboard', active: true },
@@ -32,6 +53,7 @@ const menuItems = [
   { title: 'Exames', icon: <FileQuestion size={20} />, href: '/admin/exames' },
   { title: 'Utilizadores', icon: <Users size={20} />, href: '/admin/usuarios' },
   { title: 'Pagamentos', icon: <CreditCard size={20} />, href: '/admin/pagamentos' },
+  { title: 'Páginas', icon: <Eye size={20} />, href: '/admin/pages' },
 ];
 
 const recentExams = [
@@ -54,6 +76,23 @@ function StatusBadge({ status }: { status: string }) {
     return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700"><Clock size={12} />Pendente</span>;
   }
   return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">Rascunho</span>;
+}
+
+function MiniChart({ data }: { data: { month: string; value: number }[] }) {
+  const max = Math.max(...data.map(d => d.value));
+  return (
+    <div className="flex items-end gap-1 h-16">
+      {data.map((item, i) => (
+        <div key={i} className="flex-1 flex flex-col items-center gap-1">
+          <div 
+            className="w-full bg-green-500 rounded-t"
+            style={{ height: `${(item.value / max) * 100}%` }}
+          />
+          <span className="text-[10px] text-gray-400">{item.month}</span>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default function AdminDashboard() {
@@ -117,48 +156,66 @@ export default function AdminDashboard() {
 
         {/* Main Content */}
         <main className="flex-1 p-4 md:p-6">
-          {/* Stats */}
+          {/* Stats with Charts */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-white rounded-xl p-4 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg text-blue-600"><Users size={20} /></div>
+              <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-gray-500">Estudantes</p>
                   <p className="text-xl font-bold">{stats.users.toLocaleString()}</p>
+                  <p className="text-xs text-green-600 flex items-center mt-1">
+                    <TrendingUp size={12} className="mr-1" /> +{stats.growth}%
+                  </p>
                 </div>
+                <div className="p-2 bg-blue-100 rounded-lg text-blue-600"><Users size={20} /></div>
+              </div>
+              <div className="mt-3">
+                <MiniChart data={revenueData} />
               </div>
             </div>
             <div className="bg-white rounded-xl p-4 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 rounded-lg text-green-600"><Building2 size={20} /></div>
+              <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-gray-500">Instituições</p>
                   <p className="text-xl font-bold">{stats.institutions}</p>
+                  <p className="text-xs text-green-600 flex items-center mt-1">
+                    <TrendingUp size={12} className="mr-1" /> +2
+                  </p>
                 </div>
+                <div className="p-2 bg-green-100 rounded-lg text-green-600"><Building2 size={20} /></div>
               </div>
             </div>
             <div className="bg-white rounded-xl p-4 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-100 rounded-lg text-purple-600"><FileQuestion size={20} /></div>
+              <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-gray-500">Exames</p>
                   <p className="text-xl font-bold">{stats.exams}</p>
+                  <p className="text-xs text-green-600 flex items-center mt-1">
+                    <TrendingUp size={12} className="mr-1" /> +5
+                  </p>
                 </div>
+                <div className="p-2 bg-purple-100 rounded-lg text-purple-600"><FileQuestion size={20} /></div>
               </div>
             </div>
             <div className="bg-white rounded-xl p-4 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-yellow-100 rounded-lg text-yellow-600"><TrendingUp size={20} /></div>
+              <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-gray-500">Receitas</p>
                   <p className="text-xl font-bold">{stats.revenue.toLocaleString()} MZN</p>
+                  <p className="text-xs text-green-600 flex items-center mt-1">
+                    <TrendingUp size={12} className="mr-1" /> +{stats.growth}%
+                  </p>
                 </div>
+                <div className="p-2 bg-yellow-100 rounded-lg text-yellow-600"><DollarSign size={20} /></div>
+              </div>
+              <div className="mt-3">
+                <MiniChart data={revenueData} />
               </div>
             </div>
           </div>
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
             <Link href="/admin/instituicoes" className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-center gap-2 text-blue-600 font-medium">
               <Plus size={18} />Nova Instituição
             </Link>
@@ -168,7 +225,10 @@ export default function AdminDashboard() {
             <Link href="/admin/usuarios" className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-center gap-2 text-purple-600 font-medium">
               <Plus size={18} />Novo Utilizador
             </Link>
-            <Link href="/admin/pagamentos" className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-center gap-2 text-yellow-600 font-medium">
+            <Link href="/admin/pages" className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-center gap-2 text-yellow-600 font-medium">
+              <Plus size={18} />Nova Página
+            </Link>
+            <Link href="/admin/pagamentos" className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-center gap-2 text-red-600 font-medium">
               <Plus size={18} />Ver Pagamentos
             </Link>
           </div>
