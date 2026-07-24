@@ -20,6 +20,10 @@ import {
   Activity,
   Eye,
 } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
+
+// Cores para gráficos
+const COLORS = ['#22c55e', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4'];
 
 // Dados de exemplo
 const stats = {
@@ -30,20 +34,41 @@ const stats = {
   growth: 12.5,
 };
 
+// Dados para gráfico de barras - Receita por mês
 const revenueData = [
-  { month: 'Jan', value: 45000 },
-  { month: 'Feb', value: 52000 },
-  { month: 'Mar', value: 48000 },
-  { month: 'Apr', value: 61000 },
-  { month: 'May', value: 55000 },
-  { month: 'Jun', value: 67000 },
+  { month: 'Jan', receita: 45000, despesas: 15000 },
+  { month: 'Fev', receita: 52000, despesas: 18000 },
+  { month: 'Mar', receita: 48000, despesas: 16000 },
+  { month: 'Abr', receita: 61000, despesas: 20000 },
+  { month: 'Mai', receita: 55000, despesas: 17500 },
+  { month: 'Jun', receita: 67000, despesas: 22000 },
 ];
 
-const examAccessData = [
-  { name: 'Matemática', value: 1245 },
-  { name: 'Física', value: 890 },
-  { name: 'Química', value: 654 },
-  { name: 'Português', value: 432 },
+// Dados para gráfico de pizza - Acesso por disciplina
+const disciplineData = [
+  { name: 'Matemática', value: 1245, color: '#22c55e' },
+  { name: 'Física', value: 890, color: '#3b82f6' },
+  { name: 'Química', value: 654, color: '#8b5cf6' },
+  { name: 'Português', value: 432, color: '#f59e0b' },
+  { name: 'Biologia', value: 321, color: '#ef4444' },
+  { name: 'História', value: 210, color: '#06b6d4' },
+];
+
+// Dados para gráfico de pizza - Planos
+const plansData = [
+  { name: 'Mensal', value: 1250, color: '#22c55e' },
+  { name: 'Semanal', value: 890, color: '#3b82f6' },
+  { name: 'Diário', value: 320, color: '#f59e0b' },
+];
+
+// Dados para gráfico de linha - Crescimento de usuários
+const userGrowthData = [
+  { month: 'Jan', users: 2100 },
+  { month: 'Fev', users: 2400 },
+  { month: 'Mar', users: 2650 },
+  { month: 'Abr', users: 2900 },
+  { month: 'Mai', users: 3150 },
+  { month: 'Jun', users: 3425 },
 ];
 
 const menuItems = [
@@ -78,15 +103,17 @@ function StatusBadge({ status }: { status: string }) {
   return <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">Rascunho</span>;
 }
 
-function MiniChart({ data }: { data: { month: string; value: number }[] }) {
-  const max = Math.max(...data.map(d => d.value));
+function MiniChart({ data }: { data: { month: string; receita?: number; value?: number }[] }) {
+  const getValue = (d: any) => d.value || d.receita || 0;
+  const values = data.map(getValue);
+  const max = Math.max(...values);
   return (
     <div className="flex items-end gap-1 h-16">
       {data.map((item, i) => (
         <div key={i} className="flex-1 flex flex-col items-center gap-1">
           <div 
             className="w-full bg-green-500 rounded-t"
-            style={{ height: `${(item.value / max) * 100}%` }}
+            style={{ height: `${max > 0 ? (getValue(item) / max) * 100 : 0}%` }}
           />
           <span className="text-[10px] text-gray-400">{item.month}</span>
         </div>
@@ -211,6 +238,85 @@ export default function AdminDashboard() {
               <div className="mt-3">
                 <MiniChart data={revenueData} />
               </div>
+            </div>
+          </div>
+
+          {/* Gráficos */}
+          <div className="grid md:grid-cols-2 gap-6 mb-6">
+            {/* Gráfico de Barras - Receita */}
+            <div className="bg-white rounded-xl p-6 shadow-sm">
+              <h3 className="font-semibold text-gray-900 mb-4">Receita por Mês (MZN)</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={revenueData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="receita" fill="#22c55e" name="Receita" />
+                  <Bar dataKey="despesas" fill="#ef4444" name="Despesas" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Gráfico de Pizza - Disciplinas */}
+            <div className="bg-white rounded-xl p-6 shadow-sm">
+              <h3 className="font-semibold text-gray-900 mb-4">Acesso por Disciplina</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie
+                    data={disciplineData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
+                  >
+                    {disciplineData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Gráfico de Linha - Crescimento */}
+            <div className="bg-white rounded-xl p-6 shadow-sm">
+              <h3 className="font-semibold text-gray-900 mb-4">Crescimento de Estudantes</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <LineChart data={userGrowthData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="users" stroke="#3b82f6" strokeWidth={3} dot={{ fill: '#3b82f6' }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Gráfico de Pizza - Planos */}
+            <div className="bg-white rounded-xl p-6 shadow-sm">
+              <h3 className="font-semibold text-gray-900 mb-4">Planos Ativos</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie
+                    data={plansData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    dataKey="value"
+                    label={({ name, value }) => `${name}: ${value}`}
+                  >
+                    {plansData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
           </div>
 
