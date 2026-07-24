@@ -17,6 +17,10 @@ import {
   Menu,
   X,
   Search,
+  Home,
+  BookOpen,
+  CreditCard,
+  UserCircle,
 } from 'lucide-react';
 
 interface Institution {
@@ -107,6 +111,32 @@ function UserLayout({ children }: { children: React.ReactNode }) {
       )}
 
       {children}
+      
+      {/* Bottom Tab Bar - Mobile Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-pb lg:hidden">
+        <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
+          <Link href="/home" className="flex flex-col items-center justify-center w-full py-2 text-[#10A63D]">
+            <Home size={22} />
+            <span className="text-xs mt-1">Início</span>
+          </Link>
+          <Link href="/instituicoes" className="flex flex-col items-center justify-center w-full py-2 text-gray-400">
+            <BookOpen size={22} />
+            <span className="text-xs mt-1">Cursos</span>
+          </Link>
+          <Link href="/exames" className="flex flex-col items-center justify-center w-full py-2 text-gray-400">
+            <FileQuestion size={22} />
+            <span className="text-xs mt-1">Exames</span>
+          </Link>
+          <Link href="/pagamentos" className="flex flex-col items-center justify-center w-full py-2 text-gray-400">
+            <CreditCard size={22} />
+            <span className="text-xs mt-1">Pagamentos</span>
+          </Link>
+          <Link href="/perfil" className="flex flex-col items-center justify-center w-full py-2 text-gray-400">
+            <UserCircle size={22} />
+            <span className="text-xs mt-1">Perfil</span>
+          </Link>
+        </div>
+      </nav>
     </div>
   );
 }
@@ -170,7 +200,7 @@ function HomeContent() {
 
   return (
     <UserLayout>
-      <main className="flex-1 max-w-lg mx-auto w-full px-4 py-4">
+      <main className="flex-1 max-w-lg mx-auto w-full px-4 py-4 pb-24">
         {/* Search */}
         <div className="relative mb-6">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
