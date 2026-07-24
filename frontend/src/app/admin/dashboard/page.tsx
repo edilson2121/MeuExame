@@ -48,12 +48,12 @@ const examAccessData = [
 
 const menuItems = [
   { title: 'Dashboard', icon: <TrendingUp size={20} />, href: '/admin/dashboard', active: true },
+  { title: 'CMS', icon: <Eye size={20} />, href: '/admin/cms' },
   { title: 'Instituições', icon: <Building2 size={20} />, href: '/admin/instituicoes' },
   { title: 'Disciplinas', icon: <BookOpen size={20} />, href: '/admin/disciplinas' },
   { title: 'Exames', icon: <FileQuestion size={20} />, href: '/admin/exames' },
   { title: 'Utilizadores', icon: <Users size={20} />, href: '/admin/usuarios' },
   { title: 'Pagamentos', icon: <CreditCard size={20} />, href: '/admin/pagamentos' },
-  { title: 'Páginas', icon: <Eye size={20} />, href: '/admin/pages' },
 ];
 
 const recentExams = [
