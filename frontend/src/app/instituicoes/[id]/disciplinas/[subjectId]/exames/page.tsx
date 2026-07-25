@@ -92,6 +92,13 @@ export default function ExamesPage() {
   };
 
   const handleSelectExam = (exam: any) => {
+    // Se não tem assinatura e o exame é pago, redirecionar para pagamento
+    const isPaidExam = exam.price && exam.price > 0;
+    if (isPaidExam && !hasFullAccess) {
+      router.push(`/pagamentos/${exam.id}`);
+      return;
+    }
+    
     setSelectedExam(exam);
     setShowExam(true);
     setAnswers({});
@@ -445,23 +452,23 @@ export default function ExamesPage() {
                       Duração: {exam.duration} minutos
                     </p>
                   )}
-                  <p className="text-green-600 text-sm mt-3 font-medium">
-                    Clique para iniciar o exame
-                  </p>
-                  {isFreeUser && (
-                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mt-3">
-                      <p className="text-orange-600 text-xs font-semibold">
-                        🎁 Versão Gratuita
+                  {/* Indicador de preço */}
+                  {exam.price && exam.price > 0 ? (
+                    <div className="bg-purple-100 border border-purple-200 rounded-lg p-2 mt-3">
+                      <p className="text-purple-700 text-sm font-semibold">
+                        🔒 PAGO - {exam.price} MZN
                       </p>
-                      <p className="text-orange-700 text-xs mt-1">
-                        3 questões disponíveis
+                      {isFreeUser && (
+                        <p className="text-purple-600 text-xs mt-1">
+                          Clique para comprar acesso
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="bg-green-100 border border-green-200 rounded-lg p-2 mt-3">
+                      <p className="text-green-700 text-sm font-semibold">
+                        🎁 GRÁTIS
                       </p>
-                      <Link
-                        href="/pagamento"
-                        className="block mt-2 text-xs text-orange-800 hover:text-orange-900 font-medium underline"
-                      >
-                        Assinar por 299 MZN para acesso completo
-                      </Link>
                     </div>
                   )}
                 </div>
