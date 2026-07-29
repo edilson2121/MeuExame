@@ -3,12 +3,20 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import {
+  PlayIcon,
+  LockClosedIcon,
+  GiftIcon,
+  ClockIcon,
+  BookOpenIcon,
+  ArrowLeftIcon,
+  DocumentTextIcon
+} from '@heroicons/react/24/outline';
 
 export default function ExamesPage() {
   const [exams, setExams] = useState([]);
   const [subject, setSubject] = useState<any>(null);
   const [institution, setInstitution] = useState<any>(null);
-  const [manuals, setManuals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedExam, setSelectedExam] = useState<any>(null);
   const [showExam, setShowExam] = useState(false);
@@ -46,7 +54,7 @@ export default function ExamesPage() {
     try {
       const token = localStorage.getItem('token');
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-      
+
       // Fetch subject
       const subjectResponse = await fetch(`${apiUrl}/subjects/${params.subjectId}`, {
         headers: {
@@ -73,17 +81,6 @@ export default function ExamesPage() {
       });
       const examsData = await examsResponse.json();
       setExams(examsData);
-
-      // Fetch study contents for this subject
-      const studyContentsResponse = await fetch(`${apiUrl}/study-contents/subject/${params.subjectId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      if (studyContentsResponse.ok) {
-        const studyContentsData = await studyContentsResponse.json();
-        setManuals(studyContentsData);
-      }
     } catch (error) {
       console.error('Erro ao buscar exames:', error);
     } finally {
@@ -92,13 +89,12 @@ export default function ExamesPage() {
   };
 
   const handleSelectExam = (exam: any) => {
-    // Se não tem assinatura e o exame é pago, redirecionar para pagamento
     const isPaidExam = exam.price && exam.price > 0;
     if (isPaidExam && !hasFullAccess) {
       router.push(`/pagamentos/${exam.id}`);
       return;
     }
-    
+
     setSelectedExam(exam);
     setShowExam(true);
     setAnswers({});
@@ -117,7 +113,7 @@ export default function ExamesPage() {
     try {
       const token = localStorage.getItem('token');
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-      
+
       // Start simulation
       const startResponse = await fetch(`${apiUrl}/simulations/start/${selectedExam.id}`, {
         method: 'POST',
@@ -126,7 +122,7 @@ export default function ExamesPage() {
         },
       });
       const simulation = await startResponse.json();
-      
+
       // Complete simulation with answers
       const completeResponse = await fetch(`${apiUrl}/simulations/${simulation.id}/complete`, {
         method: 'POST',
@@ -137,7 +133,7 @@ export default function ExamesPage() {
         body: JSON.stringify({ answers }),
       });
       const data = await completeResponse.json();
-      
+
       setResult({
         score: data.score,
         correctCount: Object.keys(answers).filter((key) => {
@@ -167,14 +163,13 @@ export default function ExamesPage() {
     setResult(null);
   };
 
-  const hasFullAccess = userSubscription?.isActive && new Date(userSubscription?.endDate) > new Date();
+  const hasFullAccess = userSubscription?.isActive && userSubscription?.endDate ? new Date(userSubscription.endDate) > new Date() : false;
   const isFreeUser = !hasFullAccess;
 
   const getAvailableQuestions = (exam: any) => {
     if (hasFullAccess) {
       return exam.questions;
     }
-    // Return only first 3 questions for free users
     return exam.questions?.slice(0, 3) || [];
   };
 
@@ -182,17 +177,18 @@ export default function ExamesPage() {
     const questions = getAvailableQuestions(selectedExam);
 
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
         {/* Header */}
-        <div className="bg-white shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="bg-white shadow-sm border-b border-green-100">
+          <div className="max-w-7xl mx-auto px-4 py-6">
             <button
               onClick={handleBackToList}
-              className="text-gray-600 hover:text-gray-900 text-sm"
+              className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm font-medium mb-4"
             >
-              ← Voltar aos Exames
+              <ArrowLeftIcon className="w-4 h-4" />
+              Voltar aos Exames
             </button>
-            <h1 className="text-2xl font-bold text-gray-900 mt-2">
+            <h1 className="text-2xl font-bold text-gray-900">
               {selectedExam.title}
             </h1>
             {selectedExam.description && (
@@ -204,7 +200,7 @@ export default function ExamesPage() {
         {/* Content */}
         <div className="max-w-4xl mx-auto px-4 py-8">
           {result ? (
-            <div className="bg-white rounded-lg shadow-md p-8">
+            <div className="bg-white rounded-3xl shadow-xl p-8">
               <div className="text-center mb-8">
                 <div className="text-6xl font-bold text-green-600 mb-2">
                   {result.score.toFixed(0)}%
@@ -218,30 +214,28 @@ export default function ExamesPage() {
                 {result.results.map((r: any, index: number) => (
                   <div
                     key={r.questionId}
-                    className={`p-4 rounded-lg ${
-                      r.isCorrect ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
-                    }`}
+                    className={`p-6 rounded-2xl ${r.isCorrect ? 'bg-green-50 border-2 border-green-200' : 'bg-red-50 border-2 border-red-200'
+                      }`}
                   >
-                    <div className="flex items-start gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        r.isCorrect ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-                      }`}>
+                    <div className="flex items-start gap-4">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${r.isCorrect ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                        }`}>
                         {r.isCorrect ? '✓' : '✗'}
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium text-gray-900 mb-2">
+                        <p className="font-semibold text-gray-900 mb-2">
                           Questão {index + 1}
                         </p>
                         <p className="text-sm text-gray-600 mb-2">
                           Sua resposta: {r.userAnswer || 'Não respondida'}
                         </p>
                         {!r.isCorrect && (
-                          <p className="text-sm text-green-700 mb-2">
+                          <p className="text-sm text-red-600 mb-2">
                             Resposta correta: {r.correctAnswer}
                           </p>
                         )}
                         {r.explanation && (
-                          <p className="text-sm text-gray-700 bg-white p-3 rounded mt-2">
+                          <p className="text-sm text-gray-700 bg-white p-4 rounded-xl mt-2">
                             <strong>Explicação:</strong> {r.explanation}
                           </p>
                         )}
@@ -253,64 +247,65 @@ export default function ExamesPage() {
 
               <button
                 onClick={handleBackToList}
-                className="mt-8 w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors"
+                className="mt-8 w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-2xl hover:from-green-600 hover:to-emerald-700 transition-all"
               >
                 Voltar aos Exames
               </button>
             </div>
           ) : (
-            <div className="bg-white rounded-lg shadow-md p-8">
+            <div className="bg-white rounded-3xl shadow-xl p-8">
               <div className="mb-6">
                 {isFreeUser && (
-                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
-                    <p className="text-orange-600 text-sm font-semibold">
-                      🎁 Versão Gratuita
+                  <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 mb-6">
+                    <p className="text-amber-700 text-sm font-semibold flex items-center gap-2 mb-2">
+                      <GiftIcon className="w-5 h-5" />
+                      Versão Gratuita
                     </p>
-                    <p className="text-orange-700 text-sm mt-1">
+                    <p className="text-amber-700 text-sm">
                       Você está visualizando as primeiras 3 questões deste exame.
                     </p>
                     <Link
                       href="/pagamento"
-                      className="block mt-2 text-sm text-orange-800 hover:text-orange-900 font-medium underline"
+                      className="block mt-3 text-sm text-amber-800 hover:text-amber-900 font-medium underline"
                     >
                       Assinar por 299 MZN para acesso completo a todas as questões
                     </Link>
                   </div>
                 )}
-                <p className="text-gray-600 mb-4">
-                  Responda às questões abaixo. O sistema irá validar suas respostas automaticamente.
-                </p>
+                <div className="flex items-center gap-3 text-gray-600 mb-6">
+                  <ClockIcon className="w-5 h-5" />
+                  <span>{selectedExam.duration} minutos • {selectedExam.questions?.length || 0} questões</span>
+                </div>
                 {selectedExam.imageUrl && (
                   <img
                     src={selectedExam.imageUrl}
                     alt="Exam"
-                    className="w-full max-w-md mx-auto rounded-lg mb-4"
+                    className="w-full max-w-md mx-auto rounded-2xl mb-6"
                   />
                 )}
               </div>
 
-              <div className="space-y-8">
+              <div className="space-y-6">
                 {questions.map((question: any, index: number) => (
-                  <div key={question.id} className="border-b pb-6 last:border-b-0">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">
+                  <div key={question.id} className="border-b-2 border-gray-100 pb-6 last:border-b-0">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
                       {index + 1}. {question.text}
                     </h3>
                     {question.imageUrl && (
                       <img
                         src={question.imageUrl}
                         alt={`Question ${index + 1}`}
-                        className="w-full max-w-md rounded-lg mb-4"
+                        className="w-full max-w-md rounded-2xl mb-4"
                       />
                     )}
                     <div className="space-y-3">
                       {question.options?.map((option: string, optIndex: number) => (
                         <label
                           key={optIndex}
-                          className={`flex items-center p-4 border rounded-lg cursor-pointer transition-colors ${
-                            answers[question.id] === option
+                          className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${answers[question.id] === option
                               ? 'border-green-500 bg-green-50'
-                              : 'border-gray-200 hover:border-gray-300'
-                          }`}
+                              : 'border-gray-200 hover:border-green-300 hover:bg-green-50'
+                            }`}
                         >
                           <input
                             type="radio"
@@ -318,7 +313,7 @@ export default function ExamesPage() {
                             value={option}
                             checked={answers[question.id] === option}
                             onChange={(e) => handleAnswerChange(question.id, e.target.value)}
-                            className="mr-3"
+                            className="mr-4"
                           />
                           <span className="text-gray-700">{option}</span>
                         </label>
@@ -331,7 +326,7 @@ export default function ExamesPage() {
               <button
                 onClick={handleSubmitExam}
                 disabled={submitting || Object.keys(answers).length === 0}
-                className="mt-8 w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="mt-8 w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-2xl hover:from-green-600 hover:to-emerald-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {submitting ? 'Validando...' : 'Enviar Respostas'}
               </button>
@@ -343,24 +338,32 @@ export default function ExamesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
       {/* Header */}
-      <div className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+      <div className="bg-white shadow-sm border-b border-green-100">
+        <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
               <Link
                 href={`/instituicoes/${params.id}/disciplinas`}
-                className="text-gray-600 hover:text-gray-900 text-sm"
+                className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm font-medium mb-4"
               >
-                ← Voltar às Disciplinas
+                <ArrowLeftIcon className="w-4 h-4" />
+                Voltar às Disciplinas
               </Link>
-              <h1 className="text-2xl font-bold text-gray-900 mt-2">
-                {subject?.name || 'Exames'}
-              </h1>
-              <p className="text-gray-600 text-sm mt-1">
-                {institution?.name}
-              </p>
+              <div className="flex items-center gap-3 mt-2">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <BookOpenIcon className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    {subject?.name || 'Exames'}
+                  </h1>
+                  <p className="text-gray-500 text-sm">
+                    {institution?.name} · {exams.length} {exams.length === 1 ? 'exame disponível' : 'exames disponíveis'}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -368,114 +371,92 @@ export default function ExamesPage() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Study Contents Section */}
-        {manuals.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Conteúdos de Estudo</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {manuals.map((manual: any) => (
-                <div
-                  key={manual.id}
-                  className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6"
-                >
-                  <div className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-                    <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {manual.title}
-                  </h3>
-                  {manual.description && (
-                    <p className="text-gray-600 text-sm mb-3">
-                      {manual.description}
-                    </p>
-                  )}
-                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
-                    <span>👁️ {manual.views}</span>
-                    <span>❤️ {manual.likes}</span>
-                  </div>
-                  <button
-                    onClick={() => window.open(`/study-contents/${manual.id}`, '_blank')}
-                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                  >
-                    Ver Conteúdo
-                  </button>
-                </div>
-              ))}
-            </div>
+        {loading ? (
+          <div className="text-center py-20">
+            <div className="w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-gray-600">Carregando exames...</p>
           </div>
-        )}
-
-        {/* Exams Section */}
-        <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Exames Disponíveis</h2>
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-              <p className="mt-4 text-gray-600">Carregando exames...</p>
-            </div>
-          ) : exams.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-600">Nenhum exame disponível para esta disciplina.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {exams.map((exam: any) => (
-                <div
-                  key={exam.id}
-                  onClick={() => handleSelectExam(exam)}
-                  className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer p-6"
-                >
-                  {exam.imageUrl && (
+        ) : exams.length === 0 ? (
+          <div className="text-center py-20">
+            <DocumentTextIcon className="w-20 h-20 mx-auto text-gray-300 mb-4" />
+            <h3 className="text-xl font-semibold text-gray-700 mb-2">Nenhum exame disponível</h3>
+            <p className="text-gray-500">Esta disciplina ainda não possui exames cadastrados.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {exams.map((exam: any) => (
+              <div
+                key={exam.id}
+                onClick={() => handleSelectExam(exam)}
+                className="bg-white rounded-3xl shadow-lg border-2 border-green-100 hover:shadow-2xl hover:border-green-400 transition-all group transform hover:-translate-y-1 cursor-pointer overflow-hidden"
+              >
+                <div className="h-40 bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center relative">
+                  {exam.imageUrl ? (
                     <img
                       src={exam.imageUrl}
                       alt={exam.title}
-                      className="w-full h-40 object-cover rounded-lg mb-4"
+                      className="w-full h-full object-cover"
                     />
+                  ) : (
+                    <DocumentTextIcon className="w-16 h-16 text-white/90" />
                   )}
-                  <div className="flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
-                    <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                    </svg>
+                  <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full">
+                    <span className="text-white text-sm font-semibold flex items-center gap-2">
+                      <ClockIcon className="w-4 h-4" />
+                      {exam.duration} min
+                    </span>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                </div>
+
+                <div className="p-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-green-700 transition-colors">
                     {exam.title}
                   </h3>
                   {exam.description && (
-                    <p className="text-gray-600 text-sm mb-3">
+                    <p className="text-gray-500 text-sm mb-4 line-clamp-2">
                       {exam.description}
                     </p>
                   )}
-                  {exam.duration && (
-                    <p className="text-gray-500 text-sm">
-                      Duração: {exam.duration} minutos
-                    </p>
-                  )}
-                  {/* Indicador de preço */}
+
+                  {/* Price Badge */}
                   {exam.price && exam.price > 0 ? (
-                    <div className="bg-purple-100 border border-purple-200 rounded-lg p-2 mt-3">
-                      <p className="text-purple-700 text-sm font-semibold">
-                        🔒 PAGO - {exam.price} MZN
-                      </p>
+                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-3 mb-4">
+                      <div className="flex items-center gap-2">
+                        <LockClosedIcon className="w-5 h-5 text-purple-600" />
+                        <div>
+                          <p className="text-purple-700 text-sm font-bold">PAGO</p>
+                          <p className="text-purple-600 text-xs">{exam.price} MZN</p>
+                        </div>
+                      </div>
                       {isFreeUser && (
-                        <p className="text-purple-600 text-xs mt-1">
-                          Clique para comprar acesso
+                        <p className="text-purple-600 text-xs mt-2 font-medium">
+                          Clique para desbloquear
                         </p>
                       )}
                     </div>
                   ) : (
-                    <div className="bg-green-100 border border-green-200 rounded-lg p-2 mt-3">
-                      <p className="text-green-700 text-sm font-semibold">
-                        🎁 GRÁTIS
-                      </p>
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-3 mb-4">
+                      <div className="flex items-center gap-2">
+                        <GiftIcon className="w-5 h-5 text-green-600" />
+                        <p className="text-green-700 text-sm font-bold">GRÁTIS</p>
+                      </div>
                     </div>
                   )}
+
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                    <span className="text-sm text-gray-500">
+                      {exam.questions?.length || 0} questões
+                    </span>
+                    <div className="flex items-center gap-2 text-green-600 font-semibold group-hover:gap-3 transition-all">
+                      <PlayIcon className="w-5 h-5" />
+                      <span>Iniciar</span>
+                    </div>
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

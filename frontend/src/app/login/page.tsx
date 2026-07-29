@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { UserIcon, LockClosedIcon, ArrowRightIcon, AcademicCapIcon } from '@heroicons/react/24/outline';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
 
@@ -16,21 +16,8 @@ export default function LoginPage() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-    
-    if (token && userData) {
-      router.push('/home');
-    }
-
-    // Handle Google callback
-    const urlParams = new URLSearchParams(window.location.search);
-    const tokenParam = urlParams.get('token');
-    const userParam = urlParams.get('user');
-    
-    if (tokenParam && userParam) {
-      localStorage.setItem('token', tokenParam);
-      localStorage.setItem('user', decodeURIComponent(userParam));
-      router.push('/home');
+    if (token) {
+      router.push('/instituicoes');
     }
   }, [router]);
 
@@ -51,8 +38,7 @@ export default function LoginPage() {
       if (response.ok) {
         localStorage.setItem('token', data.access_token);
         localStorage.setItem('user', JSON.stringify(data.user));
-
-        router.push('/home');
+        router.push('/instituicoes');
       } else {
         setError(data.message || 'Credenciais inválidas');
       }
@@ -63,90 +49,60 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    setGoogleLoading(true);
-    window.location.href = `${apiUrl}/auth/google`;
-  };
-
   return (
-    <main className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center px-4">
+    <main className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2">
-            <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-3xl">M</span>
+          <Link href="/" className="inline-flex items-center gap-3 mb-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-xl">
+              <AcademicCapIcon className="w-8 h-8 text-white" />
             </div>
             <span className="font-bold text-3xl text-gray-900">MeuExame</span>
           </Link>
-          <p className="text-gray-600 mt-2">Prepare-se para os seus exames</p>
+          <p className="text-gray-600">Entre para continuar estudando</p>
         </div>
 
-        {/* Form */}
-        <div className="bg-white rounded-3xl shadow-xl p-8">
-          <h1 className="text-2xl font-bold text-center mb-2">Bem-vindo!</h1>
-          <p className="text-gray-500 text-center mb-8">Entre para continuar</p>
+        {/* Form Card */}
+        <div className="bg-white rounded-3xl shadow-xl p-8 border border-green-100">
+          <h1 className="text-2xl font-bold text-center mb-2">Bem-vindo de volta!</h1>
+          <p className="text-gray-500 text-center mb-6">Acesse sua conta em segundos</p>
 
           {error && (
-            <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl mb-6 text-sm flex items-center gap-2">
-              <span className="text-lg">⚠️</span>
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl mb-6 text-sm">
               {error}
             </div>
           )}
 
-          {/* Google Login Button */}
-          <button
-            type="button"
-            onClick={handleGoogleLogin}
-            disabled={googleLoading}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all mb-6"
-          >
-            {googleLoading ? (
-              <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-            ) : (
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
-            )}
-            <span className="font-medium text-gray-700">Continuar com Google</span>
-          </button>
-
-          <div className="flex items-center gap-4 mb-6">
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-sm text-gray-400">ou</span>
-            <div className="flex-1 h-px bg-gray-200" />
-          </div>
-
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                placeholder="seu@email.com"
-                required
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <div className="relative">
+                <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  placeholder="seu@email.com"
+                  required
+                />
+              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Palavra-passe
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                placeholder="••••••••"
-                required
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-1">Palavra-passe</label>
+              <div className="relative">
+                <LockClosedIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  placeholder="•••••••••"
+                  required
+                />
+              </div>
             </div>
 
             <button
@@ -154,13 +110,11 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {loading ? (
+              {loading ? 'Entrando...' : (
                 <>
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Entrando...
+                  Entrar
+                  <ArrowRightIcon className="w-5 h-5" />
                 </>
-              ) : (
-                'Entrar'
               )}
             </button>
           </form>
@@ -176,18 +130,15 @@ export default function LoginPage() {
         <p className="text-center mt-6 text-gray-600">
           Não tem conta?{' '}
           <Link href="/register" className="text-green-600 font-semibold hover:underline">
-            Criar conta
+            Criar conta grátis
           </Link>
         </p>
 
         {/* Demo credentials */}
-        <div className="mt-6 p-4 bg-white/80 backdrop-blur rounded-2xl text-sm border border-green-100">
+        <div className="mt-6 p-4 bg-green-50 rounded-2xl text-sm border border-green-200">
           <p className="font-semibold text-green-800 mb-2">🔑 Login Rápido (Demo):</p>
-          <div className="space-y-1 text-green-700">
-            <p><strong>User:</strong> user@meuexame.com / user123</p>
-          </div>
+          <p className="text-green-700"><strong>User:</strong> user@meuexame.com / user123</p>
         </div>
-
       </div>
     </main>
   );

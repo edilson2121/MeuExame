@@ -19,8 +19,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     const checkAuth = () => {
-      const userData = localStorage.getItem('user');
-      const token = localStorage.getItem('token');
+      const userData = localStorage.getItem('admin_user');
+      const token = localStorage.getItem('admin_token');
 
       if (!token || !userData) {
         router.push('/admin/login');
@@ -28,7 +28,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       }
 
       const parsedUser = JSON.parse(userData);
-      
+
       if (parsedUser.role !== 'ADMIN') {
         // Não é admin - redirecionar para página inicial
         router.push('/');

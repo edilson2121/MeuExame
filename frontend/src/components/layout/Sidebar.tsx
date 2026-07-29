@@ -21,13 +21,9 @@ import { useState } from 'react';
 const adminLinks = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/instituicoes', label: 'Instituições', icon: Building2 },
-  { href: '/admin/disciplinas', label: 'Disciplinas', icon: BookOpen },
-  { href: '/admin/exames', label: 'Exames', icon: FileText },
+  { href: '/admin/paginas', label: 'Páginas', icon: FileText },
   { href: '/admin/pagamentos', label: 'Pagamentos', icon: CreditCard },
   { href: '/admin/usuarios', label: 'Utilizadores', icon: Users },
-  { href: '/admin/planos', label: 'Planos', icon: CreditCard },
-  { href: '/admin/paginas', label: 'Páginas', icon: FileText },
-  { href: '/admin/pages', label: 'Gerir Páginas', icon: FileText },
 ];
 
 export default function Sidebar() {
@@ -111,16 +107,20 @@ export default function Sidebar() {
 
           {/* Footer */}
           <div className="border-t border-gray-200 p-4">
-            <Link
-              href="/"
+            <button
+              onClick={() => {
+                localStorage.removeItem('admin_token');
+                localStorage.removeItem('admin_user');
+                window.location.href = '/admin/login';
+              }}
               className={`
-                flex items-center gap-3 px-3 py-2 text-gray-600 hover:text-red-600 rounded-lg transition-colors
+                w-full flex items-center gap-3 px-3 py-2 text-gray-600 hover:text-red-600 rounded-lg transition-colors
                 ${collapsed ? 'justify-center' : ''}
               `}
             >
               <LogOut size={20} />
               {!collapsed && <span>Sair</span>}
-            </Link>
+            </button>
           </div>
         </div>
       </aside>
